@@ -63,6 +63,15 @@
 #endif
 #endif
 
+//cc2538 module implementierung
+#ifdef MODULE_CC2420
+#include "cc2538.h"
+#ifndef TRANSCEIVER_DEFAULT
+#define TRANSCEIVER_DEFAULT TRANSCEIVER_CC2538
+#endif
+#endif
+
+
 #ifdef MODULE_MC1322X
 #include "mc1322x.h"
 #include "maca.h"
@@ -101,6 +110,7 @@ extern "C" {
 /**
  * @name Defines the upper payload limit for all available transceivers
  * @{
+ * TODO define payload size for cc2538
  */
 #ifndef PAYLOAD_SIZE
 #define PAYLOAD_SIZE  (0)

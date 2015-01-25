@@ -1031,6 +1031,14 @@ static radio_address_t get_address(transceiver_type_t t)
             return at86rf231_get_address();
 #endif
 
+#ifdef MODULE_CC2538
+
+        case TRANSCEIVER_CC2538
+        	return //TODO
+
+
+#endif
+
         default:
             return 0; /* XXX see TODO above */
     }
