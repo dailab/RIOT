@@ -28,7 +28,6 @@
 #include "periph_conf.h"
 #include "thread.h"
 #include "sched.h"
-#include "vtimer.h"
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"
@@ -295,7 +294,7 @@ int spi_conf_pins(spi_t dev)
 
 int spi_acquire(spi_t dev)
 {
-    if (dev >= SPI_NUMOF) {
+    if ((unsigned int)dev >= SPI_NUMOF) {
         return -1;
     }
     mutex_lock(&locks[dev]);
@@ -304,7 +303,7 @@ int spi_acquire(spi_t dev)
 
 int spi_release(spi_t dev)
 {
-    if (dev >= SPI_NUMOF) {
+    if ((unsigned int)dev >= SPI_NUMOF) {
         return -1;
     }
     mutex_unlock(&locks[dev]);
@@ -335,10 +334,10 @@ int spi_transfer_byte(spi_t dev, char out, char *in)
             return -1;
     }
 
-    while (!(spi_port->SR & SPI_SR_TXE));
+    while (!(spi_port->SR & SPI_SR_TXE)) {}
     spi_port->DR = out;
 
-    while (!(spi_port->SR & SPI_SR_RXNE));
+    while (!(spi_port->SR & SPI_SR_RXNE)) {}
 
     if (in != NULL) {
         *in = spi_port->DR;
@@ -348,63 +347,6 @@ int spi_transfer_byte(spi_t dev, char out, char *in)
     }
 
     return 1;
-}
-
-int spi_transfer_bytes(spi_t dev, char *out, char *in, unsigned int length)
-{
-
-    int i, trans_ret, trans_bytes = 0;
-    char in_temp;
-
-    for (i = 0; i < length; i++) {
-        if (out) {
-            trans_ret = spi_transfer_byte(dev, out[i], &in_temp);
-        }
-        else {
-            trans_ret = spi_transfer_byte(dev, 0, &in_temp);
-        }
-        if (trans_ret < 0) {
-            return -1;
-        }
-        if (in != NULL) {
-            in[i] = in_temp;
-        }
-        trans_bytes++;
-    }
-
-    return trans_bytes++;
-}
-
-int spi_transfer_reg(spi_t dev, uint8_t reg, char out, char *in)
-{
-    int trans_ret;
-
-    trans_ret = spi_transfer_byte(dev, reg, in);
-    if (trans_ret < 0) {
-        return -1;
-    }
-    trans_ret = spi_transfer_byte(dev, out, in);
-    if (trans_ret < 0) {
-        return -1;
-    }
-
-    return 1;
-}
-
-int spi_transfer_regs(spi_t dev, uint8_t reg, char *out, char *in, unsigned int length)
-{
-    int trans_ret;
-
-    trans_ret = spi_transfer_byte(dev, reg, in);
-    if (trans_ret < 0) {
-        return -1;
-    }
-    trans_ret = spi_transfer_bytes(dev, out, in, length);
-    if (trans_ret < 0) {
-        return -1;
-    }
-
-    return trans_ret;
 }
 
 void spi_transmission_begin(spi_t dev, char reset_val)
@@ -455,19 +397,19 @@ void spi_poweroff(spi_t dev)
     switch (dev) {
 #if SPI_0_EN
         case SPI_0:
-            while (SPI_0_DEV->SR & SPI_SR_BSY);
+            while (SPI_0_DEV->SR & SPI_SR_BSY) {}
             SPI_0_CLKDIS();
             break;
 #endif
 #if SPI_1_EN
         case SPI_1:
-            while (SPI_1_DEV->SR & SPI_SR_BSY);
+            while (SPI_1_DEV->SR & SPI_SR_BSY) {}
             SPI_1_CLKDIS();
             break;
 #endif
 #if SPI_2_EN
         case SPI_2:
-            while (SPI_2_DEV->SR & SPI_SR_BSY);
+            while (SPI_2_DEV->SR & SPI_SR_BSY) {}
             SPI_2_CLKDIS();
             break;
 #endif

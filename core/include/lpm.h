@@ -12,7 +12,7 @@
  * @brief       The kernels power management interface
  * @{
  *
- * @file        lpm.h
+ * @file
  * @brief       Power management interface
  *
  * This interface needs to be implemented for each platform.
@@ -63,6 +63,11 @@ void lpm_end_awake(void);
  * @return  Current power mode
  */
 enum lpm_mode lpm_get(void);
+
+/**
+ * @brief LPM-internal variable
+ */
+extern volatile int lpm_prevent_sleep;
 
 #ifdef __cplusplus
 }

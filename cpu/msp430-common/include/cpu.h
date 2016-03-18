@@ -7,11 +7,11 @@
  * directory for more details.
  */
 
-#ifndef _CPU_H
-#define _CPU_H
+#ifndef CPU_H_
+#define CPU_H_
 
 /**
- * @defgroup    msp430 TI MSP430
+ * @defgroup    cpu_msp430_common TI MSP430
  * @ingroup     cpu
  * @brief       Texas Instruments MSP430 specific code
 
@@ -22,28 +22,65 @@
  */
 
 #include <stdio.h>
-#include <legacymsp430.h>
 
 #include <msp430.h>
 #include "board.h"
 
 #include "sched.h"
+#include "thread.h"
 #include "msp430_types.h"
-#include "cpu-conf.h"
+#include "cpu_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * @brief   Wordsize in bit for MSP430 platforms
+ */
 #define WORDSIZE 16
 
+/**
+ * @brief   Macro for defining interrupt service routines
+ */
+#define ISR(a,b)        void __attribute__((naked, interrupt (a))) b(void)
+
+/**
+ * @brief Globally disable IRQs
+ */
+static inline void __attribute__((always_inline)) __disable_irq(void)
+{
+    __asm__ __volatile__("bic  %0, r2" : : "i"(GIE));
+    /* this NOP is needed to handle a "delay slot" that all MSP430 MCUs
+       impose silently after messing with the GIE bit, DO NOT REMOVE IT! */
+    __asm__ __volatile__("nop");
+}
+
+/**
+ * @brief Globally enable IRQs
+ */
+static inline void __attribute__((always_inline)) __enable_irq(void)
+{
+    __asm__ __volatile__("bis  %0, r2" : : "i"(GIE));
+    /* this NOP is needed to handle a "delay slot" that all MSP430 MCUs
+       impose silently after messing with the GIE bit, DO NOT REMOVE IT! */
+    __asm__ __volatile__("nop");
+}
+
+/**
+ * @brief   The current ISR state (inside or not)
+ */
 extern volatile int __inISR;
+
+/**
+ * @brief   Memory used as stack for the interrupt context
+ */
 extern char __isr_stack[MSP430_ISR_STACK_SIZE];
 
-/*#define eINT()  eint() */
-/*#define dINT()  dint() */
-
-inline void __save_context_isr(void)
+/**
+ * @brief   Save the current thread context from inside an ISR
+ */
+static inline void __attribute__((always_inline)) __save_context(void)
 {
     __asm__("push r15");
     __asm__("push r14");
@@ -61,7 +98,10 @@ inline void __save_context_isr(void)
     __asm__("mov.w r1,%0" : "=r"(sched_active_thread->sp));
 }
 
-inline void __restore_context_isr(void)
+/**
+ * @brief   Restore the thread context from inside an ISR
+ */
+static inline void __attribute__((always_inline)) __restore_context(void)
 {
     __asm__("mov.w %0,r1" : : "m"(sched_active_thread->sp));
 
@@ -77,16 +117,23 @@ inline void __restore_context_isr(void)
     __asm__("pop r13");
     __asm__("pop r14");
     __asm__("pop r15");
+    __asm__("reti");
 }
 
-inline void __enter_isr(void)
+/**
+ * @brief   Run this code on entering interrupt routines
+ */
+static inline void __attribute__((always_inline)) __enter_isr(void)
 {
-    __save_context_isr();
-    __asm__("mov.w %0,r1" : : "i"(__isr_stack+MSP430_ISR_STACK_SIZE));
+    __save_context();
+    __asm__("mov.w %0,r1" : : "i"(__isr_stack + MSP430_ISR_STACK_SIZE));
     __inISR = 1;
 }
 
-inline void __exit_isr(void)
+/**
+ * @brief   Run this code on exiting interrupt routines
+ */
+static inline void __attribute__((always_inline)) __exit_isr(void)
 {
     __inISR = 0;
 
@@ -94,62 +141,27 @@ inline void __exit_isr(void)
         sched_run();
     }
 
-    __restore_context_isr();
-    __asm__("reti");
+    __restore_context();
 }
 
-inline void __save_context(void)
-{
-    __asm__("push r2"); /* save SR */
-    __save_context_isr();
-}
-
-inline void __restore_context(unsigned int irqen)
-{
-    __restore_context_isr();
-
-    /*
-     * we want to enable appropriate IRQs *just after*
-     * quitting the interrupt handler; to that end,
-     * we change the GIE bit in the value to be restored
-     * in R2 (a.k.a. SR) by the next RETI instruction
-     */
-    if (irqen) {
-        __asm__("bis.w #8, 0(r1)");
-    } else {
-        __asm__("bic.w #8, 0(r1)");
-    }
-
-    __asm__("reti");
-}
-
-inline void eINT(void)
-{
-    /*    puts("+"); */
-/*    eint();   // problem with MSPGCC intrinsics? */
-    __asm__ __volatile__("bis  %0, r2" : : "i"(GIE));
-    __asm__ __volatile__("nop");
-       /* this NOP is needed to handle a "delay slot" that all MSP430 MCUs
-          impose silently after messing with the GIE bit, DO NOT REMOVE IT! */
-}
-
-inline void dINT(void)
-{
-    /*    puts("-"); */
-/*    dint();   // problem with MSPGCC intrinsics? */
-    __asm__ __volatile__("bic  %0, r2" : : "i"(GIE));
-    __asm__ __volatile__("nop");
-       /* this NOP is needed to handle a "delay slot" that all MSP430 MCUs
-          impose silently after messing with the GIE bit, DO NOT REMOVE IT! */
-}
-
-int inISR(void);
-
+/**
+ * @brief   Initialize the cpu
+ */
 void msp430_cpu_init(void);
+
+/**
+ * @brief   Print the last instruction's address
+ *
+ * @todo:   Not supported
+ */
+static inline void cpu_print_last_instruction(void)
+{
+    puts("n/a");
+}
 
 #ifdef __cplusplus
 }
 #endif
 
 /** @} */
-#endif // _CPU_H
+#endif /* CPU_H_ */

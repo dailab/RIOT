@@ -1,4 +1,4 @@
-MODULE =$(BOARD)_base
+MODULE = msb-430-common
 
 DIRS = drivers
 

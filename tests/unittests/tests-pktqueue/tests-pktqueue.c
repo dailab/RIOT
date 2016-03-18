@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Martin Lenders
+ * Copyright (C) 2014, 2015 Martine Lenders <mlenders@inf.fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -9,151 +9,158 @@
 /**
  * @{
  *
- * @file    tests-pktqueue.c
+ * @file
  */
 #include <string.h>
 
 #include "embUnit.h"
 
-#include "pkt.h"
-#include "pktqueue.h"
+#include "net/gnrc/pkt.h"
+#include "net/gnrc/pktqueue.h"
 
+#include "unittests-constants.h"
 #include "tests-pktqueue.h"
 
-#define Q_LEN (4)
+#define PKT_INIT_ELEM(len, data, next) \
+    { 1, (next), (data), (len), GNRC_NETTYPE_UNDEF }
+#define PKT_INIT_ELEM_STATIC_DATA(data, next) PKT_INIT_ELEM(sizeof(data), data, next)
+#define PKTQUEUE_INIT_ELEM(pkt) { NULL, pkt }
 
-static pktqueue_t q = PKTQUEUE_INIT;
-static pktqueue_node_t qe[Q_LEN];
+static gnrc_pktqueue_t *root;
 
 static void set_up(void)
 {
-    pktqueue_init(&q);
-
-    for (unsigned i = 0; i < Q_LEN; ++i) {
-        pktqueue_node_init(&(qe[i]));
-    }
-}
-
-static void test_pktqueue_remove_head_empty(void)
-{
-    pktqueue_t *root = &q;
-    pktqueue_node_t *res;
-
-    res = pktqueue_remove_head(root);
-
-    TEST_ASSERT_NULL(res);
-}
-
-static void test_pktqueue_remove_head_one(void)
-{
-    pktqueue_t *root = &q;
-    pktqueue_node_t *elem = &(qe[1]), *res;
-
-    elem->data = (pkt_t *)62801;
-
-    pktqueue_add(root, elem);
-
-    res = pktqueue_remove_head(root);
-
-    TEST_ASSERT(res == elem);
-    TEST_ASSERT(((pkt_t *)62801) == res->data);
-
-    res = pktqueue_remove_head(root);
-
-    TEST_ASSERT_NULL(res);
+    root = NULL;
 }
 
 static void test_pktqueue_add_one(void)
 {
-    pktqueue_t *root = &q;
-    pktqueue_node_t *elem = &(qe[1]);
+    gnrc_pktsnip_t pkt = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING8, NULL);
+    gnrc_pktqueue_t elem = PKTQUEUE_INIT_ELEM(&pkt);
 
-    elem->data = (pkt_t *)7317;
-    elem->priority = 713643658;
+    gnrc_pktqueue_add(&root, &elem);
 
-    pktqueue_add(root, elem);
-
-    TEST_ASSERT(root->first == elem);
-    TEST_ASSERT(((pkt_t *)7317) == root->first->data);
-    TEST_ASSERT_EQUAL_INT(713643658, root->first->priority);
-
-    TEST_ASSERT_NULL(root->first->next);
+    TEST_ASSERT(root == &elem);
+    TEST_ASSERT_EQUAL_INT(1, root->pkt->users);
+    TEST_ASSERT_NULL(root->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING8, root->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING8), root->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, root->pkt->type);
 }
 
-static void test_pktqueue_add_two_equal(void)
+static void test_pktqueue_add_two(void)
 {
-    pktqueue_t *root = &q;
-    pktqueue_node_t *elem1 = &(qe[1]), *elem2 = &(qe[2]);
+    gnrc_pktsnip_t pkt1 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING8, NULL);
+    gnrc_pktsnip_t pkt2 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING16, NULL);
+    gnrc_pktqueue_t elem1 = PKTQUEUE_INIT_ELEM(&pkt1);
+    gnrc_pktqueue_t elem2 = PKTQUEUE_INIT_ELEM(&pkt2);
 
-    elem1->data = (pkt_t *)27088;
-    elem1->priority = 14202;
+    gnrc_pktqueue_add(&root, &elem1);
+    gnrc_pktqueue_add(&root, &elem2);
 
-    elem2->data = (pkt_t *)4356;
-    elem2->priority = 14202;
-
-    pktqueue_add(root, elem1);
-    pktqueue_add(root, elem2);
-
-    TEST_ASSERT(root->first == elem1);
-    TEST_ASSERT(((pkt_t *)27088) == root->first->data);
-    TEST_ASSERT_EQUAL_INT(14202, root->first->priority);
-
-    TEST_ASSERT(root->first->next == elem2);
-    TEST_ASSERT(((pkt_t *)4356) == root->first->next->data);
-    TEST_ASSERT_EQUAL_INT(14202, root->first->next->priority);
-
-    TEST_ASSERT_NULL(root->first->next->next);
+    TEST_ASSERT(root == &elem1);
+    TEST_ASSERT(root->next == &elem2);
+    TEST_ASSERT_EQUAL_INT(1, root->pkt->users);
+    TEST_ASSERT_NULL(root->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING8, root->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING8), root->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, root->pkt->type);
+    TEST_ASSERT_EQUAL_INT(1, root->next->pkt->users);
+    TEST_ASSERT_NULL(root->next->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING16, root->next->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING16), root->next->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, root->next->pkt->type);
 }
 
-static void test_pktqueue_add_two_distinct(void)
+static void test_pktqueue_remove(void)
 {
-    pktqueue_t *root = &q;
-    pktqueue_node_t *elem1 = &(qe[1]), *elem2 = &(qe[2]);
+    gnrc_pktsnip_t pkt1 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING8, NULL);
+    gnrc_pktsnip_t pkt2 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING16, NULL);
+    gnrc_pktqueue_t *res;
+    gnrc_pktqueue_t elem1 = PKTQUEUE_INIT_ELEM(&pkt1);
+    gnrc_pktqueue_t elem2 = PKTQUEUE_INIT_ELEM(&pkt2);
 
-    elem1->data = (pkt_t *)46421;
-    elem1->priority = 4567;
+    gnrc_pktqueue_add(&root, &elem1);
+    gnrc_pktqueue_add(&root, &elem2);
 
-    elem2->data = (pkt_t *)43088;
-    elem2->priority = 1234;
+    res = gnrc_pktqueue_remove(&root, &elem2);
 
-    pktqueue_add(root, elem1);
-    pktqueue_add(root, elem2);
+    TEST_ASSERT(res == &elem2);
+    TEST_ASSERT(root == &elem1);
+    TEST_ASSERT_EQUAL_INT(1, res->pkt->users);
+    TEST_ASSERT_NULL(res->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING16, res->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING16), res->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
 
-    TEST_ASSERT(root->first == elem2);
-    TEST_ASSERT(((pkt_t *)43088) == root->first->data);
-    TEST_ASSERT_EQUAL_INT(1234, root->first->priority);
+    res = gnrc_pktqueue_remove(&root, &elem1);
 
-    TEST_ASSERT(root->first->next == elem1);
-    TEST_ASSERT(((pkt_t *)46421) == root->first->next->data);
-    TEST_ASSERT_EQUAL_INT(4567, root->first->next->priority);
+    TEST_ASSERT_NULL(root);
+    TEST_ASSERT(res == &elem1);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
+    TEST_ASSERT_EQUAL_INT(1, res->pkt->users);
+    TEST_ASSERT_NULL(res->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING8, res->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING8), res->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
 
-    TEST_ASSERT_NULL(root->first->next->next);
+    res = gnrc_pktqueue_remove(&root, NULL);
+
+    TEST_ASSERT_NULL(root);
+    TEST_ASSERT_NULL(res);
 }
 
-static void test_pktqueue_remove_one(void)
+static void test_pktqueue_remove_head_empty(void)
 {
-    pktqueue_t *root = &q;
-    pktqueue_node_t *elem1 = &(qe[1]), *elem2 = &(qe[2]), *elem3 = &(qe[3]);
+    gnrc_pktqueue_t *res;
 
-    pktqueue_add(root, elem1);
-    pktqueue_add(root, elem2);
-    pktqueue_add(root, elem3);
-    pktqueue_remove(root, elem2);
+    res = gnrc_pktqueue_remove_head(&root);
 
-    TEST_ASSERT(root->first == elem1);
-    TEST_ASSERT(root->first->next == elem3);
-    TEST_ASSERT_NULL(root->first->next->next);
+    TEST_ASSERT_NULL(root);
+    TEST_ASSERT_NULL(res);
+}
+
+static void test_pktqueue_remove_head(void)
+{
+    gnrc_pktsnip_t pkt1 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING8, NULL);
+    gnrc_pktsnip_t pkt2 = PKT_INIT_ELEM_STATIC_DATA(TEST_STRING16, NULL);
+    gnrc_pktqueue_t *res;
+    gnrc_pktqueue_t elem1 = PKTQUEUE_INIT_ELEM(&pkt1);
+    gnrc_pktqueue_t elem2 = PKTQUEUE_INIT_ELEM(&pkt2);
+
+    gnrc_pktqueue_add(&root, &elem1);
+    gnrc_pktqueue_add(&root, &elem2);
+
+    res = gnrc_pktqueue_remove_head(&root);
+
+    TEST_ASSERT(res == &elem1);
+    TEST_ASSERT(root == &elem2);
+    TEST_ASSERT_EQUAL_INT(1, res->pkt->users);
+    TEST_ASSERT_NULL(res->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING8, res->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING8), res->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
+
+    res = gnrc_pktqueue_remove_head(&root);
+
+    TEST_ASSERT_NULL(root);
+    TEST_ASSERT(res == &elem2);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
+    TEST_ASSERT_EQUAL_INT(1, res->pkt->users);
+    TEST_ASSERT_NULL(res->pkt->next);
+    TEST_ASSERT_EQUAL_STRING(TEST_STRING16, res->pkt->data);
+    TEST_ASSERT_EQUAL_INT(sizeof(TEST_STRING16), res->pkt->size);
+    TEST_ASSERT_EQUAL_INT(GNRC_NETTYPE_UNDEF, res->pkt->type);
 }
 
 Test *tests_pktqueue_tests(void)
 {
     EMB_UNIT_TESTFIXTURES(fixtures) {
-        new_TestFixture(test_pktqueue_remove_head_empty),
-        new_TestFixture(test_pktqueue_remove_head_one),
         new_TestFixture(test_pktqueue_add_one),
-        new_TestFixture(test_pktqueue_add_two_equal),
-        new_TestFixture(test_pktqueue_add_two_distinct),
-        new_TestFixture(test_pktqueue_remove_one),
+        new_TestFixture(test_pktqueue_add_two),
+        new_TestFixture(test_pktqueue_remove),
+        new_TestFixture(test_pktqueue_remove_head_empty),
+        new_TestFixture(test_pktqueue_remove_head),
     };
 
     EMB_UNIT_TESTCALLER(pktqueue_tests, set_up, NULL, fixtures);

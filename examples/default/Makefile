@@ -28,42 +28,45 @@ CFLAGS += -DDEVELHELP
 QUIET ?= 1
 
 # Modules to include:
-
-USEMODULE += uart0
 USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps
-USEMODULE += vtimer
-USEMODULE += defaulttransceiver
 USEMODULE += config
+# include and auto-initialize all available sensors
+USEMODULE += saul_reg
+USEMODULE += saul_default
+USEMODULE += auto_init_saul
 
-FEATURES_OPTIONAL += transceiver
+BOARD_PROVIDES_NETIF := airfy-beacon fox iotlab-m3 mulle native nrf51dongle \
+	nrf6310 pba-d-01-kw2x pca10000 pca10005 saml21-xpro samr21-xpro spark-core \
+	yunjia-nrf51822
+
+ifneq (,$(filter $(BOARD),$(BOARD_PROVIDES_NETIF)))
+  # Use modules for networking
+  # gnrc is a meta module including all required, basic gnrc networking modules
+  USEMODULE += gnrc
+  # use the default network interface for the board
+  USEMODULE += gnrc_netif_default
+  # automatically initialize the network interface
+  USEMODULE += auto_init_gnrc_netif
+  # the application dumps received packets to stdout
+  USEMODULE += gnrc_pktdump
+
+  # We use only the lower layers of the GNRC network stack, hence, we can
+  # reduce the size of the packet buffer a bit
+  CFLAGS += -DGNRC_PKTBUF_SIZE=512
+endif
+
 FEATURES_OPTIONAL += config
 FEATURES_OPTIONAL += periph_rtc
 
 ifneq (,$(filter msb-430,$(BOARD)))
-	USEMODULE += sht11
+  USEMODULE += sht11
 endif
 ifneq (,$(filter msba2,$(BOARD)))
-	USEMODULE += sht11
-	USEMODULE += ltc4150
-	USEMODULE += mci
-	USEMODULE += random
-endif
-ifneq (,$(filter native,$(BOARD)))
-	USEMODULE += ltc4150
-	USEMODULE += random
-endif
-ifneq (,$(filter iot-lab_M3,$(BOARD)))
-	USEMODULE += isl29020
-	USEMODULE += lps331ap
-	USEMODULE += l3g4200d
-	USEMODULE += lsm303dlhc
-endif
-ifneq (,$(filter fox,$(BOARD)))
-        USEMODULE += lps331ap
-        USEMODULE += l3g4200d
-	USEMODULE += lsm303dlhc
+  USEMODULE += sht11
+  USEMODULE += mci
+  USEMODULE += random
 endif
 
 include $(RIOTBASE)/Makefile.include

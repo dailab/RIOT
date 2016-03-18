@@ -7,89 +7,71 @@
  */
 
 /**
- * @defgroup    board_samr21-xpro Atmel SAM R21 Xplained Pro
+ * @defgroup    boards_samr21-xpro Atmel SAM R21 Xplained Pro
  * @ingroup     boards
  * @brief       Support for the Atmel SAM R21 Xplained Pro board.
  * @{
  *
  * @file
- * @brief       Board specific definitions for the Atmel SAM R21 Xplained Pro board.
+ * @brief       Board specific definitions for the Atmel SAM R21 Xplained Pro
+ *              board
  *
  * @author      Thomas Eichinger <thomas.eichinger@fu-berlin.de>
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef BOARD_H_
+#define BOARD_H_
 
 #include "cpu.h"
+#include "periph_conf.h"
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Define the nominal CPU core clock in this board
- */
-#define F_CPU               (8000000UL)
-
-/**
- * Assign the hardware timer
- */
-#define HW_TIMER            TIMER_1
-
-/**
-* @name AT86RF231 config
-* @{ 
-*/
-#define AT86RF231_SPI      SPI_0
-#define AT86RF231_CS       GPIO_4
-#define AT86RF231_INT      GPIO_5
-#define AT86RF231_RESET    GPIO_6
-#define AT86RF231_SLEEP    GPIO_7
-
-#define AT86RF231_SPI_SPEED SPI_SPEED_1MHZ
-/** @}*/
-/**
- * @name Define UART device and baudrate for stdio
+ * @brief   xtimer configuration
  * @{
  */
-#define STDIO               UART_0
-#define STDIO_BAUDRATE      (115200U)
-#define STDIO_BUFSIZE       (64U)
+#define XTIMER              TIMER_1
+#define XTIMER_CHAN         (0)
 /** @} */
 
 /**
- * @name LED pin definitions
+ * @name AT86RF233 configuration
+ *
+ * {spi bus, spi speed, cs pin, int pin, reset pin, sleep pin}
+ */
+#define AT86RF2XX_PARAMS_BOARD      {.spi = SPI_0, \
+                                     .spi_speed = SPI_SPEED_5MHZ, \
+                                     .cs_pin = GPIO_PIN(PB, 31), \
+                                     .int_pin = GPIO_PIN(PB, 0), \
+                                     .sleep_pin = GPIO_PIN(PA, 20), \
+                                     .reset_pin = GPIO_PIN(PB, 15)}
+
+/**
+ * @brief   LED pin definitions and handlers
  * @{
  */
+#define LED0_PIN            GPIO_PIN(0, 19)
+
 #define LED_PORT            PORT->Group[0]
-#define LED_PIN             (19)
+#define LED0_MASK           (1 << 19)
+
+#define LED0_ON             (LED_PORT.OUTCLR.reg = LED0_MASK)
+#define LED0_OFF            (LED_PORT.OUTSET.reg = LED0_MASK)
+#define LED0_TOGGLE         (LED_PORT.OUTTGL.reg = LED0_MASK)
 /** @} */
 
 /**
- * @name Macros for controlling the on-board LEDs.
+ * @name SW0 (Button) pin definitions
  * @{
  */
-#define LED_ON              (LED_PORT.OUTCLR.reg = LED_PIN)
-#define LED_OFF             (LED_PORT.OUTSET.reg = LED_PIN)
-#define LED_TOGGLE          (LED_PORT.OUTTGL.reg = LED_PIN)
-
-/* for compatability to other boards */
-#define LED_GREEN_ON        /* not available */
-#define LED_GREEN_OFF       /* not available */
-#define LED_GREEN_TOGGLE    /* not available */
-#define LED_ORANGE_ON       /* not available */
-#define LED_ORANGE_OFF      /* not available */
-#define LED_ORANGE_TOGGLE   /* not available */
-#define LED_RED_ON          LED_ON
-#define LED_RED_OFF         LED_OFF
-#define LED_RED_TOGGLE      LED_TOGGLE
+#define BUTTON_PORT         PORT->Group[0]
+#define BUTTON_PIN          (28)
+#define BUTTON_GPIO         GPIO_PIN(0, BUTTON_PIN)
 /** @} */
-
-/**
- * @brief Define the type for the radio packet length for the transceiver
- */
-typedef uint8_t radio_packet_length_t;
 
 /**
  * @brief Initialize board specific hardware, including clock, LEDs and std-IO
@@ -100,5 +82,5 @@ void board_init(void);
 }
 #endif
 
-#endif /** __BOARD_H */
+#endif /* BOARD_H_ */
 /** @} */

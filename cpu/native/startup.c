@@ -1,7 +1,7 @@
 /**
  * Native CPU entry code
  *
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * Copyright (C) 2013 Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -10,7 +10,7 @@
  * @ingroup arch
  * @{
  * @file
- * @author  Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @author  Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  * @}
  */
 
@@ -30,12 +30,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "kernel_internal.h"
+#include "kernel_init.h"
 #include "cpu.h"
 
 #include "board_internal.h"
 #include "native_internal.h"
-#include "tap.h"
 
 int _native_null_in_pipe[2];
 int _native_null_out_file;
@@ -46,6 +45,11 @@ pid_t _native_id;
 unsigned _native_rng_seed = 0;
 int _native_rng_mode = 0;
 const char *_native_unix_socket_path = NULL;
+
+#ifdef MODULE_NETDEV2_TAP
+#include "netdev2_tap.h"
+extern netdev2_tap_t netdev2_tap;
+#endif
 
 /**
  * initialize _native_null_in_pipe to allow for reading from stdin
@@ -149,6 +153,19 @@ void daemonize(void)
     }
     else {
         _native_pid = real_getpid();
+
+        /* detach from current working directory */
+        if (real_chdir("/") == -1) {
+            err(EXIT_FAILURE, "daemonize: chdir");
+        }
+
+        /* detach from process group */
+        if (real_setsid() == -1) {
+            err(EXIT_FAILURE, "daemonize: setsid");
+        }
+
+        /* set umask */
+        real_umask(0);
     }
 }
 
@@ -179,12 +196,8 @@ void usage_exit(void)
 {
     real_printf("usage: %s", _progname);
 
-#ifdef MODULE_NATIVENET
+#if defined(MODULE_NETDEV2_TAP)
     real_printf(" <tap interface>");
-#endif
-
-#ifdef MODULE_UART0
-    real_printf(" [-t <port>|-u [path]] [-r]");
 #endif
 
     real_printf(" [-i <id>] [-d] [-e|-E] [-o]\n");
@@ -194,14 +207,6 @@ void usage_exit(void)
     real_printf("\nOptions:\n\
 -h          help\n");
 
-#ifdef MODULE_UART0
-    real_printf("\
--t <port>   redirect stdio to TCP socket listening on <port>\n\
--u <path>   redirect stdio to UNIX socket (<path> if given,\n\
-            /tmp/riot.tty.PID otherwise)\n\
--r          replay missed output when (re-)attaching to socket\n\
-            (implies -o)\n");
-#endif
     real_printf("\
 -i <id>     specify instance id (set by config module)\n\
 -s <seed>   specify srandom(3) seed (/dev/random is used instead of\n\
@@ -234,12 +239,8 @@ __attribute__((constructor)) static void startup(int argc, char **argv)
     char *stderrtype = "stdio";
     char *stdouttype = "stdio";
     char *stdiotype = "stdio";
-#ifdef MODULE_UART0
-    char *ioparam = NULL;
-    int replay = 0;
-#endif
 
-#ifdef MODULE_NATIVENET
+#if defined(MODULE_NETDEV2_TAP)
     if (
             (argc < 2)
             || (
@@ -296,41 +297,6 @@ __attribute__((constructor)) static void startup(int argc, char **argv)
         else if (strcmp("-o", arg) == 0) {
             stdouttype = "file";
         }
-#ifdef MODULE_UART0
-        else if (strcmp("-r", arg) == 0) {
-            stdouttype = "file";
-            replay = 1;
-        }
-        else if (strcmp("-t", arg) == 0) {
-            stdiotype = "tcp";
-            if (argp + 1 < argc) {
-                ioparam = argv[++argp];
-            }
-            else {
-                usage_exit();
-            }
-            if (strcmp(stdouttype, "stdio") == 0) {
-                stdouttype = "null";
-            }
-            if (strcmp(stderrtype, "stdio") == 0) {
-                stderrtype = "null";
-            }
-        }
-        else if (strcmp("-u", arg) == 0) {
-            stdiotype = "unix";
-            if (strcmp(stdouttype, "stdio") == 0) {
-                stdouttype = "null";
-            }
-            if (strcmp(stderrtype, "stdio") == 0) {
-                stderrtype = "null";
-            }
-
-            /* parse optional path */
-            if ((argp + 1 < argc) && (argv[argp + 1][0] != '-')) {
-                _native_unix_socket_path = argv[++argp];
-            }
-        }
-#endif
         else {
             usage_exit();
         }
@@ -344,15 +310,10 @@ __attribute__((constructor)) static void startup(int argc, char **argv)
     _native_log_stdout(stdouttype);
     _native_null_in(stdiotype);
 
-#ifdef MODULE_UART0
-    _native_init_uart0(stdiotype, ioparam, replay);
-#endif
-
-    native_hwtimer_pre_init();
     native_cpu_init();
     native_interrupt_init();
-#ifdef MODULE_NATIVENET
-    tap_init(argv[1]);
+#ifdef MODULE_NETDEV2_TAP
+    netdev2_tap_setup(&netdev2_tap, argv[1]);
 #endif
 
     board_init();

@@ -1,1 +1,1 @@
-USEMODULE += pktbuf
+USEMODULE += gnrc_pktbuf_static

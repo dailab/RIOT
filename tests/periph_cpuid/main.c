@@ -13,7 +13,7 @@
  * @file
  * @brief GET_CPU_ID() test application
  *
- * @author Martin Lenders <mlenders@inf.fu-berlin.de>
+ * @author Martine Lenders <mlenders@inf.fu-berlin.de>
  * @author Hauke Petersen <hauke.petersen@fu-berlin.de>
  *
  * @}
@@ -22,12 +22,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "cpu-conf.h"
+#include "cpu_conf.h"
 #include "periph/cpuid.h"
 
 int main(void)
 {
-    uint8_t id[CPUID_ID_LEN];
+    uint8_t id[CPUID_LEN];
 
     puts("Test for the CPUID driver");
     puts("This test is reading out the CPUID of the platforms CPU\n");
@@ -37,7 +37,7 @@ int main(void)
 
     /* print the CPUID */
     printf("CPUID:");
-    for (unsigned int i = 0; i < CPUID_ID_LEN; i++) {
+    for (unsigned int i = 0; i < CPUID_LEN; i++) {
         printf(" 0x%02x", id[i]);
     }
     printf("\n");

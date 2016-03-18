@@ -22,8 +22,8 @@
 
 #include "thread.h"
 
-char second_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
-char third_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+char second_thread_stack[THREAD_STACKSIZE_MAIN];
+char third_thread_stack[THREAD_STACKSIZE_MAIN];
 
 void *fourth_thread(void *arg)
 {
@@ -49,8 +49,8 @@ void *second_thread(void *arg)
     if ((thread_create(
              third_thread_stack,
              sizeof(third_thread_stack),
-             PRIORITY_MAIN - 2,
-             CREATE_STACKTEST,
+             THREAD_PRIORITY_MAIN - 2,
+             THREAD_CREATE_STACKTEST,
              third_thread,
              NULL,
              "nr3")
@@ -63,8 +63,8 @@ void *second_thread(void *arg)
     if ((thread_create(
              third_thread_stack,
              sizeof(third_thread_stack),
-             PRIORITY_MAIN - 1,
-             CREATE_WOUT_YIELD | CREATE_STACKTEST,
+             THREAD_PRIORITY_MAIN - 1,
+             THREAD_CREATE_WOUT_YIELD | THREAD_CREATE_STACKTEST,
              fourth_thread,
              NULL,
              "nr4")
@@ -83,8 +83,8 @@ int main(void)
     if ((thread_create(
              second_thread_stack,
              sizeof(second_thread_stack),
-             PRIORITY_MAIN - 1,
-             CREATE_WOUT_YIELD | CREATE_STACKTEST,
+             THREAD_PRIORITY_MAIN - 1,
+             THREAD_CREATE_WOUT_YIELD | THREAD_CREATE_STACKTEST,
              second_thread,
              NULL,
              "nr2")

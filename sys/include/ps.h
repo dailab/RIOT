@@ -11,6 +11,13 @@
  * @defgroup    sys_ps PS
  * @ingroup     sys
  * @brief       Show list with all threads
+ * @{
+ *
+ * @file
+ * @brief       List information about all active threads
+ *
+ * @author      Kaspar Schleiser <kaspar@schleiser.de>
+ * @author      Oliver Hahm <oliver.hahm@inria.fr>
  */
 
 #ifndef __PS_H
@@ -20,11 +27,14 @@
 extern "C" {
 #endif
 
-void thread_print_all(void);
-void _ps_handler(int argc, char **argv);
+/**
+ * @brief Print information to all active threads to stdout.
+ */
+void ps(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __PS_H */
+/** @} */

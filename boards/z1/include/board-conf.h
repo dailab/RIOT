@@ -6,11 +6,11 @@
  * directory for more details.
  */
 
-#ifndef BOARD_CONF_H
-#define BOARD_CONF_H
+#ifndef BOARD_CONF_H_
+#define BOARD_CONF_H_
 
 /**
- * @ingroup     board_z1
+ * @ingroup     boards_z1
  *
  * @{
  */

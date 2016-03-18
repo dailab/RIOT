@@ -10,14 +10,14 @@
  * @addtogroup  core_util
  * @{
  *
- * @file        priority_queue.h
+ * @file
  * @brief       A simple priority queue
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef __QUEUE_H
-#define __QUEUE_H
+#ifndef QUEUE_H
+#define QUEUE_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -98,6 +98,8 @@ priority_queue_node_t *priority_queue_remove_head(priority_queue_t *root);
  *
  * @param[in,out]   root    the queue's root
  * @param[in]       new_obj the object to prepend
+ *
+ * @pre The queue does not already contain @p new_obj.
  */
 void priority_queue_add(priority_queue_t *root, priority_queue_node_t *new_obj);
 
@@ -110,7 +112,18 @@ void priority_queue_add(priority_queue_t *root, priority_queue_node_t *new_obj);
 void priority_queue_remove(priority_queue_t *root, priority_queue_node_t *node);
 
 #if ENABLE_DEBUG
+/**
+ * @brief print the data and priority of every node in the given priority queue
+ *
+ * @note requires ::ENABLE_DEBUG to be set to 1 for this file
+ */
 void priority_queue_print(priority_queue_t *root);
+
+/**
+ * @brief print the data, priority, and successor of a given node
+ *
+ * @note requires ::ENABLE_DEBUG to be set to 1 for this file
+ */
 void priority_queue_print_node(priority_queue_t *root);
 #endif
 
@@ -119,4 +132,4 @@ void priority_queue_print_node(priority_queue_t *root);
 #endif
 
 /** @} */
-#endif /* __QUEUE_H */
+#endif /* QUEUE_H */

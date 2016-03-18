@@ -1,4 +1,4 @@
-MODULE =$(BOARD)_base
+MODULE = wsn430-common
 
 DIRS = drivers
 

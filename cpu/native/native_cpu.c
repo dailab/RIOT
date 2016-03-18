@@ -1,19 +1,24 @@
-/**
- * Native CPU kernel_intern.h and sched.h implementation
- *
- * in-process preemptive context switching utilizes POSIX ucontexts.
- * (ucontext provides for architecture independent stack handling)
- *
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+/*
+ * Copyright (C) 2016 Kaspar Schleiser <kaspar@schleiser.de>
+ *               2013 Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
- *
+ */
+
+/**
  * @ingroup native_cpu
  * @{
+ *
  * @file
- * @author  Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @brief Native CPU kernel_intern.h and sched.h implementation
+ *
+ * in-process preemptive context switching utilizes POSIX ucontexts.
+ * (ucontext provides for architecture independent stack handling)
+ *
+ * @author  Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
+ * @author  Kaspar Schleiser <kaspar@schleiser.de>
  */
 
 #include <stdio.h>
@@ -41,15 +46,15 @@
 
 #include <stdlib.h>
 
-#include "kernel_internal.h"
-#include "kernel.h"
 #include "irq.h"
 #include "sched.h"
 
 #include "cpu.h"
-#include "cpu-conf.h"
-#ifdef MODULE_NATIVENET
-#include "tap.h"
+#include "cpu_conf.h"
+
+#ifdef MODULE_NETDEV2_TAP
+#include "netdev2_tap.h"
+extern netdev2_tap_t netdev2_tap;
 #endif
 
 #include "native_internal.h"
@@ -59,31 +64,6 @@
 
 ucontext_t end_context;
 char __end_stack[SIGSTKSZ];
-
-#ifdef MODULE_UART0
-fd_set _native_rfds;
-#endif
-
-int reboot_arch(int mode)
-{
-    (void) mode;
-
-    printf("\n\n\t\t!! REBOOT !!\n\n");
-#ifdef MODULE_UART0
-    /* TODO: close stdio fds */
-#endif
-#ifdef MODULE_NATIVENET
-    if (_native_tap_fd != -1) {
-        real_close(_native_tap_fd);
-    }
-#endif
-
-    if (real_execve(_native_argv[0], _native_argv, NULL) == -1) {
-        err(EXIT_FAILURE, "reboot: execve");
-    }
-
-    errx(EXIT_FAILURE, "reboot: this should not have been reached");
-}
 
 /**
  * TODO: implement
@@ -96,7 +76,7 @@ void thread_print_stack(void)
 
 char *thread_stack_init(thread_task_func_t task_func, void *arg, void *stack_start, int stacksize)
 {
-    unsigned int *stk;
+    char *stk;
     ucontext_t *p;
 
     VALGRIND_STACK_REGISTER(stack_start, (char *) stack_start + stacksize);
@@ -104,16 +84,10 @@ char *thread_stack_init(thread_task_func_t task_func, void *arg, void *stack_sta
 
     DEBUG("thread_stack_init\n");
 
-    stk = (unsigned int *)stack_start;
+    stk = stack_start;
 
-#ifdef NATIVESPONTOP
-    p = (ucontext_t *)stk;
-    stk += sizeof(ucontext_t) / sizeof(void *);
-    stacksize -= sizeof(ucontext_t);
-#else
     p = (ucontext_t *)(stk + ((stacksize - sizeof(ucontext_t)) / sizeof(void *)));
     stacksize -= sizeof(ucontext_t);
-#endif
 
     if (getcontext(p) == -1) {
         err(EXIT_FAILURE, "thread_stack_init: getcontext");
@@ -166,7 +140,7 @@ void cpu_switch_context_exit(void)
 #endif
 
     if (_native_in_isr == 0) {
-        dINT();
+        disableIRQ();
         _native_in_isr = 1;
         native_isr_context.uc_stack.ss_sp = __isr_stack;
         native_isr_context.uc_stack.ss_size = SIGSTKSZ;
@@ -203,7 +177,7 @@ void thread_yield_higher(void)
     ucontext_t *ctx = (ucontext_t *)(sched_active_thread->sp);
     if (_native_in_isr == 0) {
         _native_in_isr = 1;
-        dINT();
+        disableIRQ();
         native_isr_context.uc_stack.ss_sp = __isr_stack;
         native_isr_context.uc_stack.ss_size = SIGSTKSZ;
         native_isr_context.uc_stack.ss_flags = 0;
@@ -211,7 +185,7 @@ void thread_yield_higher(void)
         if (swapcontext(ctx, &native_isr_context) == -1) {
             err(EXIT_FAILURE, "thread_yield_higher: swapcontext");
         }
-        eINT();
+        enableIRQ();
     }
     else {
         isr_thread_yield();

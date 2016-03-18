@@ -1,4 +1,4 @@
-MODULE =$(BOARD)_base
+MODULE = native-drivers
 
 include $(RIOTBASE)/Makefile.base
 

@@ -1,3 +1,3 @@
-MODULE =$(BOARD)_base
+MODULE = chronos-drivers
 
 include $(RIOTBASE)/Makefile.base

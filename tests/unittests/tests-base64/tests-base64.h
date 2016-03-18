@@ -10,13 +10,13 @@
  * @addtogroup  unittests
  * @{
  *
- * @file        tests-base64.h
+ * @file
  * @brief       Unittests for the ``base64`` module
  *
  * @author      Martin Landsmann <Martin.Landsmann@HAW-Hamburg.de>
  */
-#ifndef __TESTS_BASE64_H_
-#define __TESTS_BASE64_H_
+#ifndef TESTS_BASE64_H_
+#define TESTS_BASE64_H_
 #include "embUnit/embUnit.h"
 
 #ifdef __cplusplus
@@ -39,5 +39,5 @@ Test *tests_base64_tests(void);
 }
 #endif
 
-#endif /* __TESTS_BASE64_H_ */
+#endif /* TESTS_BASE64_H_ */
 /** @} */

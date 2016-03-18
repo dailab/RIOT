@@ -3,7 +3,7 @@
  *
  * No functionality implemented at the moment.
  *
- * Copyright (C) 2014 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * Copyright (C) 2014 Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -12,7 +12,7 @@
  * @ingroup native_board
  * @{
  * @file
- * @author  Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @author  Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  * @}
  */
 
@@ -22,10 +22,6 @@
 
 #include "config.h"
 
-#ifdef MODULE_NATIVENET
-#include "nativenet.h"
-#include "nativenet_internal.h"
-#endif
 #include "native_internal.h"
 
 #define ENABLE_DEBUG (0)
@@ -39,10 +35,6 @@ void config_load(void)
     DEBUG("config_load()\n");
 
     sysconfig.id = _native_id;
-
-#ifdef MODULE_NATIVENET
-    _nativenet_default_dev_more._radio_addr = _native_id;
-#endif
 
     return;
 }

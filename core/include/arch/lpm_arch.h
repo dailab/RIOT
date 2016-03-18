@@ -10,7 +10,7 @@
  * @ingroup     core_arch
  * @{
  *
- * @file        lpm_arch.h
+ * @file
  * @brief       Architecture dependent interface for power mode management
  *
  * This file acts as a wrapper between the kernels power management interface and the architecture
@@ -19,8 +19,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __LPM_ARCH_H
-#define __LPM_ARCH_H
+#ifndef LPM_ARCH_H
+#define LPM_ARCH_H
 
 #ifdef __cplusplus
  extern "C" {
@@ -96,5 +96,5 @@ void lpm_arch_end_awake(void);
 }
 #endif
 
-#endif /* __LPM_ARCH_H */
+#endif /* LPM_ARCH_H */
 /** @} */

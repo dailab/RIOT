@@ -78,7 +78,7 @@ int hdc1000_test(hdc1000_t *dev)
     if (tmp != HDC1000_MID_VALUE) {
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -148,7 +148,7 @@ int hdc1000_startmeasure(hdc1000_t *dev)
      * to the address 0x00 (HDC1000_TEMPERATURE).
      * Conversion Time is 6.50ms by 14 bit resolution.
      */
-    if (i2c_write_bytes(dev->i2c, dev->addr, HDC1000_TEMPERATURE, 1) != 1) {
+    if (i2c_write_byte(dev->i2c, dev->addr, HDC1000_TEMPERATURE) != 1) {
         i2c_release(dev->i2c);
         return -1;
     }
@@ -173,7 +173,7 @@ int hdc1000_read(hdc1000_t *dev, uint16_t *rawtemp, uint16_t *rawhum)
     /* Register bytes are sent MSB first. */
     *rawtemp = ((uint16_t)buf[0] << 8) | buf[1];
     *rawhum = ((uint16_t)buf[2] << 8) | buf[3];
-  
+
     i2c_release(dev->i2c);
     return 0;
 }

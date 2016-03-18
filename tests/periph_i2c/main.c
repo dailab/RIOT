@@ -24,14 +24,12 @@
 #include "periph_conf.h"
 #include "periph/i2c.h"
 #include "shell.h"
-#include "posix_io.h"
-#include "board_uart0.h"
 
 #define BUFSIZE        (128U)
 
 static int i2c_dev = -1;
 
-void cmd_init_master(int argc, char **argv)
+int cmd_init_master(int argc, char **argv)
 {
     int dev, speed, res;
 
@@ -48,7 +46,7 @@ void cmd_init_master(int argc, char **argv)
         puts("          2 -> SPEED_FAST (400kbit/s)");
         puts("          3 -> SPEED_FAST_PLUS (1Mbit/s)");
         puts("          4 -> SPEED_HIGH (3.4Mbit/s)\n");
-        return;
+        return 1;
     }
 
     dev = atoi(argv[1]);
@@ -57,52 +55,21 @@ void cmd_init_master(int argc, char **argv)
     res = i2c_init_master(dev, speed);
     if (res == -1) {
         puts("Error: Init: Given device not available");
-        return;
+        return 1;
     }
     else if (res == -2) {
         puts("Error: Init: Unsupported speed value");
-        return;
+        return 1;
     }
     else {
         printf("I2C_%i successfully initialized as master!\n", dev);
         i2c_dev = dev;
     }
+
+    return 0;
 }
 
-void cmd_init_slave(int argc, char **argv)
-{
-    int dev, addr, res;
-
-    if (argc != 3) {
-        puts("Error: Invalid number of arguments!");
-        printf("Usage:\n%s: [DEVICE] [ADDRESS]\n", argv[0]);
-        puts("    with DEVICE:");
-        for (int i = 0; i < I2C_NUMOF; i++) {
-            printf("          %i -> I2C_%i\n", i, i);
-        }
-        puts("         ADDRESS: value between 0 and 127");
-        return;
-    }
-
-    dev = atoi(argv[1]);
-    addr = atoi(argv[1]);
-
-    res = i2c_init_slave(dev, addr);
-    if (res == -1) {
-        puts("Error: Init: Given device not available");
-        return;
-    }
-    else if (res == -2) {
-        puts("Error: Init: Invalid address given");
-        return;
-    }
-    else {
-        printf("I2C_%i successfully initialized as slave with address %i!\n", dev, addr);
-        i2c_dev = dev;
-    }
-}
-
-void cmd_write(int argc, char **argv)
+int cmd_write(int argc, char **argv)
 {
     int res;
     uint8_t addr;
@@ -111,12 +78,12 @@ void cmd_write(int argc, char **argv)
 
     if (i2c_dev < 0) {
         puts("Error: no I2C device was initialized");
-        return;
+        return 1;
     }
     if (argc < 3) {
         puts("Error: not enough arguments given");
         printf("Usage:\n%s: ADDR BYTE0 [BYTE1 [BYTE_n [...]]]\n", argv[0]);
-        return;
+        return 1;
     }
 
     addr = (uint8_t)atoi(argv[1]);
@@ -139,13 +106,15 @@ void cmd_write(int argc, char **argv)
 
     if (res < 0) {
         puts("Error: no bytes were written");
+        return 1;
     }
     else {
         printf("I2C_%i: successfully wrote %i bytes to the bus\n", i2c_dev, res);
+        return 0;
     }
 }
 
-void cmd_write_reg(int argc, char **argv)
+int cmd_write_reg(int argc, char **argv)
 {
     int res;
     uint8_t addr, reg;
@@ -154,12 +123,12 @@ void cmd_write_reg(int argc, char **argv)
 
     if (i2c_dev < 0) {
         puts("Error: no I2C device initialized");
-        return;
+        return 1;
     }
     if (length < 1) {
         puts("Error: not enough arguments given");
         printf("Usage:\n%s ADDR REG BYTE0 [BYTE1 ...]\n", argv[0]);
-        return;
+        return 1;
     }
 
     addr = (uint8_t)atoi(argv[1]);
@@ -184,13 +153,15 @@ void cmd_write_reg(int argc, char **argv)
 
     if (res < 1) {
         puts("Error: no bytes were written");
+        return 1;
     }
     else {
         printf("I2C_%i: successfully wrote %i bytes to register 0x%02x\n", i2c_dev, res, reg);
+        return 0;
     }
 }
 
-void cmd_read(int argc, char **argv)
+int cmd_read(int argc, char **argv)
 {
     int res;
     uint8_t addr;
@@ -199,12 +170,12 @@ void cmd_read(int argc, char **argv)
 
     if (i2c_dev < 0) {
         puts("Error: no I2C device initialized");
-        return;
+        return 1;
     }
     if (argc < 3) {
         puts("Error: not enough arguments given");
         printf("Usage:\n%s ADDR LENGTH]\n", argv[0]);
-        return;
+        return 1;
     }
 
     addr = (uint8_t)atoi(argv[1]);
@@ -212,7 +183,7 @@ void cmd_read(int argc, char **argv)
 
     if (length < 1 || length > BUFSIZE) {
         puts("Error: invalid LENGTH parameter given\n");
-        return;
+        return 1;
     }
     else if (length == 1) {
         printf("i2c_read_byte(I2C_%i, 0x%02x, char *res)\n", i2c_dev, addr);
@@ -225,6 +196,7 @@ void cmd_read(int argc, char **argv)
 
     if (res < 1) {
         puts("Error: no bytes were read");
+        return 1;
     }
     else {
         printf("I2C_%i: successfully read %i bytes:\n  [", i2c_dev, res);
@@ -232,10 +204,11 @@ void cmd_read(int argc, char **argv)
             printf("0x%02x, ", (unsigned int)data[i]);
         }
         puts("])");
+        return 0;
     }
 }
 
-void cmd_read_reg(int argc, char **argv)
+int cmd_read_reg(int argc, char **argv)
 {
     int res;
     uint8_t addr, reg;
@@ -244,12 +217,12 @@ void cmd_read_reg(int argc, char **argv)
 
     if (i2c_dev < 0) {
         puts("Error: no I2C device initialized");
-        return;
+        return 1;
     }
     if (argc < 4) {
         puts("Error: not enough arguments given");
         printf("Usage:\n%s ADDR REG LENGTH]\n", argv[0]);
-        return;
+        return 1;
     }
 
     addr = (uint8_t)atoi(argv[1]);
@@ -258,7 +231,7 @@ void cmd_read_reg(int argc, char **argv)
 
     if (length < 1 || length > BUFSIZE) {
         puts("Error: invalid LENGTH parameter given");
-        return;
+        return 1;
     }
     else if (length == 1) {
         printf("i2c_read_reg(I2C_%i, 0x%02x, 0x%02x, char *res)\n", i2c_dev, addr, reg);
@@ -271,6 +244,7 @@ void cmd_read_reg(int argc, char **argv)
 
     if (res < 1) {
         puts("Error: no bytes were read");
+        return 1;
     }
     else {
         printf("I2C_%i: successfully read %i bytes from reg 0x%02x:\n  [", i2c_dev, res, reg);
@@ -278,13 +252,13 @@ void cmd_read_reg(int argc, char **argv)
             printf("0x%02x, ", (unsigned int)data[i]);
         }
         puts("])");
+        return 0;
     }
 
 }
 
 static const shell_command_t shell_commands[] = {
     { "init_master", "Initialize I2C as master", cmd_init_master },
-    { "init_slave", "Initialize I2C as slave", cmd_init_slave },
     { "w", "write bytes to given address", cmd_write },
     { "wr", "write to register ", cmd_write_reg },
     { "r", "read bytes from given address", cmd_read },
@@ -292,31 +266,13 @@ static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
 };
 
-static int shell_readc(void)
-{
-    char c = 0;
-    (void) posix_read(uart0_handler_pid, &c, 1);
-    return c;
-}
-
-static void shell_putchar(int c)
-{
-    (void) putchar(c);
-}
-
 int main(void)
 {
-    shell_t shell;
-
     puts("Test for the low-level I2C driver");
 
-    /* prepare I/O for shell */
-    board_uart0_init();
-    posix_open(uart0_handler_pid, 0);
-
     /* define own shell commands */
-    shell_init(&shell, shell_commands, UART0_BUFSIZE, shell_readc, shell_putchar);
-    shell_run(&shell);
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
     return 0;
 }

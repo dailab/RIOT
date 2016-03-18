@@ -1,9 +1,10 @@
-PKG_NAME    := libfixmath
-PKG_VERSION := 91
-PKG_BRANCH  := trunk
-PKG_URL     := http://libfixmath.googlecode.com/svn/$(PKG_BRANCH)/
+export PKG_NAME    := libfixmath
+export PKG_VERSION := 91
+export PKG_BRANCH  := trunk
+export PKG_URL     := http://libfixmath.googlecode.com/svn/$(PKG_BRANCH)/
 
-CHECKOUT_FOLDER := $(CURDIR)/checkout/$(PKG_BRANCH)-r$(PKG_VERSION)
+export CHECKOUT_FOLDER := $(CURDIR)/checkout/$(PKG_BRANCH)-r$(PKG_VERSION)
+export SVN_INFO_FILE   := $(CHECKOUT_FOLDER)/svn_info.xml
 
 .PHONY: all clean distclean
 
@@ -22,17 +23,18 @@ $(BINDIR)$(PKG_NAME)-unittests.a: $(BINDIR)$(PKG_NAME)-unittests-src/Makefile $(
 	"$(MAKE)" -C $(<D)
 
 $(BINDIR)$(PKG_NAME)-src/Makefile: $(CHECKOUT_FOLDER)/svn_info.xml
-	@rm -rf $(@D)
-	@mkdir -p $(@D)
+	$(AD)rm -rf $(@D)
+	$(AD)mkdir -p $(@D)
 	$(AD)cp $(CURDIR)/Makefile.template $@
 	$(AD)cp $(CHECKOUT_FOLDER)/libfixmath/*.[ch] $(@D)
 	$(AD)rm -f $(BINDIR)$(PKG_NAME)-src/fix16.h
 
-	cd $(@D) && sed -i -e "s/1 <</(uint32_t) 1 <</g" uint32.c
+	$(AD)cd $(@D) && sed -i -e 's/1 <</(uint32_t) 1 <</g' uint32.c
+	$(AD)cd $(@D) && sed -i -e 's/is\([a-z]*\)(\*buf)/is\1((unsigned char) *buf)/g' fix16_str.c
 
-$(BINDIR)$(PKG_NAME)-unittests-src/Makefile:
-	@rm -rf $(@D)
-	@mkdir -p $(@D)
+$(BINDIR)$(PKG_NAME)-unittests-src/Makefile: $(CHECKOUT_FOLDER)/svn_info.xml
+	$(AD)rm -rf $(@D)
+	$(AD)mkdir -p $(@D)
 	$(AD)cp $(CURDIR)/Makefile.template-unittests $@
 	$(AD)cp $(CHECKOUT_FOLDER)/unittests/*.[ch] $(@D)
 
@@ -42,24 +44,24 @@ $(BINDIR)$(PKG_NAME)-unittests-src/Makefile:
 		    -e 's/fprintf(std[^,]*,/printf(/' \
 		    -i $${C_FILE}; \
 	done
+	$(AD)cd $(@D) && patch -p1 --ignore-whitespace < $(CURDIR)/libfixmath-unittests-printf-format.patch
 
 $(BINDIR)$(PKG_NAME)-headers/fix16.h: $(CHECKOUT_FOLDER)/svn_info.xml
-	@rm -rf $(@D)
-	@mkdir -p $(@D)
+	$(AD)rm -rf $(@D)
+	$(AD)mkdir -p $(@D)
 	$(AD)cp $(CHECKOUT_FOLDER)/libfixmath/fix16.h $(@D)
-	@echo $(patsubst %,'extern int %(void);',$(shell basename -a -s .c $(CHECKOUT_FOLDER)/unittests/*.c)) \
-	      $(patsubst %,'%();',$(shell basename -a -s .c $(CHECKOUT_FOLDER)/unittests/*.c)) | sed -e 's/;\s*/;\n/g' > $(@D)/fix16_unittests.inc
+	$(AD)echo $(patsubst %,'extern int %(void);',$(shell for f in $(CHECKOUT_FOLDER)/unittests/*.c; do basename $${f} .c; done )) \
+	      $(patsubst %,'%();',$(shell for f in $(CHECKOUT_FOLDER)/unittests/*.c; do basename $${f} .c; done)) | sed -e 's/;\s*/;\n/g' > $(@D)/fix16_unittests.inc
 
-$(CHECKOUT_FOLDER)/svn_info.xml:
-	@mkdir -p $(@D)
-	svn checkout -r $(PKG_VERSION) $(PKG_URL) $(@D)
-	@svn info --xml $(@D) > $@
+$(SVN_INFO_FILE):
+	$(AD)mkdir -p $(@D)
+	$(AD)$(CURDIR)/checkout.sh
 
 clean::
-	rm -rf $(BINDIR)$(PKG_NAME)-src/ $(BINDIR)$(PKG_NAME)-headers/
+	$(AD)rm -rf $(BINDIR)$(PKG_NAME)-src/ $(BINDIR)$(PKG_NAME)-headers/
 
 distclean:: clean
-	rm -rf $(CHECKOUT_FOLDER)
+	$(AD)rm -rf $(CHECKOUT_FOLDER)
 
 Makefile.include:
 	@true

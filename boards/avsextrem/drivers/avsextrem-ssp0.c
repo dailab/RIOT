@@ -23,11 +23,11 @@
 #include "lpc23xx.h"   /* LPC23XX/24xx Peripheral Registers */
 #include "cpu.h"
 #include "VIC.h"
+#include "periph_conf.h"
 #include "ssp0-board.h"
 #include "smb380-board.h"
 //#include "mma7455l-board.h"
 #include "gpioint.h"
-#include "hwtimer.h"
 #include <stdio.h>
 #include "lpm.h"
 
@@ -193,7 +193,7 @@ uint8_t SSP0Prepare(uint8_t chip, uint8_t datasize, uint8_t cpol, uint8_t cpha,
     // Clock Setup
     uint32_t pclksel;
     uint32_t cpsr;
-    lpc2387_pclk_scale(F_CPU / 1000, freq, &pclksel, &cpsr);
+    lpc2387_pclk_scale(CLOCK_CORECLOCK / 1000, freq, &pclksel, &cpsr);
     PCLKSEL1 &= ~(BIT10 | BIT11); // CCLK to PCLK divider ???
     PCLKSEL1 |= pclksel << 10;
     SSP0CPSR = cpsr;
@@ -293,7 +293,6 @@ unsigned char SSP0_write(const uint16_t data, uint8_t device)
             case BMA180_EXTERN:
             case L3G_EXTERN:
             case NANOPAN: {
-                printf("[%s] line: %d\n", __FUNCTION__, __LINE__);
                 FIO0CLR = SSP0_SELN;
                 break;
             }

@@ -7,7 +7,7 @@
  */
 
 /**
- * @defgroup    board_f4vi1  F4VI1
+ * @defgroup    boards_f4vi1  F4VI1
  * @ingroup     boards
  * @brief       Board specific files for the F4VI1 board
  * @{
@@ -19,8 +19,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef BOARD_H_
+#define BOARD_H_
 
 #include "cpu.h"
 #include "periph_conf.h"
@@ -30,59 +30,29 @@ extern "C" {
 #endif
 
 /**
- * Define the nominal CPU core clock in this board
- */
-#define F_CPU               CLOCK_CORECLOCK
-
-/**
- * @name Assign the hardware timer
- */
-#define HW_TIMER            TIMER_0
-
-/**
- * @name Define UART device and baudrate for stdio
+ * @brief   LED pin definitions and handlers
  * @{
  */
-#define STDIO               UART_0
-#define STDIO_BAUDRATE      (115200U)
-#define STDIO_RX_BUFSIZE    (64U)
-/** @} */
+#define LED0_PIN            GPIO_PIN(PORT_A, 1)
+#define LED1_PIN            GPIO_PIN(PORT_A, 3)
+#define LED2_PIN            GPIO_PIN(PORT_A, 2)
 
-/**
- * @name LED pin definitions
- * @{
- */
 #define LED_PORT            GPIOA
-#define LD4_PIN             (1 << 1)
-#define LD5_PIN             (1 << 3)
-#define LD6_PIN             (1 << 2)
+#define LED0_MASK           (1 << 1)
+#define LED1_MASK           (1 << 3)
+#define LED2_MASK           (1 << 2)
 
-/** @} */
+#define LED0_ON             (LED_PORT->BSRRH = LED0_MASK)
+#define LED0_OFF            (LED_PORT->BSRRL = LED0_MASK)
+#define LED0_TOGGLE         (LED_PORT->ODR  ^= LED0_MASK)
 
-/**
- * @name Macros for controlling the on-board LEDs.
- * @{
- */
-#define LD4_ON              (LED_PORT->BSRRH = LD4_PIN)
-#define LD4_OFF             (LED_PORT->BSRRL = LD4_PIN)
-#define LD4_TOGGLE          (LED_PORT->ODR ^= LD4_PIN)
-#define LD5_ON              (LED_PORT->BSRRH = LD5_PIN)
-#define LD5_OFF             (LED_PORT->BSRRL = LD5_PIN)
-#define LD5_TOGGLE          (LED_PORT->ODR ^= LD5_PIN)
-#define LD6_ON              (LED_PORT->BSRRH = LD6_PIN)
-#define LD6_OFF             (LED_PORT->BSRRL = LD6_PIN)
-#define LD6_TOGGLE          (LED_PORT->ODR ^= LD6_PIN)
+#define LED1_ON             (LED_PORT->BSRRH = LED1_MASK)
+#define LED1_OFF            (LED_PORT->BSRRL = LED1_MASK)
+#define LED1_TOGGLE         (LED_PORT->ODR  ^= LED1_MASK)
 
-/* for compatability to other boards */
-#define LED_GREEN_ON        LD6_ON
-#define LED_GREEN_OFF       LD6_OFF
-#define LED_GREEN_TOGGLE    LD6_TOGGLE
-#define LED_RED_ON          LD5_ON
-#define LED_RED_OFF         LD5_OFF
-#define LED_RED_TOGGLE      LD5_TOGGLE
-#define LED_ORANGE_ON       LD4_ON
-#define LED_ORANGE_OFF      LD4_OFF
-#define LED_ORANGE_TOGGLE   LD4_TOGGLE
+#define LED2_ON             (LED_PORT->BSRRH = LED2_MASK)
+#define LED2_OFF            (LED_PORT->BSRRL = LED2_MASK)
+#define LED2_TOGGLE         (LED_PORT->ODR  ^= LED2_MASK)
 /** @} */
 
 /**
@@ -94,5 +64,5 @@ void board_init(void);
 }
 #endif
 
-#endif /** __BOARD_H */
+#endif /* BOARD_H_ */
 /** @} */

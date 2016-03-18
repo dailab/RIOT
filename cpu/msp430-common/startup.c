@@ -10,7 +10,7 @@
  * @ingroup     cpu
  * @{
  *
- * @file        startup.c
+ * @file
  * @brief       Calls startup functions on MSP430-based platforms
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
@@ -19,9 +19,9 @@
  * @}
  */
 
-#include "irq.h"
 #include <stdio.h>
-#include "kernel_internal.h"
+#include "kernel_init.h"
+#include "irq.h"
 
 extern void board_init(void);
 

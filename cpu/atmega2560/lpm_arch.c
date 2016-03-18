@@ -10,7 +10,7 @@
  * @ingroup     cpu_atmega2560
  * @{
  *
- * @file        lpm_arch.c
+ * @file
  * @brief       Implementation of the kernels power management interface
  *
  * @author      Hinnerk van Bruinehsen <h.v.bruinehsen@fu-berlin.de>
@@ -27,6 +27,7 @@ void lpm_arch_init(void)
 
 enum lpm_mode lpm_arch_set(enum lpm_mode target)
 {
+    (void) target;
     /* TODO */
     return 0;
 }

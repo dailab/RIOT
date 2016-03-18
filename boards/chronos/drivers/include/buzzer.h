@@ -6,14 +6,16 @@
  * directory for more details.
  */
 
-#ifndef BUZZER_H
-#define BUZZER_H
+#ifndef BUZZER_H_
+#define BUZZER_H_
+
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void buzzer_beep(uint8_t pitch, uint16_t duration);
+void buzzer_beep(uint8_t pitch, uint32_t duration);
 
 #ifdef __cplusplus
 }

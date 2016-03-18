@@ -9,21 +9,17 @@
 /**
  * @ingroup posix
  * @{
- * @file    fd.c
+ * @file
  * @brief   Providing unifying file descriptor wrapper for POSIX-compliant
  *          operations.
  * @author  Christian Mehlis <mehlis@inf.fu-berlin.de>
- * @author  Martin Lenders <mlenders@inf.fu-berlin.de>
+ * @author  Martine Lenders <mlenders@inf.fu-berlin.de>
  */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "posix_io.h"
-#ifdef MODULE_UART0
-#include "board_uart0.h"
-#endif
 #include "unistd.h"
 
 #include "fd.h"
@@ -40,19 +36,6 @@ int fd_init(void)
 {
     memset(fd_table, 0, sizeof(fd_t) * FD_MAX);
 
-#ifdef MODULE_UART0
-    posix_open(uart0_handler_pid, 0);
-    fd_t fd = {
-        .__active = 1,
-        .fd = (int)uart0_handler_pid,
-        .read = (ssize_t ( *)(int, void *, size_t))posix_read,
-        .write = (ssize_t ( *)(int, const void *, size_t))posix_write,
-        .close = posix_close
-    };
-    memcpy(&fd_table[STDIN_FILENO], &fd, sizeof(fd_t));
-    memcpy(&fd_table[STDOUT_FILENO], &fd, sizeof(fd_t));
-    memcpy(&fd_table[STDERR_FILENO], &fd, sizeof(fd_t));
-#endif
     return FD_MAX;
 }
 
@@ -61,7 +44,7 @@ static int fd_get_next_free(void)
     for (int i = 0; i < FD_MAX; i++) {
         fd_t *cur = &fd_table[i];
 
-        if (!cur->__active) {
+        if (!cur->internal_active) {
             return i;
         }
     }
@@ -77,8 +60,8 @@ int fd_new(int internal_fd, ssize_t (*internal_read)(int, void *, size_t),
 
     if (fd >= 0) {
         fd_t *fd_s = fd_get(fd);
-        fd_s->__active = 1;
-        fd_s->fd = internal_fd;
+        fd_s->internal_active = 1;
+        fd_s->internal_fd = internal_fd;
         fd_s->read = internal_read;
         fd_s->write = internal_write;
         fd_s->close = internal_close;

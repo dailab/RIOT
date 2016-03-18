@@ -18,63 +18,59 @@ All this does is run your application under Valgrind.
 Now Valgrind will print some information whenever it detects an
 invalid memory access.
 
-In order to debug the program when this occurs you can pass the
---db-attach parameter to Valgrind. E.g:
+In order to debug the program when this occurs you can use the targets
+debug-valgrind-server and debug-valgrind. Therefore, you need to open two
+terminals and run:
 
-    valgrind --db-attach=yes ./bin/native/default.elf tap0
+    make debug-valgrind-server
 
-Now, you will be asked whether you would like to attach the running
-process to gdb whenever a problem occurs.
+in the first one and run:
 
-In order for this to work under Linux 3.4 or newer, you might need to
-disable the ptrace access restrictions:
-As root call:
+    make debug-valgrind
 
-    echo 0 > /proc/sys/kernel/yama/ptrace_scope
-
+in the seconde one. This starts per default gdb attached to valgrinds gdb
+server (vgdb).
 
 Network Support
 ===============
 
-If you compile RIOT for the native cpu and include the `native_net`
+If you compile RIOT for the native cpu and include the `netdev2_tap`
 module, you need to specify a network interface like this:
 
     make term PORT=tap0
 
+**Please note:** in case you're using RIOT's default network stack, the GNRC
+stack, you may also use `gnrc_netif_default` module and also add
+`auto_init_gnrc_netif` in order to automatically initialize the interface.
 
-Setting Up A Tap Network
-========================
 
-There is a shellscript in RIOT/cpu/native called `tapsetup.sh` which you
+Setting Up A Virtual Network
+============================
+
+There is a shellscript in RIOT/dist/tools/tapsetup called `tapsetup` which you
 can use to create a network of tap interfaces.
 
 Usage:
 To create a bridge and two (or count at your option) tap interfaces:
 
-    ./tapsetup.sh create [count]
+    ../../dist/tools/tapsetup/tapsetup [-c [<count>]]
+
+On OSX you need to start the RIOT instance at some point during the script's
+execution. The script will instruct you when to do that.
 
 To delete the bridge and all tap interfaces:
 
-    ./tapsetup.sh delete
+    ../../dist/tools/tapsetup/tapsetup -d
 
+For OSX you **have** to run this after killing your RIOT instance and rerun
+`../../dist/tools/tapsetup [-c [<count>]]` before restarting.
 
-OSX Tap Networking
-==================
+**Please note:** If you want to communicate between RIOT and your host
+operating system, you must not use the `tapsetup` script, but create and
+activate the tap interface manually. On Linux you can do so, by calling
 
-For tun/tap networking in OSX you will need:
-http://tuntaposx.sourceforge.net/
-
-For OSX there is a separate script called `tapsetup-osx.sh`.
-Run it, (it instructs you to start the RIOT instances).
-In contrast to Linux you will need to run `tapsetup-osx.sh delete`
-after killing your instances and rerun `tapsetup-osx.sh create` before
-restarting.
-
-
-FreeBSD Tap Networking
-======================
-
-For FreeBSD there is a separate script called `tapsetup-freebsd.sh`.
+    sudo ip tuntap add tap0 mode tap user ${USER}
+    sudo ip link set tap0 up
 
 
 Daemonization
@@ -87,75 +83,6 @@ the terminal.
 Usage:
 
     ./bin/native/default.elf -d
-
-Use UART redirection if you want to use a shell or get stderr/stdout
-output with/from a daemonized process.
-
-
-UART Redirection
-================
-
-You can redirect the processes' stdin/stdout/stderr by specifying
-one or more options from below.
-
-UNIX socket
------------
-
-To redirect stdio to a UNIX socket run:
-
-    ./bin/native/default.elf -u -d
-    RIOT pid: 18663
-
-Attach this UNIX socket:
-
-    nc -U /tmp/riot.tty.18663
-
-TCP socket
-----------
-To redirect stdio to a TCP socket:
-
-    ./bin/native/default.elf -t 4711 -d
-    RIOT pid: 18663
-
-Attach this TCP socket:
-
-    nc localhost 4711
-
-Stop the process:
-
-    kill 18663
-
-File for stderr
----------------
-To redirect stderr to a file:
-
-    ./bin/native/default.elf -d -e
-    RIOT pid: 18663
-
-Read from it:
-
-    tail -f /tmp/riot.stderr.18663
-
-File for stdout
----------------
-To redirect stdout to a file:
-
-    ./bin/native/default.elf -d -o
-    RIOT pid: 18663
-
-Read from it:
-
-    tail -f /tmp/riot.stdout.18663
-
-
-Notes
------
-The stdout redirection only writes to file while no socket connection
-is established.
-
-Socket redirection is only available when the UART module has been
-compiled in.
-
 
 Compile Time Options
 ====================

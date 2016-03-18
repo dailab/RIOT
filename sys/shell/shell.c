@@ -1,8 +1,7 @@
-/**
- * Shell interpreter
- *
+/*
  * Copyright (C) 2009, Freie Universitaet Berlin (FUB).
  * Copyright (C) 2013, INRIA.
+ * Copyright (C) 2015 Kaspar Schleiser <kaspar@schleiser.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -10,11 +9,9 @@
  */
 
 /**
- * @ingroup     shell
+ * @ingroup     sys_shell
  * @{
- */
-
-/**
+ *
  * @file
  * @brief       Implementation of a very simple command interpreter.
  *              For each command (i.e. "echo"), a handler can be specified.
@@ -24,6 +21,8 @@
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
  * @author      René Kijewski <rene.kijewski@fu-berlin.de>
+ *
+ * @}
  */
 
 #include <string.h>
@@ -32,6 +31,16 @@
 #include <stdlib.h>
 #include "shell.h"
 #include "shell_commands.h"
+
+#ifdef MODULE_NEWLIB
+/* use local copy of putchar, as it seems to be inlined,
+ * enlarging code by 50% */
+static void _putchar(int c) {
+    putchar(c);
+}
+#else
+#define _putchar putchar
+#endif
 
 static shell_command_handler_t find_handler(const shell_command_t *command_list, char *command)
 {
@@ -88,7 +97,7 @@ static void print_help(const shell_command_t *command_list)
     }
 }
 
-static void handle_input_line(shell_t *shell, char *line)
+static void handle_input_line(const shell_command_t *command_list, char *line)
 {
     static const char *INCORRECT_QUOTING = "shell: incorrect quoting";
 
@@ -192,22 +201,21 @@ static void handle_input_line(shell_t *shell, char *line)
     }
 
     /* then we call the appropriate handler */
-    shell_command_handler_t handler = find_handler(shell->command_list, argv[0]);
+    shell_command_handler_t handler = find_handler(command_list, argv[0]);
     if (handler != NULL) {
         handler(argc, argv);
     }
     else {
         if (strcmp("help", argv[0]) == 0) {
-            print_help(shell->command_list);
+            print_help(command_list);
         }
         else {
-            puts("shell: command not found:");
-            puts(argv[0]);
+            printf("shell: command not found: %s\n", argv[0]);
         }
     }
 }
 
-static int readline(shell_t *shell, char *buf, size_t size)
+static int readline(char *buf, size_t size)
 {
     char *line_buf_ptr = buf;
 
@@ -216,7 +224,7 @@ static int readline(shell_t *shell, char *buf, size_t size)
             return -1;
         }
 
-        int c = shell->readchar();
+        int c = getchar();
         if (c < 0) {
             return 1;
         }
@@ -225,15 +233,12 @@ static int readline(shell_t *shell, char *buf, size_t size)
         /* QEMU transmits only a single '\r' == 13 on hitting enter ("-serial stdio"). */
         /* DOS newlines are handled like hitting enter twice, but empty lines are ignored. */
         if (c == '\r' || c == '\n') {
-            if (line_buf_ptr == buf) {
-                /* The line is empty. */
-                continue;
-            }
-
             *line_buf_ptr = '\0';
-            shell->put_char('\r');
-            shell->put_char('\n');
-            return 0;
+            _putchar('\r');
+            _putchar('\n');
+
+            /* return 1 if line is empty, 0 otherwise */
+            return line_buf_ptr == buf;
         }
         /* QEMU uses 0x7f (DEL) as backspace, while 0x08 (BS) is for most terminals */
         else if (c == 0x08 || c == 0x7f) {
@@ -244,48 +249,38 @@ static int readline(shell_t *shell, char *buf, size_t size)
 
             *--line_buf_ptr = '\0';
             /* white-tape the character */
-            shell->put_char('\b');
-            shell->put_char(' ');
-            shell->put_char('\b');
+            _putchar('\b');
+            _putchar(' ');
+            _putchar('\b');
         }
         else {
             *line_buf_ptr++ = c;
-            shell->put_char(c);
+            _putchar(c);
         }
     }
 }
 
-static inline void print_prompt(shell_t *shell)
+static inline void print_prompt(void)
 {
-    shell->put_char('>');
-    shell->put_char(' ');
-    return;
+    _putchar('>');
+    _putchar(' ');
+
+#ifdef MODULE_NEWLIB
+    fflush(stdout);
+#endif
 }
 
-void shell_run(shell_t *shell)
+void shell_run(const shell_command_t *shell_commands, char *line_buf, int len)
 {
-    char line_buf[shell->shell_buffer_size];
-
-    print_prompt(shell);
+    print_prompt();
 
     while (1) {
-        int res = readline(shell, line_buf, sizeof(line_buf));
+        int res = readline(line_buf, len);
 
         if (!res) {
-            handle_input_line(shell, line_buf);
+            handle_input_line(shell_commands, line_buf);
         }
 
-        print_prompt(shell);
+        print_prompt();
     }
 }
-
-void shell_init(shell_t *shell, const shell_command_t *shell_commands,
-                uint16_t shell_buffer_size, int(*readchar)(void), void(*put_char)(int))
-{
-    shell->command_list = shell_commands;
-    shell->shell_buffer_size = shell_buffer_size;
-    shell->readchar = readchar;
-    shell->put_char = put_char;
-}
-
-/** @} */

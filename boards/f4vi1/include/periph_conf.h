@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     board_f4vi1
+ * @ingroup     boards_f4vi1
  * @{
  *
  * @file
@@ -18,8 +18,10 @@
  * @author      Peter Kietzmann <peter.kietzmann@haw-hamburg.de>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
+
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +43,11 @@ extern "C" {
 #define CLOCK_APB2_DIV      RCC_CFGR_PPRE2_DIV2
 #define CLOCK_APB1_DIV      RCC_CFGR_PPRE1_DIV4
 #define CLOCK_FLASH_LATENCY FLASH_ACR_LATENCY_5WS
+
+/* bus clocks for simplified peripheral initialization, UPDATE MANUALLY! */
+#define CLOCK_AHB           (CLOCK_CORECLOCK / 1)
+#define CLOCK_APB2          (CLOCK_CORECLOCK / 2)
+#define CLOCK_APB1          (CLOCK_CORECLOCK / 4)
 /** @} */
 
 /**
@@ -55,7 +62,7 @@ extern "C" {
 /* Timer 0 configuration */
 #define TIMER_0_DEV         TIM2
 #define TIMER_0_CHANNELS    4
-#define TIMER_0_PRESCALER   (83U)
+#define TIMER_0_FREQ        (CLOCK_CORECLOCK / 2)
 #define TIMER_0_MAX_VALUE   (0xffffffff)
 #define TIMER_0_CLKEN()     (RCC->APB1ENR |= RCC_APB1ENR_TIM2EN)
 #define TIMER_0_ISR         isr_tim2
@@ -64,7 +71,7 @@ extern "C" {
 /* Timer 1 configuration */
 #define TIMER_1_DEV         TIM5
 #define TIMER_1_CHANNELS    4
-#define TIMER_1_PRESCALER   (83U)
+#define TIMER_1_FREQ        (CLOCK_CORECLOCK / 2)
 #define TIMER_1_MAX_VALUE   (0xffffffff)
 #define TIMER_1_CLKEN()     (RCC->APB1ENR |= RCC_APB1ENR_TIM5EN)
 #define TIMER_1_ISR         isr_tim5
@@ -75,29 +82,45 @@ extern "C" {
  * @name UART configuration
  * @{
  */
-#define UART_NUMOF          (1U)
-#define UART_0_EN           1
-#define UART_1_EN           0
-#define UART_IRQ_PRIO       1
+static const uart_conf_t uart_config[] = {
+    {
+        .dev        = USART6,
+        .rcc_mask   = RCC_APB2ENR_USART6EN,
+        .rx_pin     = GPIO_PIN(PORT_C,7),
+        .tx_pin     = GPIO_PIN(PORT_C,6),
+        .af         = GPIO_AF8,
+        .bus        = APB2,
+        .irqn       = USART6_IRQn,
+        .dma_stream = 14,
+        .dma_chan   = 5
+    },
+};
 
-/* UART 0 device configuration */
-#define UART_0_DEV          USART6
-#define UART_0_CLKEN()      (RCC->APB2ENR |= RCC_APB2ENR_USART6EN)
-#define UART_0_CLKDIS()     (RCC->APB2ENR &= ~(RCC_APB2ENR_USART6EN))
-#define UART_0_CLK          (84000000)          /* UART clock runs with 84MHz (F_CPU / 2) */
-#define UART_0_IRQ_CHAN     USART6_IRQn
+/* assign ISR vector names */
 #define UART_0_ISR          isr_usart6
-/* UART 0 pin configuration */
-#define UART_0_PORT_CLKEN() (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN)
-#define UART_0_PORT         GPIOC
-#define UART_0_TX_PIN       6
-#define UART_0_RX_PIN       7
-#define UART_0_AF           8
+#define UART_0_DMA_ISR      isr_dma2_stream6
+
+/* deduct number of defined UART interfaces */
+#define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
+/** @} */
+
+/**
+ * @brief   ADC configuration
+ * @{
+ */
+#define ADC_NUMOF           (0)
+/** @} */
+
+/**
+ * @brief   DAC configuration
+ * @{
+ */
+#define DAC_NUMOF           (0)
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

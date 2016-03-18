@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Kaspar Schleiser <kaspar@schleiser.de> 
+ * Copyright 2014 Kaspar Schleiser <kaspar@schleiser.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -17,8 +17,8 @@
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
  */
-#ifndef __MSBA2_COMMON_H
-#define __MSBA2_COMMON_H
+#ifndef MSBA2_COMMON_H_
+#define MSBA2_COMMON_H_
 
 
 #include <stdint.h>
@@ -41,4 +41,4 @@ static inline void pllfeed(void)
 #endif
 
 /** @} */
-#endif // __MSBA2_COMMON_H
+#endif /*  MSBA2_COMMON_H_ */

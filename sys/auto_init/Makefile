@@ -1,9 +1,11 @@
-ifneq (,$(filter net_if,$(USEMODULE)))
-	INCLUDES += -I$(RIOTBASE)/sys/net/include/
+DIRS += $(AUTO_INIT_MODULES)
+
+ifneq (,$(filter auto_init_gnrc_netif,$(USEMODULE)))
+DIRS += netif
 endif
 
-ifneq (,$(filter nomac,$(USEMODULE)))
-	INCLUDES += -I$(RIOTBASE)/sys/net/include/
+ifneq (,$(filter auto_init_saul,$(USEMODULE)))
+DIRS += saul
 endif
 
 include $(RIOTBASE)/Makefile.base

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Freie Universität Berlin
+ * Copyright (C) 2014-2015 Freie Universität Berlin
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     board_udoo
+ * @ingroup     boards_udoo
  * @{
  *
  * @file
@@ -16,101 +16,70 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
+
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
+ * @name Clock configuration
+ * @{
+ */
+/* targeted system core clock */
+#define CLOCK_CORECLOCK     (84000000UL)
+/* external oscillator clock */
+#define CLOCK_EXT_OSC       (12000000UL)
+/* define PLL configuration
+ *
+ * The values must fulfill this equation:
+ * CORECLOCK = (EXT_OCS / PLL_DIV) * (PLL_MUL + 1)
+ */
+#define CLOCK_PLL_MUL       (83)
+#define CLOCK_PLL_DIV       (12)
+
+/* number of wait states before flash read and write operations */
+#define CLOCK_FWS           (4)         /* 4 is save for 84MHz */
+/** @} */
+
+/**
  * @name Timer peripheral configuration
  * @{
  */
-#define TIMER_NUMOF         (3U)
-#define TIMER_0_EN          1
-#define TIMER_1_EN          1
-#define TIMER_2_EN          1
+static const timer_conf_t timer_config[] = {
+    /* dev, channel 0 ID */
+    { TC0, ID_TC0 },
+    { TC1, ID_TC3 },
+};
 
-/* Timer 0 configuration */
-#define TIMER_0_DEV         TC0
-#define TIMER_0_CHANNELS    6
-#define TIMER_0_MAX_VALUE   (0xffffffff)
-#define TIMER_0_ISR1        isr_tc0
-#define TIMER_0_ISR2        isr_tc1
+#define TIMER_0_ISR         isr_tc0
+#define TIMER_1_ISR         isr_tc3
 
-/* Timer 1 configuration */
-#define TIMER_1_DEV         TC1
-#define TIMER_1_CHANNELS    6
-#define TIMER_1_MAX_VALUE   (0xffffffff)
-#define TIMER_1_ISR1        isr_tc3
-#define TIMER_1_ISR2        isr_tc4
-
-/* Timer 2 configuration */
-#define TIMER_2_DEV         TC2
-#define TIMER_2_CHANNELS    6
-#define TIMER_2_MAX_VALUE   (0xffffffff)
-#define TIMER_2_ISR1        isr_tc6
-#define TIMER_2_ISR2        isr_tc7
+#define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
 
 /**
  * @name UART configuration
  * @{
  */
-#define UART_NUMOF          (4U)
-#define UART_0_EN           1
-#define UART_1_EN           1
-#define UART_2_EN           1
-#define UART_3_EN           1
-#define UART_IRQ_PRIO       1
+static const uart_conf_t uart_config[] = {
+    /* device, rx port, tx port, rx pin, tx pin, mux, PMC bit, IRGn line */
+    {(Uart *)UART,   PIOA, PIOA,  8,  9, GPIO_MUX_A, ID_UART,   UART_IRQn},
+    {(Uart *)USART0, PIOA, PIOA, 10, 11, GPIO_MUX_A, ID_USART0, USART0_IRQn},
+    {(Uart *)USART1, PIOA, PIOA, 12, 13, GPIO_MUX_A, ID_USART1, USART1_IRQn},
+    {(Uart *)USART3, PIOD, PIOD,  4,  5, GPIO_MUX_B, ID_USART3, USART3_IRQn}
+};
 
-/* UART 0 device configuration */
-#define UART_0_DEV          UART
-#define UART_0_CLKEN()      (PMC->PMC_PCER0 |= (1 << ID_UART))
-#define UART_0_CLKDIS()     (PMC->PMC_PCER0 &= ~(1 << ID_UART))
-#define UART_0_IRQ          UART_IRQn
+/* define interrupt vectors */
 #define UART_0_ISR          isr_uart
-/* UART 0 pin configuration */
-#define UART_0_PORT         PIOA
-#define UART_0_PINS         (PIO_PA8 | PIO_PA9)
-
-/* UART 1 device configuration */
-#define UART_1_DEV          USART0
-#define UART_1_CLKEN()      (PMC->PMC_PCER0 |= (1 << ID_USART0))
-#define UART_1_CLKDIS()     (PMC->PMC_PCER0 &= ~(1 << ID_USART0))
-#define UART_1_IRQ          USART0_IRQn
 #define UART_1_ISR          isr_usart0
-/* UART 1 pin configuration */
-#define UART_1_PORT         PIOA
-#define UART_1_PINS         (PIO_PA10 | PIO_PA11)
-
-/* UART 1 device configuration */
-#define UART_2_DEV          USART1
-#define UART_2_CLKEN()      (PMC->PMC_PCER0 |= (1 << ID_USART1))
-#define UART_2_CLKDIS()     (PMC->PMC_PCER0 &= ~(1 << ID_USART1))
-#define UART_2_IRQ          USART1_IRQn
 #define UART_2_ISR          isr_usart1
-/* UART 1 pin configuration */
-#define UART_2_PORT         PIOA
-#define UART_2_PINS         (PIO_PA12 | PIO_PA13)
-
-/* UART 1 device configuration */
-#define UART_3_DEV          USART3
-#define UART_3_CLKEN()      (PMC->PMC_PCER0 |= (1 << ID_USART3))
-#define UART_3_CLKDIS()     (PMC->PMC_PCER0 &= ~(1 << ID_USART3))
-#define UART_3_IRQ          USART3_IRQn
 #define UART_3_ISR          isr_usart3
-/* UART 1 pin configuration */
-#define UART_3_PORT         PIOD
-#define UART_3_PINS         (PIO_PD4 | PIO_PD5)
-/** @} */
 
-/**
- * @name Random Number Generator configuration
- * @{
- */
-#define RANDOM_NUMOF        (1U)
+#define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
 /** @} */
 
 /**
@@ -146,7 +115,6 @@ extern "C" {
  * @name GPIO configuration
  * @{
  */
-#define GPIO_NUMOF          (16U)
 #define GPIO_0_EN           1
 #define GPIO_1_EN           1
 #define GPIO_2_EN           1
@@ -163,6 +131,22 @@ extern "C" {
 #define GPIO_13_EN          1
 #define GPIO_14_EN          1
 #define GPIO_15_EN          1
+#define GPIO_16_EN          1
+#define GPIO_17_EN          1
+#define GPIO_18_EN          1
+#define GPIO_19_EN          1
+#define GPIO_20_EN          1
+#define GPIO_21_EN          1
+#define GPIO_22_EN          1
+#define GPIO_23_EN          1
+#define GPIO_24_EN          1
+#define GPIO_25_EN          1
+#define GPIO_26_EN          1
+#define GPIO_27_EN          1
+#define GPIO_28_EN          1
+#define GPIO_29_EN          1
+#define GPIO_30_EN          1
+#define GPIO_31_EN          1
 #define GPIO_IRQ_PRIO       1
 
 /* GPIO channel 0 config */
@@ -245,11 +229,91 @@ extern "C" {
 #define GPIO_15_PIN         PIO_PB14
 #define GPIO_15_IRQ         PIOB_IRQn
 #define GPIO_B14_MAP        15
+/* GPIO channel 16 config */
+#define GPIO_16_DEV         PIOB
+#define GPIO_16_PIN         PIO_PB26
+#define GPIO_16_IRQ         PIOB_IRQn
+#define GPIO_B26_MAP        16
+/* GPIO channel 17 config */
+#define GPIO_17_DEV         PIOA
+#define GPIO_17_PIN         PIO_PA15
+#define GPIO_17_IRQ         PIOA_IRQn
+#define GPIO_A15_MAP        17
+/* GPIO channel 18 config */
+#define GPIO_18_DEV         PIOD
+#define GPIO_18_PIN         PIO_PD1
+#define GPIO_18_IRQ         PIOD_IRQn
+#define GPIO_D1_MAP         18
+/* GPIO channel 19 config */
+#define GPIO_19_DEV         PIOD
+#define GPIO_19_PIN         PIO_PD3
+#define GPIO_19_IRQ         PIOD_IRQn
+#define GPIO_D3_MAP         19
+/* GPIO channel 20 config */
+#define GPIO_20_DEV         PIOD
+#define GPIO_20_PIN         PIO_PD9
+#define GPIO_20_IRQ         PIOD_IRQn
+#define GPIO_D9_MAP         20
+/* GPIO channel 21 config */
+#define GPIO_21_DEV         PIOD
+#define GPIO_21_PIN         PIO_PD10
+#define GPIO_21_IRQ         PIOD_IRQn
+#define GPIO_D10_MAP        21
+/* GPIO channel 22 config */
+#define GPIO_22_DEV         PIOC
+#define GPIO_22_PIN         PIO_PC2
+#define GPIO_22_IRQ         PIOC_IRQn
+#define GPIO_C2_MAP         22
+/* GPIO channel 23 config */
+#define GPIO_23_DEV         PIOC
+#define GPIO_23_PIN         PIO_PC4
+#define GPIO_23_IRQ         PIOC_IRQn
+#define GPIO_C4_MAP         23
+/* GPIO channel 24 config */
+#define GPIO_24_DEV         PIOC
+#define GPIO_24_PIN         PIO_PC6
+#define GPIO_24_IRQ         PIOC_IRQn
+#define GPIO_C6_MAP         24
+/* GPIO channel 25 config */
+#define GPIO_25_DEV         PIOC
+#define GPIO_25_PIN         PIO_PC8
+#define GPIO_25_IRQ         PIOC_IRQn
+#define GPIO_C8_MAP         25
+/* GPIO channel 26 config */
+#define GPIO_26_DEV         PIOA
+#define GPIO_26_PIN         PIO_PA19
+#define GPIO_26_IRQ         PIOA_IRQn
+#define GPIO_A19_MAP        26
+/* GPIO channel 27 config */
+#define GPIO_27_DEV         PIOC
+#define GPIO_27_PIN         PIO_PC19
+#define GPIO_27_IRQ         PIOC_IRQn
+#define GPIO_C19_MAP        27
+/* GPIO channel 28 config */
+#define GPIO_28_DEV         PIOC
+#define GPIO_28_PIN         PIO_PC17
+#define GPIO_28_IRQ         PIOC_IRQn
+#define GPIO_C17_MAP        28
+/* GPIO channel 29 config */
+#define GPIO_29_DEV         PIOC
+#define GPIO_29_PIN         PIO_PC15
+#define GPIO_29_IRQ         PIOC_IRQn
+#define GPIO_C15_MAP        29
+/* GPIO channel 30 config */
+#define GPIO_30_DEV         PIOC
+#define GPIO_30_PIN         PIO_PC13
+#define GPIO_30_IRQ         PIOC_IRQn
+#define GPIO_C13_MAP        30
+/* GPIO channel 31 config */
+#define GPIO_31_DEV         PIOB
+#define GPIO_31_PIN         PIO_PB21
+#define GPIO_31_IRQ         PIOB_IRQn
+#define GPIO_B21_MAP        31
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

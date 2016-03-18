@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include "thread.h"
 
-char snd_thread_stack[KERNEL_CONF_STACKSIZE_MAIN];
+char snd_thread_stack[THREAD_STACKSIZE_MAIN];
 
 void *snd_thread(void *unused)
 {
@@ -33,8 +33,8 @@ int main(void)
     puts("The output should be: yield 1, snd_thread running, yield 2, done");
     puts("----------------------------------------------------------------");
 
-    thread_create(snd_thread_stack, sizeof(snd_thread_stack), PRIORITY_MAIN,
-                  CREATE_WOUT_YIELD, snd_thread, NULL, "snd");
+    thread_create(snd_thread_stack, sizeof(snd_thread_stack), THREAD_PRIORITY_MAIN,
+                  THREAD_CREATE_WOUT_YIELD, snd_thread, NULL, "snd");
 
     puts("yield 1");
     thread_yield();

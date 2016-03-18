@@ -114,7 +114,7 @@
  * @brief       Bloom filter library
  * @{
  *
- * @file        bloom.h
+ * @file
  * @brief       Bloom filter API
  *
  * @author Christian Mehlis <mehlis@inf.fu-berlin.de>
@@ -140,7 +140,7 @@ typedef uint32_t (*hashfp_t)(const uint8_t *, int len);
  * @brief bloom_t bloom filter object
  */
 typedef struct {
-    /** number of bytes in the bloom array */
+    /** number of bits in the bloom array */
     size_t m;
     /** number of hash functions */
     size_t k;
@@ -151,18 +151,19 @@ typedef struct {
 } bloom_t;
 
 /**
- * @brief Allocate and return a pointer to a new Bloom filter.
+ * @brief Initialize a Bloom Filter.
  *
- * For best results, make 'size' a power of 2.
+ * @note For best results, make 'size' a power of 2.
  *
- * @param size        size of the bit array in the filter
- * @param num_hashes  the number of hash functions
- * @param ...         varg function pointers, use hashfp_t
+ * @param bloom             bloom_t to initialize
+ * @param size              size of the bloom filter in bits
+ * @param bitfield          underlying bitfield of the bloom filter
+ * @param hashes            array of hashes
+ * @param hashes_numof      number of elements in hashes
  *
- * @return An allocated bloom filter
- *
+ * @pre     @p bitfield MUST be large enough to hold @p size bits.
  */
-bloom_t *bloom_new(size_t size, size_t num_hashes, ...);
+void bloom_init(bloom_t *bloom, size_t size, uint8_t *bitfield, hashfp_t *hashes, int hashes_numof);
 
 /**
  * @brief Delete a Bloom filter.

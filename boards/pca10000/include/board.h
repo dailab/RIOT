@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Freie Universität Berlin
+ * Copyright (C) 2014-2015 Freie Universität Berlin
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,20 +7,20 @@
  */
 
 /**
- * @defgroup    board_pca10000 PCA10000 (nRF51822 Development Kit)
+ * @defgroup    boards_pca10000 Nordic PCA10000
  * @ingroup     boards
- * @brief       Board specific files for the nRF51822 board pca10000.
+ * @brief       Board specific files for the Nordic PCA100000
  * @{
  *
  * @file
- * @brief       Board specific definitions for the nRF51822 evaluation board pca10000.
+ * @brief       Board configuration for the Nordic PCA10000 board
  *
  * @author      Christian Kühling <kuehling@zedat.fu-berlin.de>
  * @author      Timo Ziegler <timo.ziegler@fu-berlin.de>
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef BOARD_H
+#define BOARD_H
 
 #include "cpu.h"
 
@@ -29,52 +29,43 @@ extern "C" {
 #endif
 
 /**
- * Define the nominal CPU core clock in this board
- */
-#define F_CPU               (16000000UL)
-
-/**
- * @brief Assign the hardware timer
- */
-#define HW_TIMER            TIMER_0
-
-/**
- * @name Define the boards stdio
+ * @brief   Xtimer configuration
  * @{
  */
-#define STDIO               UART_0
-#define STDIO_BAUDRATE      (115200U)
-#define STDIO_RX_BUFSIZE    (64U)
+#define XTIMER                      (0)
+#define XTIMER_CHAN                 (0)
+#define XTIMER_MASK                 (0xff000000)
+#define XTIMER_SHIFT_ON_COMPARE     (2)
+#define XTIMER_BACKOFF              (40)
 /** @} */
 
 /**
- * @name LED pin definitions
+ * @brief   LED pin definitions and handlers
  * @{
  */
-#define ONBOARD_LED         1
-#define LED_RED_PIN         (1 << 21)
-#define LED_GREEN_PIN       (1 << 22)
-#define LED_BLUE_PIN        (1 << 23)
+#define LED0_PIN            GPIO_PIN(0, 21)
+#define LED1_PIN            GPIO_PIN(0, 22)
+#define LED2_PIN            GPIO_PIN(0, 23)
+
+#define LED0_MASK           (1 << 21)
+#define LED1_MASK           (1 << 22)
+#define LED2_MASK           (1 << 23)
+
+#define LED0_ON             (NRF_GPIO->OUTCLR = LED0_MASK)
+#define LED0_OFF            (NRF_GPIO->OUTSET = LED0_MASK)
+#define LED0_TOGGLE         (NRF_GPIO->OUT   ^= LED0_MASK)
+
+#define LED1_ON             (NRF_GPIO->OUTCLR = LED1_MASK)
+#define LED1_OFF            (NRF_GPIO->OUTSET = LED1_MASK)
+#define LED1_TOGGLE         (NRF_GPIO->OUT   ^= LED1_MASK)
+
+#define LED2_ON             (NRF_GPIO->OUTCLR = LED2_MASK)
+#define LED2_OFF            (NRF_GPIO->OUTSET = LED2_MASK)
+#define LED2_TOGGLE         (NRF_GPIO->OUT   ^= LED2_MASK)
 /** @} */
 
 /**
- * @name Macros for controlling the on-board LEDs.
- * @{
- */
-#define LED_RED_ON          (NRF_GPIO->OUTCLR = LED_RED_PIN)
-#define LED_RED_OFF         (NRF_GPIO->OUTSET = LED_RED_PIN)
-#define LED_RED_TOGGLE      (NRF_GPIO->OUT ^= LED_RED_PIN)
-#define LED_GREEN_ON        (NRF_GPIO->OUTCLR = LED_GREEN_PIN)
-#define LED_GREEN_OFF       (NRF_GPIO->OUTSET = LED_GREEN_PIN)
-#define LED_GREEN_TOGGLE    (NRF_GPIO->OUT ^= LED_GREEN_PIN)
-#define LED_BLUE_ON         (NRF_GPIO->OUTCLR = LED_BLUE_PIN)
-#define LED_BLUE_OFF        (NRF_GPIO->OUTSET = LED_BLUE_PIN)
-#define LED_BLUE_TOGGLE     (NRF_GPIO->OUT ^= LED_BLUE_PIN)
-/** @} */
-
-
-/**
- * @brief Initialize board specific hardware, including clock, LEDs and std-IO
+ * @brief   Initialize the board, including triggering the CPU initialization
  */
 void board_init(void);
 
@@ -82,5 +73,5 @@ void board_init(void);
 }
 #endif
 
-#endif /** __BOARD_H */
+#endif /** BOARD_H */
 /** @} */

@@ -1,24 +1,26 @@
 /*
  * Copyright (C) 2014 Freie Universität Berlin
  *
- * This file is subject to the terms and conditions of the GNU Lesser General
- * Public License v2.1. See the file LICENSE in the top level directory for more
- * details.
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
  */
 
 /**
- * @ingroup     board_stm32f4discovery
+ * @ingroup     boards_stm32f4discovery
  * @{
  *
  * @file
- * @name       Peripheral MCU configuration for the STM32F4discovery board
+ * @name        Peripheral MCU configuration for the STM32F4discovery board
  *
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  * @author      Peter Kietzmann <peter.kietzmann@haw-hamburg.de>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
+
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,6 +42,11 @@ extern "C" {
 #define CLOCK_APB2_DIV      RCC_CFGR_PPRE2_DIV2
 #define CLOCK_APB1_DIV      RCC_CFGR_PPRE1_DIV4
 #define CLOCK_FLASH_LATENCY FLASH_ACR_LATENCY_5WS
+
+/* bus clocks for simplified peripheral initialization, UPDATE MANUALLY! */
+#define CLOCK_AHB           (CLOCK_CORECLOCK / 1)
+#define CLOCK_APB2          (CLOCK_CORECLOCK / 2)
+#define CLOCK_APB1          (CLOCK_CORECLOCK / 4)
 /** @} */
 
 /**
@@ -54,7 +61,7 @@ extern "C" {
 /* Timer 0 configuration */
 #define TIMER_0_DEV         TIM2
 #define TIMER_0_CHANNELS    4
-#define TIMER_0_PRESCALER   (83U)
+#define TIMER_0_FREQ        (CLOCK_CORECLOCK / 2)
 #define TIMER_0_MAX_VALUE   (0xffffffff)
 #define TIMER_0_CLKEN()     (RCC->APB1ENR |= RCC_APB1ENR_TIM2EN)
 #define TIMER_0_ISR         isr_tim2
@@ -63,7 +70,7 @@ extern "C" {
 /* Timer 1 configuration */
 #define TIMER_1_DEV         TIM5
 #define TIMER_1_CHANNELS    4
-#define TIMER_1_PRESCALER   (83U)
+#define TIMER_1_FREQ        (CLOCK_CORECLOCK / 2)
 #define TIMER_1_MAX_VALUE   (0xffffffff)
 #define TIMER_1_CLKEN()     (RCC->APB1ENR |= RCC_APB1ENR_TIM5EN)
 #define TIMER_1_ISR         isr_tim5
@@ -71,101 +78,75 @@ extern "C" {
 /** @} */
 
 /**
- * @name UART configuration
+ * @brief   UART configuration
  * @{
  */
-#define UART_NUMOF          (2U)
-#define UART_0_EN           1
-#define UART_1_EN           1
-#define UART_IRQ_PRIO       1
-#define UART_CLK            (14000000U)         /* UART clock runs with 14MHz */
+static const uart_conf_t uart_config[] = {
+    {
+        .dev        = USART2,
+        .rcc_mask   = RCC_APB1ENR_USART2EN,
+        .rx_pin     = GPIO_PIN(PORT_A,3),
+        .tx_pin     = GPIO_PIN(PORT_A,2),
+        .af         = GPIO_AF7,
+        .bus        = APB1,
+        .irqn       = USART2_IRQn,
+        .dma_stream = 6,
+        .dma_chan   = 4
+    },
+    {
+        .dev        = USART3,
+        .rcc_mask   = RCC_APB1ENR_USART3EN,
+        .rx_pin     = GPIO_PIN(PORT_D,9),
+        .tx_pin     = GPIO_PIN(PORT_D,8),
+        .af         = GPIO_AF7,
+        .bus        = APB1,
+        .irqn       = USART3_IRQn,
+        .dma_stream = 3,
+        .dma_chan   = 4
+    },
+};
 
-/* UART 0 device configuration */
-#define UART_0_DEV          USART2
-#define UART_0_CLKEN()      (RCC->APB1ENR |= RCC_APB1ENR_USART2EN)
-#define UART_0_CLKDIS()     (RCC->APB1ENR &= ~(RCC_APB1ENR_USART2EN))
-#define UART_0_CLK          (42000000)          /* UART clock runs with 42MHz (F_CPU / 4) */
-#define UART_0_IRQ_CHAN     USART2_IRQn
+/* assign ISR vector names */
 #define UART_0_ISR          isr_usart2
-/* UART 0 pin configuration */
-#define UART_0_PORT_CLKEN() (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN)
-#define UART_0_PORT         GPIOA
-#define UART_0_TX_PIN       2
-#define UART_0_RX_PIN       3
-#define UART_0_AF           7
-
-/* UART 1 device configuration */
-#define UART_1_DEV          USART3
-#define UART_1_CLKEN()      (RCC->APB1ENR |= RCC_APB1ENR_USART3EN)
-#define UART_1_CLKDIS()     (RCC->APB1ENR &= ~(RCC_APB1ENR_USART3EN))
-#define UART_1_CLK          (42000000)          /* UART clock runs with 42MHz (F_CPU / 4) */
-#define UART_1_IRQ_CHAN     USART3_IRQn
+#define UART_0_DMA_ISR      isr_dma1_stream6
 #define UART_1_ISR          isr_usart3
-/* UART 1 pin configuration */
-#define UART_1_PORT_CLKEN() (RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN)
-#define UART_1_PORT         GPIOD
-#define UART_1_TX_PIN       8
-#define UART_1_RX_PIN       9
-#define UART_1_AF           7
+#define UART_1_DMA_ISR      isr_dma1_stream3
+
+/* deduct number of defined UART interfaces */
+#define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
 /** @} */
 
 /**
- * @name ADC configuration
+ * @brief   ADC configuration
+ *
+ * We need to define the following fields:
+ * PIN, device (ADCx), channel
  * @{
  */
-#define ADC_NUMOF           (2U)
-#define ADC_0_EN            1
-#define ADC_1_EN            1
-#define ADC_MAX_CHANNELS    2
+#define ADC_CONFIG {              \
+    {GPIO_PIN(PORT_A, 1), 0, 1},  \
+    {GPIO_PIN(PORT_A, 4), 0, 4},  \
+    {GPIO_PIN(PORT_C, 1), 1, 11}, \
+    {GPIO_PIN(PORT_C, 2), 1, 12}  \
+}
 
-/* ADC 0 configuration */
-#define ADC_0_DEV           ADC1
-#define ADC_0_CHANNELS      2
-#define ADC_0_CLKEN()       (RCC->APB2ENR |= RCC_APB2ENR_ADC1EN)
-#define ADC_0_CLKDIS()      (RCC->APB2ENR &= ~(RCC_APB2ENR_ADC1EN))
-#define ADC_0_PORT          GPIOA
-#define ADC_0_PORT_CLKEN()  (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN)
-/* ADC 0 channel 0 pin config */
-#define ADC_0_CH0           1
-#define ADC_0_CH0_PIN       1
-/* ADC 0 channel 1 pin config */
-#define ADC_0_CH1           4
-#define ADC_0_CH1_PIN       4
-
-/* ADC 1 configuration */
-#define ADC_1_DEV           ADC2
-#define ADC_1_CHANNELS      2
-#define ADC_1_CLKEN()       (RCC->APB2ENR |= RCC_APB2ENR_ADC2EN)
-#define ADC_1_CLKDIS()      (RCC->APB2ENR &= ~(RCC_APB2ENR_ADC2EN))
-
-#define ADC_1_PORT          GPIOC
-#define ADC_1_PORT_CLKEN()  (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN)
-/* ADC 1 channel 0 pin config */
-#define ADC_1_CH0           11
-#define ADC_1_CH0_PIN       1
-/* ADC 1 channel 1 pin config */
-#define ADC_1_CH1           12
-#define ADC_1_CH1_PIN       2
+#define ADC_NUMOF           (4)
 /** @} */
 
 /**
- * @name DAC configuration
+ * @brief   DAC configuration
+ *
+ * We need to define the following fields:
+ * PIN, DAC channel
  * @{
  */
-#define DAC_NUMOF          (1U)
-#define DAC_0_EN           1
-#define DAC_MAX_CHANNELS   2
+#define DAC_CONFIG {          \
+    {GPIO_PIN(PORT_A, 4), 0}, \
+    {GPIO_PIN(PORT_A, 5), 1}  \
+}
 
-/* DAC 0 configuration */
-#define DAC_0_DEV            DAC
-#define DAC_0_CHANNELS       2
-#define DAC_0_CLKEN()        (RCC->APB1ENR |=  (RCC_APB1ENR_DACEN))
-#define DAC_0_CLKDIS()       (RCC->APB1ENR &= ~(RCC_APB1ENR_DACEN))
-#define DAC_0_PORT           GPIOA
-#define DAC_0_PORT_CLKEN()   (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN)
-/* DAC 0 channel config */
-#define DAC_0_CH0_PIN        4
-#define DAC_0_CH1_PIN        5
+#define DAC_NUMOF           (2)
+/** @} */
 
 /**
  * @name PWM configuration
@@ -205,13 +186,6 @@ extern "C" {
 #define PWM_1_PIN_CH2       0
 #define PWM_1_PIN_CH3       1
 #define PWM_1_PIN_AF        2
-/** @} */
-
-/**
- * @name Random Number Generator configuration
- * @{
- */
-#define RANDOM_NUMOF        (1U)
 /** @} */
 
 /**
@@ -294,120 +268,9 @@ extern "C" {
 #define I2C_0_SDA_CLKEN()   (RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN)
 /** @} */
 
-/**
- * @name GPIO configuration
- * @{
- */
-#define GPIO_NUMOF          12
-#define GPIO_0_EN           1
-#define GPIO_1_EN           1
-#define GPIO_2_EN           1
-#define GPIO_3_EN           1
-#define GPIO_4_EN           1
-#define GPIO_5_EN           1
-#define GPIO_6_EN           1
-#define GPIO_7_EN           1
-#define GPIO_8_EN           1
-#define GPIO_9_EN           1
-#define GPIO_10_EN          1
-#define GPIO_11_EN          1
-#define GPIO_IRQ_PRIO       1
-
-/* IRQ config */
-#define GPIO_IRQ_0          GPIO_0 /* alternatively GPIO_1 could be used here */
-#define GPIO_IRQ_1          GPIO_2
-#define GPIO_IRQ_2          GPIO_3
-#define GPIO_IRQ_3          GPIO_4
-#define GPIO_IRQ_4          GPIO_5
-#define GPIO_IRQ_5          GPIO_6
-#define GPIO_IRQ_6          GPIO_7
-#define GPIO_IRQ_7          GPIO_8
-#define GPIO_IRQ_8          GPIO_9
-#define GPIO_IRQ_9          GPIO_10
-#define GPIO_IRQ_10         GPIO_11
-#define GPIO_IRQ_11         -1/* not configured */
-#define GPIO_IRQ_12         -1/* not configured */
-#define GPIO_IRQ_13         -1/* not configured */
-#define GPIO_IRQ_14         -1/* not configured */
-#define GPIO_IRQ_15         -1/* not configured */
-
-/* GPIO channel 0 config */
-#define GPIO_0_PORT         GPIOA                   /* Used for user button 1 */
-#define GPIO_0_PIN          0
-#define GPIO_0_CLK          0                       /* 0: PORT A, 1: B ... */
-#define GPIO_0_EXTI_CFG()   (SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA)
-#define GPIO_0_IRQ          EXTI0_IRQn
-/* GPIO channel 1 config */
-#define GPIO_1_PORT         GPIOE                   /* LIS302DL INT1 */
-#define GPIO_1_PIN          0
-#define GPIO_1_CLK          4
-#define GPIO_1_EXTI_CFG()   (SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PE)
-#define GPIO_1_IRQ          EXTI0_IRQn
-/* GPIO channel 2 config */
-#define GPIO_2_PORT         GPIOE                   /* LIS302DL INT2 */
-#define GPIO_2_PIN          1
-#define GPIO_2_CLK          4
-#define GPIO_2_EXTI_CFG()   (SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PE)
-#define GPIO_2_IRQ          EXTI1_IRQn
-/* GPIO channel 3 config */
-#define GPIO_3_PORT         GPIOE
-#define GPIO_3_PIN          2
-#define GPIO_3_CLK          4
-#define GPIO_3_EXTI_CFG()   (SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI2_PE)
-#define GPIO_3_IRQ          EXTI2_IRQn
-/* GPIO channel 4 config */
-#define GPIO_4_PORT         GPIOE                   /* LIS302DL CS */
-#define GPIO_4_PIN          3
-#define GPIO_4_CLK          4
-#define GPIO_4_EXTI_CFG()   (SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI3_PE)
-#define GPIO_4_IRQ          EXTI3_IRQn
-/* GPIO channel 5 config */
-#define GPIO_5_PORT         GPIOD                   /* CS43L22 RESET */
-#define GPIO_5_PIN          4
-#define GPIO_5_CLK          3
-#define GPIO_5_EXTI_CFG()   (SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PD)
-#define GPIO_5_IRQ          EXTI4_IRQn
-/* GPIO channel 6 config */
-#define GPIO_6_PORT         GPIOD                   /* LD8 */
-#define GPIO_6_PIN          5
-#define GPIO_6_CLK          3
-#define GPIO_6_EXTI_CFG()   (SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI5_PD)
-#define GPIO_6_IRQ          EXTI9_5_IRQn
-/* GPIO channel 7 config */
-#define GPIO_7_PORT         GPIOD
-#define GPIO_7_PIN          6
-#define GPIO_7_CLK          3
-#define GPIO_7_EXTI_CFG()   (SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI6_PD)
-#define GPIO_7_IRQ          EXTI9_5_IRQn
-/* GPIO channel 8 config */
-#define GPIO_8_PORT         GPIOD
-#define GPIO_8_PIN          7
-#define GPIO_8_CLK          3
-#define GPIO_8_EXTI_CFG()   (SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI7_PD)
-#define GPIO_8_IRQ          EXTI9_5_IRQn
-/* GPIO channel 9 config */
-#define GPIO_9_PORT         GPIOA
-#define GPIO_9_PIN          8
-#define GPIO_9_CLK          0
-#define GPIO_9_EXTI_CFG()   (SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI8_PA)
-#define GPIO_9_IRQ          EXTI9_5_IRQn
-/* GPIO channel 10 config */
-#define GPIO_10_PORT        GPIOA                   /* LD7 */
-#define GPIO_10_PIN         9
-#define GPIO_10_CLK         0
-#define GPIO_10_EXTI_CFG()  (SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI9_PA)
-#define GPIO_10_IRQ         EXTI9_5_IRQn
-/* GPIO channel 11 config */
-#define GPIO_11_PORT        GPIOD
-#define GPIO_11_PIN         10
-#define GPIO_11_CLK         3
-#define GPIO_11_EXTI_CFG()  (SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PD)
-#define GPIO_11_IRQ         EXTI15_10_IRQn
-/** @} */
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

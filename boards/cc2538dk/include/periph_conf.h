@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     board_cc2538dk
+ * @ingroup     boards_cc2538dk
  * @{
  *
  * @file
@@ -16,10 +16,11 @@
  * @author      Ian Martin <ian@locicontrols.com>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
 
-#include "gptimer.h"
+#include "cpu.h"
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,7 +40,7 @@ extern "C" {
 
 /* Timer 0 configuration */
 #define TIMER_0_DEV         GPTIMER0
-#define TIMER_0_CHANNELS    NUM_CHANNELS_PER_GPTIMER
+#define TIMER_0_CHANNELS    1
 #define TIMER_0_MAX_VALUE   0xffffffff
 #define TIMER_0_IRQn_1      GPTIMER_0A_IRQn
 #define TIMER_0_IRQn_2      GPTIMER_0B_IRQn
@@ -48,7 +49,7 @@ extern "C" {
 
 /* Timer 1 configuration */
 #define TIMER_1_DEV         GPTIMER1
-#define TIMER_1_CHANNELS    NUM_CHANNELS_PER_GPTIMER
+#define TIMER_1_CHANNELS    1
 #define TIMER_1_MAX_VALUE   0xffffffff
 #define TIMER_1_IRQn_1      GPTIMER_1A_IRQn
 #define TIMER_1_IRQn_2      GPTIMER_1B_IRQn
@@ -57,7 +58,7 @@ extern "C" {
 
 /* Timer 2 configuration */
 #define TIMER_2_DEV         GPTIMER2
-#define TIMER_2_CHANNELS    NUM_CHANNELS_PER_GPTIMER
+#define TIMER_2_CHANNELS    1
 #define TIMER_2_MAX_VALUE   0xffffffff
 #define TIMER_2_IRQn_1      GPTIMER_2A_IRQn
 #define TIMER_2_IRQn_2      GPTIMER_2B_IRQn
@@ -66,7 +67,7 @@ extern "C" {
 
 /* Timer 3 configuration */
 #define TIMER_3_DEV         GPTIMER3
-#define TIMER_3_CHANNELS    NUM_CHANNELS_PER_GPTIMER
+#define TIMER_3_CHANNELS    1
 #define TIMER_3_MAX_VALUE   0xffffffff
 #define TIMER_3_IRQn_1      GPTIMER_3A_IRQn
 #define TIMER_3_IRQn_2      GPTIMER_3B_IRQn
@@ -106,18 +107,32 @@ extern "C" {
 /** @} */
 
 /**
- * @name Random Number Generator configuration
+ * @name I2C configuration
  * @{
  */
-#define RANDOM_NUMOF        1
+#define I2C_NUMOF               1
+#define I2C_0_EN                1
+#define I2C_IRQ_PRIO            1
+
+/* I2C 0 device configuration */
+#define I2C_0_DEV               0
+#define I2C_0_IRQ               I2C_IRQn
+#define I2C_0_IRQ_HANDLER       isr_i2c
+#define I2C_0_SCL_PIN           GPIO_PA2 /* SPI_SCK on the SmartRF06 baseboard */
+#define I2C_0_SDA_PIN           GPIO_PA4 /* SPI_MOSI on the SmartRF06 baseboard */
+
+static const i2c_conf_t i2c_config[I2C_NUMOF] = {
+    {
+        .scl_pin = GPIO_PA2, /* SPI_SCK on the SmartRF06 baseboard */
+        .sda_pin = GPIO_PA4, /* SPI_MOSI on the SmartRF06 baseboard */
+    },
+};
 /** @} */
 
 /**
  * @name GPIO configuration
  * @{
  */
-#define GPIO_NUMOF          32
-
 #define GPIO_IRQ_PRIO       1
 
 #define GPIO_0_EN           1
@@ -192,5 +207,5 @@ extern "C" {
 } /* end extern "C" */
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

@@ -7,7 +7,7 @@
  */
 
 /**
- * @defgroup    board_arduino-mega2560 Arduino Mega 2560
+ * @defgroup    boards_arduino-mega2560 Arduino Mega 2560
  * @ingroup     boards
  * @brief       Board specific files for the Arduino Mega 2560 board.
  * @{
@@ -18,61 +18,43 @@
  * @author      Hinnerk van Bruinehsen <h.v.bruinehsen@fu-berlin.de>
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef BOARD_H_
+#define BOARD_H_
 
 #include "cpu.h"
+#include "arduino_pinmap.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Define the nominal CPU core clock in this board
- */
-#define F_CPU               (16000000L)
-
-
-/**
- * Assign the hardware timer
- */
-#define HW_TIMER            TIMER_0
-
-/**
-* @name Define UART device and baudrate for stdio
-* @{
+* @brief As the CPU is too slow to handle 115200 baud, we set the default
+*        baudrate to 9600 for this board
 */
-#define STDIO UART_0
-#define STDIO_BAUDRATE (38400U)
-#define STDIO_RX_BUFSIZE (64U)
+#define UART_STDIO_BAUDRATE (9600U)
+
+/**
+ * @brief   LED pin definitions and handlers
+ * @{
+ */
+#define LED0_PIN            GPIO_PIN(1, 7)
+
+#define LED0_MASK           (1 << DDB7)
+
+#define LED0_ON             (PORTB |=  LED0_MASK)
+#define LED0_OFF            (PORTB &= ~LED0_MASK)
+#define LED0_TOGGLE         (PORTB ^=  LED0_MASK)
 /** @} */
 
 /**
- * @name LED pin definitions
+ * @brief xtimer configuration values
  * @{
  */
-#define LED_PORT            PORTB
-#define LED_PIN             (1 << 7)
+#define XTIMER_SHIFT                (2)
+#define XTIMER_SHIFT_ON_COMPARE     (8)
+#define XTIMER_BACKOFF              (40)
 /** @} */
-
-/**
- * @name Macros for controlling the on-board LEDs.
- * @{
- */
-#define LED_ENABLE_PORT     DDRB |= (1 << DDB7)
-#define LED_ON              LED_PORT |= LED_PIN
-#define LED_OFF             LED_PORT &= ~LED_PIN
-#define LED_TOGGLE          LED_PORT ^= LED_PIN;
-
-/* for compatability to other boards */
-#define LED_GREEN_ON        LED_ON
-#define LED_GREEN_OFF       LED_OFF
-#define LED_GREEN_TOGGLE    LED_TOGGLE
-#define LED_RED_ON          /* not available */
-#define LED_RED_OFF         /* not available */
-#define LED_RED_TOGGLE      /* not available */
-/** @} */
-
 
 /**
  * @brief Initialize board specific hardware, including clock, LEDs and std-IO
@@ -83,5 +65,5 @@ void board_init(void);
 }
 #endif
 
-#endif /** __BOARD_H */
+#endif /* BOARD_H_ */
 /** @} */

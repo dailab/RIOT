@@ -22,7 +22,6 @@
 
 #include <time.h>
 
-#include "kernel.h"
 #include "mutex.h"
 #include "sched.h"
 
@@ -39,6 +38,7 @@
 #include "pthread_scheduling.h"
 #include "pthread_cancellation.h"
 #include "pthread_cond.h"
+#include "pthread_tls.h"
 
 #ifdef __cplusplus
 extern "C" {

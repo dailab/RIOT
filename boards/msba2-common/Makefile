@@ -1,4 +1,4 @@
-MODULE =$(BOARD)_base
+MODULE = msba2-common
 
 DIRS = drivers
 

@@ -10,7 +10,7 @@
  * @ingroup     cpu_atmega2560
  * @{
  *
- * @file        startup.c
+ * @file
  * @brief       Startup code and interrupt vector definition
  *
  * @author     Hinnerk van Bruinehsen <h.v.bruinehsen@fu-berlin.de>
@@ -24,8 +24,6 @@
 
 /* For Catchall-Loop */
 #include "board.h"
-#include <util/delay.h>
-#include <stdio.h>
 
 
 /**

@@ -3,6 +3,6 @@ include ../Makefile.tests_common
 
 FEATURES_REQUIRED = periph_gpio
 
-DISABLE_MODULE += auto_init
+USEMODULE += shell
 
 include $(RIOTBASE)/Makefile.include

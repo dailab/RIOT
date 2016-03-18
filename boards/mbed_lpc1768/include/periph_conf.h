@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     board_mbed_lpc1768
+ * @ingroup     boards_mbed_lpc1768
  * @{
  *
  * @file
@@ -16,8 +16,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ extern "C" {
 /* Timer 0 configuration */
 #define TIMER_0_DEV         LPC_TIM0
 #define TIMER_0_CHANNELS    4
-#define TIMER_0_PRESCALER   (95U)
+#define TIMER_0_FREQ        (96000000ul)
 #define TIMER_0_MAX_VALUE   (0xffffffff)
 #define TIMER_0_CLKEN()     (LPC_SC->PCONP |= (1 << 1))
 #define TIMER_0_CLKDIS()    (LPC_SC->PCONP &= ~(1 << 1))
@@ -89,5 +89,5 @@ extern "C" {
 }
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

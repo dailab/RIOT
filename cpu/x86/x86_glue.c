@@ -28,9 +28,8 @@
  * @}
  */
 
-#include "attributes.h"
+#include "kernel_defines.h"
 #include "cpu.h"
-#include "kernel_internal.h"
 #include "sched.h"
 #include "x86_uart.h"
 
@@ -134,4 +133,3 @@ ssize_t write(int fildes, const void *buf, size_t nbyte)
     (void) nbyte;
     return -1;
 }
-

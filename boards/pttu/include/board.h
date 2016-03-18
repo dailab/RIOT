@@ -18,29 +18,41 @@
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef __BOARD_H
-#define __BOARD_H
+#ifndef BOARD_H_
+#define BOARD_H_
 
 #include <stdint.h>
 
 #include "lpc2387.h"
-#include "cpu-conf.h"
+#include "cpu_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * @brief   VICIntEnClear Alias for compatibility
+ */
 #define VICIntEnClear VICIntEnClr
 
+/**
+ * @brief   Clock initialization part one
+ */
 void init_clks1(void);
-void init_clks2(void);
-void bl_init_clks(void);
 
-typedef uint8_t radio_packet_length_t;
+/**
+ * @brief   Clock initialization part two
+ */
+void init_clks2(void);
+
+/**
+ * @brief   Jump to clock initialization code
+ */
+void bl_init_clks(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 /** @} */
-#endif // __BOARD_H
+#endif /* BOARD_H_ */

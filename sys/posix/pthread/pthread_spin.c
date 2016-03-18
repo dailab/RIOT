@@ -13,6 +13,7 @@
  * @brief   Spin locks.
  * @author  Christian Mehlis <mehlis@inf.fu-berlin.de>
  * @author  René Kijewski <kijewski@inf.fu-berlin.de>
+ * @author  Joakim Nohlgård <joakim.nohlgard@eistec.se>
  * @}
  */
 
@@ -26,7 +27,7 @@ int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
     }
 
     (void) pshared;
-    *lock = 0;
+    ATOMIC_VALUE(lock->value) = 0;
     return 0;
 }
 
@@ -46,9 +47,10 @@ int pthread_spin_lock(pthread_spinlock_t *lock)
         return EINVAL;
     }
 
-    while (atomic_set_return((unsigned *) lock, 1) != 0) {
+    while (atomic_set_to_one(&(lock->value)) == 0) {
         /* spin */
     }
+
     return 0;
 }
 
@@ -58,7 +60,11 @@ int pthread_spin_trylock(pthread_spinlock_t *lock)
         return EINVAL;
     }
 
-    return atomic_set_return((unsigned *) lock, 1) == 0 ? 0 : EBUSY;
+    if (atomic_set_to_one(&(lock->value)) == 0) {
+        return EBUSY;
+    }
+
+    return 0;
 }
 
 int pthread_spin_unlock(pthread_spinlock_t *lock)
@@ -67,5 +73,9 @@ int pthread_spin_unlock(pthread_spinlock_t *lock)
         return EINVAL;
     }
 
-    return atomic_set_return((unsigned *) lock, 0) != 0 ? 0 : EPERM;
+    if (atomic_set_to_zero(&(lock->value)) == 0) {
+        return EPERM;
+    }
+
+    return 0;
 }

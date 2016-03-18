@@ -10,14 +10,14 @@
  * @addtogroup  unittests
  * @{
  *
- * @file        tests-timex.h
+ * @file
  * @brief       Unittests for the ``timex`` module
  *
  * @author      Philipp Rosenkranz <philipp.rosenkranz@fu-berlin.de>
  * @author      Daniel Jentsch <d.jentsch@fu-berlin.de>
  */
-#ifndef __TESTS_TIMEX_H_
-#define __TESTS_TIMEX_H_
+#ifndef TESTS_TIMEX_H_
+#define TESTS_TIMEX_H_
 
 #include "embUnit.h"
 
@@ -41,5 +41,5 @@ Test *tests_timex_tests(void);
 }
 #endif
 
-#endif /* __TESTS_TIMEX_H_ */
+#endif /* TESTS_TIMEX_H_ */
 /** @} */

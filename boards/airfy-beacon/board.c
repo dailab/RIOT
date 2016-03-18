@@ -7,10 +7,10 @@
  */
 
 /**
- * @ingroup     board_airfy-beacon
+ * @ingroup     boards_airfy-beacon
  * @{
  *
- * @file        board.c
+ * @file
  * @brief       Board specific implementations for the Airfy Beacon board
  *
  * @author      Christian Mehlis <mehlis@inf.fu-berlin.de>
@@ -23,9 +23,6 @@
 
 void board_init(void)
 {
-    /* setup led(s) for debugging */
-    NRF_GPIO->PIN_CNF[LED_RED_PIN] = GPIO_PIN_CNF_DIR_Output;
-
     /* initialize the CPU */
     cpu_init();
 }

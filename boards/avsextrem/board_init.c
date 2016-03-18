@@ -24,7 +24,6 @@
 #include "lpc23xx.h"
 #include "cpu.h"
 
-#define PCRTC         BIT9
 #define CL_CPU_DIV    4
 
 
@@ -79,7 +78,7 @@ void init_clks1(void)
 /*---------------------------------------------------------------------------*/
 void bl_init_ports(void)
 {
-    SCS |= BIT0;              // Set IO Ports to fast switching mode
+    gpio_init_ports();
 
     /* UART0 */
     PINSEL0 |= BIT4 + BIT6;   // RxD0 and TxD0

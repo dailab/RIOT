@@ -10,7 +10,7 @@
  * @ingroup     sys_crypto
  * @{
  *
- * @file        twofish.h
+ * @file
  * @brief       Headers for the implementation of the TwoFish Cipher-Algorithm
  *
  * @author      Freie Universitaet Berlin, Computer Systems & Telematics
@@ -34,6 +34,7 @@ extern "C" {
 
 #define TWOFISH_BLOCK_SIZE      16
 #define TWOFISH_KEY_SIZE        16   //only alternative is 32!
+#define TWOFISH_CONTEXT_SIZE    20
 
 /**
  * Macro to perform one column of the RS matrix multiplication.  The
@@ -187,7 +188,7 @@ extern "C" {
 
 #define INPACK(n, x, m) \
    x = in[4 * (n)] ^ (in[4 * (n) + 1] << 8) \
-     ^ (in[4 * (n) + 2] << 16) ^ (in[4 * (n) + 3] << 24) ^ ctx->w[m]
+     ^ ((uint32_t)in[4 * (n) + 2] << 16) ^ ((uint32_t)in[4 * (n) + 3] << 24) ^ ctx->w[m]
 
 #define OUTUNPACK(n, x, m) \
    x ^= ctx->w[m]; \
@@ -218,26 +219,13 @@ typedef struct {
  *                      call. It should be passed to future invocations of
  *                      this module
  *                      which use this particular key.
- * @param   block_size  size of the block in bytes.
  * @param   key_size    key size in bytes
  * @param   key         pointer to the key
  *
  * @return  Whether initialization was successful. The command may be
- *         unsuccessful if the key size or blockSize are not valid.
+ *          unsuccessful if the key size is not valid.
  */
-int twofish_init(cipher_context_t *context, uint8_t block_size, uint8_t key_size, uint8_t *key);
-
-/**
- * @brief   Sets up the context to use the passed key for usage with TwoFish
- *          Performs the key expansion on the real secret.
- *
- * @param   context     the CipherContext-struct to save the updated key in
- * @param   key         a pointer to the secret key
- * @param   key_size    the length of the secret key
- *
- * @return SUCCESS
- */
-int twofish_setup_key(cipher_context_t *context, uint8_t *key, uint8_t key_size);
+int twofish_init(cipher_context_t *context, const uint8_t *key, uint8_t key_size);
 
 /**
  * @brief   Encrypts a single block (of blockSize) using the passed context.
@@ -250,7 +238,7 @@ int twofish_setup_key(cipher_context_t *context, uint8_t *key, uint8_t key_size)
  * @return  Whether the encryption was successful. Possible failure reasons
  *          include not calling init().
  */
-int twofish_encrypt(cipher_context_t *context, uint8_t *in, uint8_t *out);
+int twofish_encrypt(const cipher_context_t *context, const uint8_t *in, uint8_t *out);
 
 /**
  * @brief   Decrypts a single block (of blockSize) using the passed context.
@@ -263,24 +251,7 @@ int twofish_encrypt(cipher_context_t *context, uint8_t *in, uint8_t *out);
  * @return  Whether the decryption was successful. Possible failure reasons
  *          include not calling init()
  */
-int twofish_decrypt(cipher_context_t *context, uint8_t *in, uint8_t *out);
-
-/**
- * @brief   Returns the preferred block size that this cipher operates with.
- *          It is always safe to call this function before the init() call has
- *          been made.
- *
- * @return  the preferred block size for this cipher. In the case where the
- *          cipher operates with multiple block sizes, this will pick one
- *          particular size (deterministically).
- */
-uint8_t twofish_get_preferred_block_size(void);
-
-/**
- * Interface to access the functions
- *
- */
-extern block_cipher_interface_t twofish_interface;
+int twofish_decrypt(const cipher_context_t *context, const uint8_t *in, uint8_t *out);
 
 #ifdef __cplusplus
 }

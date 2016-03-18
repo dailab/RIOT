@@ -8,7 +8,7 @@
  */
 
 /**
- * @file        main.cpp
+ * @file
  * @brief       Demonstration of mixed c++ and c user application with pure c RIOT
  *              - mixing of c and c++ source to test name mangling
  *              - introducing a namespace to declarative block, avoiding to qualify calls, e.g. std::vector
@@ -37,7 +37,7 @@ extern "C" {
 using namespace std;
 
 /* thread's stack */
-char threadA_stack [KERNEL_CONF_STACKSIZE_MAIN];
+char threadA_stack [THREAD_STACKSIZE_MAIN];
 
 /* thread's function */
 void *threadA_func(void *arg);
@@ -49,7 +49,9 @@ int main()
     printf("\n");
 
     /* create thread A */
-    thread_create(threadA_stack, sizeof(threadA_stack), 0, CREATE_WOUT_YIELD, threadA_func, NULL, "thread A");
+    thread_create(threadA_stack, sizeof(threadA_stack), 0,
+                                        THREAD_CREATE_WOUT_YIELD,
+                                        threadA_func, NULL, "thread A");
 
     printf("******** Hello, you're in thread #%" PRIkernel_pid " ********\n", sched_active_pid);
     printf("We'll test C++ class and methods here!\n");

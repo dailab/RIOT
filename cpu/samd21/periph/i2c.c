@@ -37,15 +37,15 @@
 #define SAMD21_I2C_TIMEOUT  (65535)
 
 /* static function definitions */
-static inline void _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag);
-static inline void _write(SercomI2cm *dev, char *data, int length);
-static inline void _read(SercomI2cm *dev, char *data, int length);
+static inline int _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag);
+static inline int _write(SercomI2cm *dev, char *data, int length);
+static inline int _read(SercomI2cm *dev, char *data, int length);
 static inline void _stop(SercomI2cm *dev);
 
 /**
  * @brief Array holding one pre-initialized mutex for each I2C device
  */
-static mutex_t locks[] =  {
+static mutex_t locks[] = {
 #if I2C_0_EN
     [I2C_0] = MUTEX_INIT,
 #endif
@@ -82,7 +82,7 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
             pin_scl = I2C_SDA;
             pin_sda = I2C_SCL;
             i2c_pins = I2C_0_PINS;
-            clock_source_speed = I2C_0_REF_F;
+            clock_source_speed = CLOCK_CORECLOCK;
             sercom_core = SERCOM3_GCLK_ID_CORE;
             sercom_gclk_id_slow = SERCOM3_GCLK_ID_SLOW ;
             break;
@@ -93,24 +93,24 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
     }
     /* DISABLE I2C MASTER */
     i2c_poweroff(dev);
-    
-    /*Reset I2C */
+
+    /* Reset I2C */
     I2CSercom->CTRLA.reg = SERCOM_I2CS_CTRLA_SWRST;
-    while(I2CSercom->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
-    
+    while(I2CSercom->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
+
     /* Turn on power manager for sercom */
     PM->APBCMASK.reg |= (PM_APBCMASK_SERCOM0 << (sercom_core - 20));
 
-    /*I2C using CLK GEN 0*/
-    GCLK->CLKCTRL.reg = (uint32_t)(GCLK_CLKCTRL_CLKEN 
-                                   | GCLK_CLKCTRL_GEN_GCLK0 << GCLK_CLKCTRL_GEN_Pos 
-                                   | (sercom_core << GCLK_CLKCTRL_ID_Pos));
-    while (GCLK->STATUS.bit.SYNCBUSY);
+    /* I2C using CLK GEN 0 */
+    GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_CLKEN |
+                         GCLK_CLKCTRL_GEN_GCLK0 |
+                         GCLK_CLKCTRL_ID(sercom_core));
+    while (GCLK->STATUS.bit.SYNCBUSY) {}
 
-    GCLK->CLKCTRL.reg = (uint16_t)(GCLK_CLKCTRL_CLKEN 
-                                   | GCLK_CLKCTRL_GEN_GCLK0 << GCLK_CLKCTRL_GEN_Pos  
-                                   | (sercom_gclk_id_slow << GCLK_CLKCTRL_ID_Pos));
-    while (GCLK->STATUS.bit.SYNCBUSY);
+    GCLK->CLKCTRL.reg = (GCLK_CLKCTRL_CLKEN |
+                         GCLK_CLKCTRL_GEN_GCLK0 |
+                         GCLK_CLKCTRL_ID(sercom_gclk_id_slow));
+    while (GCLK->STATUS.bit.SYNCBUSY) {}
 
 
     /* Check if module is enabled. */
@@ -123,14 +123,14 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
         DEBUG("STATUS_BUSY\n");
         return -3;
     }
-    
-    /************ SERCOM PAD0 - SDA and SERCOM PAD1 - SCL  ************/
-    /* DIR + INEN at one: in/out pin. DIRSET modifies DIR in order to set I2C SDA/SCL on output*/
+
+    /************ SERCOM PAD0 - SDA and SERCOM PAD1 - SCL *************/
+    /* DIR + INEN at one: in/out pin. DIRSET modifies DIR in order to set I2C SDA/SCL on output */
     port_group->DIRSET.reg = (1 << pin_scl);
     port_group->DIRSET.reg = (1 << pin_sda);
-    
+
     /* The Write Configuration register (WRCONFIG) requires the
-     * pins to to grouped into two 16-bit half-words (PIN are set up to 31)*/
+     * pins to to grouped into two 16-bit half-words (PIN are set up to 31) */
     uint32_t lower_pin_mask = (i2c_pins & 0xFFFF);
     uint32_t upper_pin_mask = (i2c_pins >> 16);
 
@@ -141,7 +141,7 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
         | PORT_WRCONFIG_INEN \
         | PORT_WRCONFIG_WRPMUX \
         | PORT_WRCONFIG_WRPINCFG;
-    
+
     port_group->WRCONFIG.reg =
           (upper_pin_mask << PORT_WRCONFIG_PINMASK_Pos) \
         | PORT_WRCONFIG_PMUXEN \
@@ -150,19 +150,20 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
         | PORT_WRCONFIG_WRPMUX \
         | PORT_WRCONFIG_WRPINCFG \
         | PORT_WRCONFIG_HWSEL;
-    
-    
+
+
     /* I2C CONFIGURATION */
-    while(I2CSercom->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
+    while(I2CSercom->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
 
     /* Set sercom module to operate in I2C master mode. */
     I2CSercom->CTRLA.reg = SERCOM_I2CM_CTRLA_MODE_I2C_MASTER;
 
     /* Enable Smart Mode (ACK is sent when DATA.DATA is read) */
     I2CSercom->CTRLB.reg = SERCOM_I2CM_CTRLB_SMEN;
-    
-    /* Find and set baudrate. Read speed configuration. Set transfer speed: 
-    * SERCOM_I2CM_CTRLA_SPEED(0): Standard-mode (Sm) up to 100 kHz and Fast-mode (Fm) up to 400 kHz*/
+
+    /* Find and set baudrate. Read speed configuration. Set transfer
+     * speed: SERCOM_I2CM_CTRLA_SPEED(0): Standard-mode (Sm) up to 100
+     * kHz and Fast-mode (Fm) up to 400 kHz */
     switch (speed) {
         case I2C_SPEED_NORMAL:
             tmp_baud = (int32_t)(((clock_source_speed + (2*(100000)) - 1) / (2*(100000))) - 5);
@@ -189,10 +190,10 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
             DEBUG("BAD BAUDRATE\n");
             return -2;
     }
-    
+
     /* ENABLE I2C MASTER */
     i2c_poweron(dev);
-    
+
     /* Start timeout if bus state is unknown. */
     while (!(I2CSercom->STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(1))) {
         if(timeout_counter++ >= SAMD21_I2C_TIMEOUT) {
@@ -200,12 +201,6 @@ int i2c_init_master(i2c_t dev, i2c_speed_t speed)
             I2CSercom->STATUS.reg = SERCOM_I2CM_STATUS_BUSSTATE(1);
         }
     }
-    return 0;
-}
-
-int i2c_init_slave(i2c_t dev, uint8_t address)
-{
-    /* TODO */
     return 0;
 }
 
@@ -233,9 +228,9 @@ int i2c_read_byte(i2c_t dev, uint8_t address, char *data)
 }
 
 int i2c_read_bytes(i2c_t dev, uint8_t address, char *data, int length)
-{ 
+{
     SercomI2cm *i2c;
-    
+
     switch (dev) {
 #if I2C_0_EN
         case I2C_0:
@@ -247,9 +242,9 @@ int i2c_read_bytes(i2c_t dev, uint8_t address, char *data, int length)
     }
 
     /* start transmission and send slave address */
-    _start(i2c, address, I2C_FLAG_READ);
+    if(_start(i2c, address, I2C_FLAG_READ) < 0) return 0;
     /* read data to register */
-    _read(i2c, data, length);
+    if(_read(i2c, data, length) < 0) return 0;
     _stop(i2c);
     /* return number of bytes sent */
     return length;
@@ -275,9 +270,10 @@ int i2c_read_regs(i2c_t dev, uint8_t address, uint8_t reg, char *data, int lengt
     }
 
     /* start transmission and send slave address */
-    _start(i2c, address, I2C_FLAG_WRITE);
-    /* send register address/command and wait for complete transfer to be finished*/
-    _write(i2c, (char *)(&reg), 1);
+    if(_start(i2c, address, I2C_FLAG_WRITE) < 0) return 0;
+    /* send register address/command and wait for complete transfer to
+     * be finished */
+    if(_write(i2c, (char *)(&reg), 1) < 0) return 0;
     return i2c_read_bytes(dev, address, data, length);
 }
 
@@ -289,7 +285,7 @@ int i2c_write_byte(i2c_t dev, uint8_t address, char data)
 int i2c_write_bytes(i2c_t dev, uint8_t address, char *data, int length)
 {
     SercomI2cm *I2CSercom;
-    
+
     switch (dev) {
 #if I2C_0_EN
         case I2C_0:
@@ -299,9 +295,9 @@ int i2c_write_bytes(i2c_t dev, uint8_t address, char *data, int length)
         default:
             return -1;
     }
-    
-    _start(I2CSercom, address, I2C_FLAG_WRITE);
-    _write(I2CSercom, data, length);
+
+    if(_start(I2CSercom, address, I2C_FLAG_WRITE) < 0) return 0;
+    if(_write(I2CSercom, data, length) < 0) return 0;
     _stop(I2CSercom);
     return length;
 }
@@ -327,11 +323,11 @@ int i2c_write_regs(i2c_t dev, uint8_t address, uint8_t reg, char *data, int leng
         }
 
     /* start transmission and send slave address */
-    _start(i2c, address, I2C_FLAG_WRITE);
-    /* send register address and wait for complete transfer to be finished*/
-    _write(i2c, (char *)(&reg), 1);
+    if(_start(i2c, address, I2C_FLAG_WRITE) < 0) return 0;
+    /* send register address and wait for complete transfer to be finished */
+    if(_write(i2c, (char *)(&reg), 1) < 0) return 0;
     /* write data to register */
-    _write(i2c, data, length);
+    if(_write(i2c, data, length) < 0) return 0;
     /* finish transfer */
     _stop(i2c);
     return length;
@@ -342,7 +338,7 @@ void i2c_poweron(i2c_t dev)
     switch (dev) {
 #if I2C_0_EN
         case I2C_0:
-            while(I2C_0_DEV.SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
+            while(I2C_0_DEV.SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
             I2C_0_DEV.CTRLA.bit.ENABLE = 1;
             break;
 #endif
@@ -356,7 +352,7 @@ void i2c_poweroff(i2c_t dev)
     switch (dev) {
 #if I2C_0_EN
         case I2C_0:
-            while(I2C_0_DEV.SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
+            while(I2C_0_DEV.SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
             I2C_0_DEV.CTRLA.reg |= SERCOM_I2CM_CTRLA_ENABLE;
             break;
 #endif
@@ -365,18 +361,18 @@ void i2c_poweroff(i2c_t dev)
     }
 }
 
-static void _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag)
+static int _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag)
 {
     uint32_t timeout_counter = 0;
 
-    /*Wait for hardware module to sync*/
+    /* Wait for hardware module to sync */
     DEBUG("Wait for device to be ready\n");
-    while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
-    
+    while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
+
     /* Set action to ACK. */
     dev->CTRLB.reg &= ~SERCOM_I2CM_CTRLB_ACKACT;
-    
-    /* Send Start | Address | Write/Read   */
+
+    /* Send Start | Address | Write/Read */
     DEBUG("Generate start condition by sending address\n");
     dev->ADDR.reg = (address << 1) | rw_flag | (0 << SERCOM_I2CM_ADDR_HS_Pos);
 
@@ -385,19 +381,20 @@ static void _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag)
            && !(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_SB)) {
         if (++timeout_counter >= SAMD21_I2C_TIMEOUT) {
             DEBUG("STATUS_ERR_TIMEOUT\n");
-            return;
+            return -1;
         }
     }
 
     /* Check for address response error unless previous error is detected. */
-    /* Check for error and ignore bus-error; workaround for BUSSTATE stuck in BUSY */
+    /* Check for error and ignore bus-error; workaround for BUSSTATE
+     * stuck in BUSY */
     if (dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_SB) {
         /* Clear write interrupt flag */
         dev->INTFLAG.reg = SERCOM_I2CM_INTFLAG_SB;
         /* Check arbitration. */
         if (dev->STATUS.reg & SERCOM_I2CM_STATUS_ARBLOST) {
             DEBUG("STATUS_ERR_PACKET_COLLISION\n");
-            return;
+            return -2;
         }
     }
     /* Check that slave responded with ack. */
@@ -405,49 +402,51 @@ static void _start(SercomI2cm *dev, uint8_t address, uint8_t rw_flag)
         /* Slave busy. Issue ack and stop command. */
         dev->CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(3);
         DEBUG("STATUS_ERR_BAD_ADDRESS\n");
-        return;
+        return -3;
     }
+    return 0;
 }
 
-static inline void _write(SercomI2cm *dev, char *data, int length)
+static inline int _write(SercomI2cm *dev, char *data, int length)
 {
     uint16_t tmp_data_length = length;
     uint32_t timeout_counter = 0;
     uint16_t buffer_counter = 0;
-    
+
     /* Write data buffer until the end. */
     DEBUG("Looping through bytes\n");
     while (tmp_data_length--) {
         /* Check that bus ownership is not lost. */
         if (!(dev->STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(2))) {
             DEBUG("STATUS_ERR_PACKET_COLLISION\n");
-            return;
+            return -2;
         }
 
-        /*Wait for hardware module to sync*/
-        while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
-        
+        /* Wait for hardware module to sync */
+        while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
+
         DEBUG("Written %i byte to data reg, now waiting for DR to be empty again\n", buffer_counter);
         dev->DATA.reg = data[buffer_counter++];
 
         DEBUG("Wait for response.\n");
-        while (!(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB) 
+        while (!(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB)
                && !(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_SB)) {
             if (++timeout_counter >= SAMD21_I2C_TIMEOUT) {
                 DEBUG("STATUS_ERR_TIMEOUT\n");
-                return;
+                return -1;
             }
         }
 
         /* Check for NACK from slave. */
         if (dev->STATUS.reg & SERCOM_I2CM_STATUS_RXNACK) {
             DEBUG("STATUS_ERR_OVERFLOW\n");
-            return;
+            return -4;
         }
     }
+    return 0;
 }
 
-static inline void _read(SercomI2cm *dev, char *data, int length)
+static inline int _read(SercomI2cm *dev, char *data, int length)
 {
     uint32_t timeout_counter = 0;
     uint8_t count = 0;
@@ -460,32 +459,34 @@ static inline void _read(SercomI2cm *dev, char *data, int length)
         /* Check that bus ownership is not lost. */
         if (!(dev->STATUS.reg & SERCOM_I2CM_STATUS_BUSSTATE(2))) {
             DEBUG("STATUS_ERR_PACKET_COLLISION\n");
-            return;
+            return -2;
         }
 
-        /*Wait for hardware module to sync*/
-        while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
+        /* Wait for hardware module to sync */
+        while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
         /* Save data to buffer. */
         data[count] = dev->DATA.reg;
-        
+
         /* Wait for response. */
         timeout_counter = 0;
-        while (!(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB) 
+        while (!(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_MB)
                && !(dev->INTFLAG.reg & SERCOM_I2CM_INTFLAG_SB)) {
             if (++timeout_counter >= SAMD21_I2C_TIMEOUT) {
                 DEBUG("STATUS_ERR_TIMEOUT\n");
-                return;
+                return -1;
             }
         }
         count++;
     }
-    /*Send NACK before STOP*/
+    /* Send NACK before STOP */
     dev->CTRLB.reg |= SERCOM_I2CM_CTRLB_ACKACT;
+    return 0;
 }
+
 static inline void _stop(SercomI2cm *dev)
 {
-    /*Wait for hardware module to sync*/
-    while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK);
+    /* Wait for hardware module to sync */
+    while(dev->SYNCBUSY.reg & SERCOM_I2CM_SYNCBUSY_MASK) {}
     /* Stop command */
     dev->CTRLB.reg |= SERCOM_I2CM_CTRLB_CMD(3);
     DEBUG("Stop sent\n");

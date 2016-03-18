@@ -19,8 +19,8 @@
  * @}
  */
 
-#ifndef __NRF24L01P_SETTINGS_H
-#define __NRF24L01P_SETTINGS_H
+#ifndef NRF24L01P_SETTINGS_H
+#define NRF24L01P_SETTINGS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,21 +28,23 @@ extern "C" {
 
 #define INITIAL_ADDRESS_WIDTH       5
 #define NRF24L01P_MAX_DATA_LENGTH   32
+#ifndef INITIAL_RF_CHANNEL
 #define INITIAL_RF_CHANNEL          5
+#endif
 #define INITIAL_RX_POWER_0dB        0
 
-#define DELAY_CS_TOGGLE_TICKS               2
-#define DELAY_AFTER_FUNC_TICKS              2
-#define DELAY_CE_HIGH_US                    HWTIMER_TICKS(20)
-#define DELAY_CHANGE_PWR_MODE_US            HWTIMER_TICKS(1500)
-#define DELAY_CHANGE_TXRX_US                HWTIMER_TICKS(130)
-#define DELAY_CE_START_US                   HWTIMER_TICKS(5)
-/* 
+#define DELAY_CS_TOGGLE_TICKS       2
+#define DELAY_AFTER_FUNC_TICKS      2
+#define DELAY_CE_HIGH_US            (20)
+#define DELAY_CHANGE_PWR_MODE_US    (1500)
+#define DELAY_CHANGE_TXRX_US        (130)
+#define DELAY_CE_START_US           (5)
+/*
  * This is the time which is needed to physically transmit the data.
- * Compare nrf24l01+ pruduct specification p.42. It is computed just 
+ * Compare nrf24l01+ pruduct specification p.42. It is computed just
  * for this setup
  */
-#define DELAY_DATA_ON_AIR                   HWTIMER_TICKS(1300)
+#define DELAY_DATA_ON_AIR                   (1300)
 
 
 #define CMD_R_REGISTER          0x00
@@ -87,6 +89,14 @@ extern "C" {
 #define REG_DYNPD               0x1c
 #define REG_FEATURE             0x1d
 
+/* Bits in EN_AA register */
+#define ENAA_P0      0x01
+#define ENAA_P1      0x02
+#define ENAA_P2      0x04
+#define ENAA_P3      0x08
+#define ENAA_P4      0x10
+#define ENAA_P5      0x20
+
 /* Bits in CONFIG register */
 #define MASK_RX_DR   0x40
 #define MASK_TX_DS   0x20
@@ -97,12 +107,12 @@ extern "C" {
 #define PRIM_RX      0x01
 
 /* Bits in STATUS register */
-#define RX_DR       	0x40
-#define TX_DS       	0x20
-#define MAX_RT      	0x10
-#define RX_P_NO			0x0e
-#define TX_FULL			0x01
-#define ALL_INT_MASK	0x70
+#define RX_DR           0x40
+#define TX_DS           0x20
+#define MAX_RT          0x10
+#define RX_P_NO         0x0e
+#define TX_FULL         0x01
+#define ALL_INT_MASK    0x70
 
 #define RF_SETUP_CONT_WAVE      (1 << 7)
 #define RF_SETUP_RF_DR_LOW      (1 << 5)
@@ -127,4 +137,4 @@ extern "C" {
 }
 #endif
 
-#endif /* __NRF24L01P_SETTINGS_H */
+#endif /* NRF24L01P_SETTINGS_H */

@@ -20,16 +20,13 @@
 
 #include <stdio.h>
 
-#include "vtimer.h"
+#include "xtimer.h"
 #include "mq3.h"
 #include "periph_conf.h"
 #include "periph/adc.h"
 
-#ifndef MQ3_ADC
-#error "MQ3_ADC is not specified"
-#endif
-#ifndef MQ3_CHAN
-#error "MQ3_CHAN is not specified"
+#ifndef MQ3_ADC_LINE
+#error "MQ3_ADC_LINE is not specified"
 #endif
 
 int main(void)
@@ -38,8 +35,8 @@ int main(void)
     int res;
 
     puts("MQ-3 alcohol sensor test application\n");
-    printf("Initializing MQ-3 sensor at ADC_%i, channel %i...    ", MQ3_ADC, MQ3_CHAN);
-    res = mq3_init(&dev, MQ3_ADC, MQ3_CHAN);
+    printf("Initializing MQ-3 sensor at ADC_LINE(%i)...   ", (int)MQ3_ADC_LINE);
+    res = mq3_init(&dev, MQ3_ADC_LINE);
     if (res == 0) {
         puts("[ok]\n");
     }
@@ -58,7 +55,7 @@ int main(void)
 
         printf("RAW: %4i, per mille: %1i.%03i\n", raw, alc_a, alc_b);
 
-        vtimer_usleep(500 * 1000);
+        xtimer_usleep(500 * 1000);
     }
     return 0;
 }

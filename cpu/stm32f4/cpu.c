@@ -21,10 +21,6 @@
 #include "cpu.h"
 #include "periph_conf.h"
 
-/**
- * @name Pattern to write into the Coprocessor Access Control Register to allow full FPU access
- */
-#define FULL_FPU_ACCESS         (0x00f00000)
 
 
 static void cpu_clock_init(void);
@@ -34,17 +30,10 @@ static void cpu_clock_init(void);
  */
 void cpu_init(void)
 {
-    /* give full access to the FPU */
-    SCB->CPACR |= (uint32_t)FULL_FPU_ACCESS;
-
-    /* configure the vector table location to internal flash */
-    SCB->VTOR = FLASH_BASE;
-
+    /* initialize the Cortex-M core */
+    cortexm_init();
     /* initialize the clock system */
     cpu_clock_init();
-
-    /* set pendSV interrupt to lowest possible priority */
-    NVIC_SetPriority(PendSV_IRQn, 0xff);
 }
 
 /**
@@ -84,7 +73,7 @@ static void cpu_clock_init(void)
     RCC->CR |= RCC_CR_HSEON;
 
     /* wait for HSE to be ready */
-    while (!(RCC->CR & RCC_CR_HSERDY));
+    while (!(RCC->CR & RCC_CR_HSERDY)) {}
 
     /* setup power module */
 
@@ -123,7 +112,7 @@ static void cpu_clock_init(void)
     /* enable PLL again */
     RCC->CR |= RCC_CR_PLLON;
     /* wait until PLL is stable */
-    while(!(RCC->CR & RCC_CR_PLLRDY));
+    while(!(RCC->CR & RCC_CR_PLLRDY)) {}
 
     /* configure flash latency */
 
@@ -146,5 +135,5 @@ static void cpu_clock_init(void)
     RCC->CFGR |= RCC_CFGR_SW_PLL;
 
     /* wait for sysclock to be stable */
-    while (!(RCC->CFGR & RCC_CFGR_SWS_PLL));
+    while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)) {}
 }

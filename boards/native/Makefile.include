@@ -8,6 +8,8 @@ export NATIVEINCLUDES += -I$(RIOTBASE)/drivers/include/
 export CPU = native
 export ELF = $(BINDIR)$(APPLICATION).elf
 
+USEMODULE += native-drivers
+
 # toolchain:
 export PREFIX =
 export CC ?= $(PREFIX)gcc
@@ -39,6 +41,7 @@ export GPROF ?= gprof
 
 # basic cflags:
 export CFLAGS += -Wall -Wextra -pedantic
+export CFLAGS += -ffunction-sections -fdata-sections
 ifeq ($(shell uname -m),x86_64)
 export CFLAGS += -m32
 endif
@@ -47,8 +50,11 @@ export CFLAGS += -fstack-protector-all
 endif
 ifeq ($(shell uname -s),FreeBSD)
 ifeq ($(shell uname -m),amd64)
-export CFLAGS += -DCOMPAT_32BIT -L/usr/lib32 -B/usr/lib32
+export CFLAGS += -m32 -DCOMPAT_32BIT -B/usr/lib32
 endif
+endif
+ifeq ($(shell uname -s),Darwin)
+export CFLAGS += -Wno-deprecated-declarations
 endif
 
 # unwanted (CXXUWFLAGS) and extra (CXXEXFLAGS) flags for c++
@@ -60,7 +66,7 @@ export LINKFLAGS += -m32
 endif
 ifeq ($(shell uname -s),FreeBSD)
 ifeq ($(shell uname -m),amd64)
-export LINKFLAGS += -DCOMPAT_32BIT -L/usr/lib32 -B/usr/lib32
+export LINKFLAGS += -m32 -DCOMPAT_32BIT -L/usr/lib32 -B/usr/lib32
 endif
 export LINKFLAGS += -L $(BINDIR)
 else
@@ -68,21 +74,22 @@ export LINKFLAGS += -ldl
 endif
 
 # set the tap interface for term/valgrind
-ifneq (,$(filter nativenet,$(USEMODULE)))
+ifneq (,$(filter netdev2_tap,$(USEMODULE)))
 	export PORT ?= tap0
 else
 	export PORT =
 endif
 
-ifeq (,$(filter $(PORT),$(TERMFLAGS)))
-    export TERMFLAGS += $(PORT)
-endif
+export TERMFLAGS := $(PORT) $(TERMFLAGS)
 
 export ASFLAGS =
 export DEBUGGER_FLAGS = --args $(ELF) $(TERMFLAGS)
 term-valgrind: export VALGRIND_FLAGS ?= \
 	--track-origins=yes \
 	--fullpath-after=$(RIOTBASE)/ \
+	--read-var-info=yes
+debug-valgrind-server: export VALGRIND_FLAGS ?= --vgdb=yes --vgdb-error=0 -v \
+	--leak-check=full --track-origins=yes --fullpath-after=${RIOTBASE} \
 	--read-var-info=yes
 term-cachegrind: export CACHEGRIND_FLAGS += --tool=cachegrind
 term-gprof: export TERMPROG = GMON_OUT_PREFIX=gmon.out $(ELF)
@@ -92,6 +99,9 @@ all-debug: export CFLAGS += -g
 all-cachegrind: export CFLAGS += -g
 all-gprof: export CFLAGS += -pg
 all-gprof: export LINKFLAGS += -pg
+all-asan: export CFLAGS += -fsanitize=address -fno-omit-frame-pointer -g
+all-asan: export CFLAGS += -DNATIVE_IN_CALLOC
+all-asan: export LINKFLAGS += -fsanitize=address -fno-omit-frame-pointer -g
 
 export INCLUDES += $(NATIVEINCLUDES)
 
@@ -123,15 +133,22 @@ all-debug: all
 
 all-gprof: all
 
+all-asan: all
+
 all-valgrind: all
 
 all-cachegrind: all
 
 term-valgrind:
-# use this if you want to attach gdb from valgrind:
-#	echo 0 > /proc/sys/kernel/yama/ptrace_scope
-#	VALGRIND_FLAGS += --db-attach=yes
 	$(VALGRIND) $(VALGRIND_FLAGS) $(ELF) $(PORT)
+
+debug-valgrind-server:
+	$(VALGRIND) $(VALGRIND_FLAGS) $(ELF) $(PORT)
+
+debug-valgrind:
+	$(eval VALGRIND_PID ?= $(shell pgrep -n memcheck-x86-li -u ${USER} | cut -d" " -f1))
+	$(eval DEBUGGER_FLAGS := -ex "target remote | vgdb --pid=${VALGRIND_PID}" $(DEBUGGER_FLAGS))
+	$(DEBUGGER) $(DEBUGGER_FLAGS)
 
 term-cachegrind:
 	$(VALGRIND) $(CACHEGRIND_FLAGS) $(ELF) $(PORT)

@@ -1,39 +1,41 @@
-# name of your application
 APPLICATION = ccn-lite-relay
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
 
+BOARD_WHITELIST := fox iotlab-m3 msba2 mulle native pba-d-01-kw2x samr21-xpro
+
+
 # This has to be the absolute path to the RIOT base directory:
 RIOTBASE ?= $(CURDIR)/../..
 
-# Uncomment these lines if you want to use platform support from external
-# repositories:
-#RIOTCPU ?= $(CURDIR)/../../RIOT/thirdparty_cpu
-#RIOTBOARD ?= $(CURDIR)/../../RIOT/thirdparty_boards
-
-# Uncomment this to enable scheduler statistics for ps:
-#CFLAGS += -DSCHEDSTATISTICS
-
-# If you want to use native with valgrind, you should recompile native
-# with the target all-valgrind instead of all:
-# make -B clean all-valgrind
-
-# Comment this out to disable code in RIOT that does safety checking
-# which is not needed in a production environment but helps in the
-# development process:
 CFLAGS += -DDEVELHELP
+CFLAGS += -DUSE_LINKLAYER
+CFLAGS += -DUSE_IPV6
+CFLAGS += -DCCNL_UAPI_H_
+CFLAGS += -DUSE_SUITE_NDNTLV
+CFLAGS += -DNEEDS_PREFIX_MATCHING
+CFLAGS += -DNEEDS_PACKET_CRAFTING
+CFLAGS += -DUSE_HMAC256
 
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
 
-BOARD_INSUFFICIENT_RAM := chronos msb-430h telosb wsn430-v1_3b wsn430-v1_4 z1 redbee-econotag
+USEMODULE += ps
+USEMODULE += shell
+USEMODULE += shell_commands
+# Include packages that pull up and auto-init the link layer.
+# NOTE: 6LoWPAN will be included if IEEE802.15.4 devices are present
+USEMODULE += gnrc_netif_default
+USEMODULE += auto_init_gnrc_netif
+USEMODULE += timex
+USEMODULE += xtimer
+USEMODULE += random
+USEMODULE += prng_minstd
 
-# Modules to include:
+USEPKG += tlsf
 
-USEMODULE += posix
-
-USEMODULE += defaulttransceiver
-USEMODULE += ccn_lite
+USEPKG += ccn-lite
+USEMODULE += ccn-lite-utils
 
 include $(RIOTBASE)/Makefile.include

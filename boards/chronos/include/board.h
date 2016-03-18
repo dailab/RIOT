@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Freie Universität Berlin
+ * Copyright (C) 2013,2015 Freie Universität Berlin
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -18,8 +18,8 @@
  * @author      unknwon
  */
 
-#ifndef _CHRONOS_BOARD_H
-#define _CHRONOS_BOARD_H
+#ifndef CHRONOS_BOARD_H_
+#define CHRONOS_BOARD_H_
 
 #include <stdint.h>
 
@@ -27,22 +27,37 @@
 extern "C" {
 #endif
 
-// for correct inclusion of <msp430.h>
+/**
+ * @brief   Define the CPU model for the <msp430.h>
+ */
 #ifndef __CC430F6137__
 #define __CC430F6137__
 #endif
 
+/**
+ * @brief   Xtimer configuration
+ * @{
+ */
+#define XTIMER                      (0)
+#define XTIMER_CHAN                 (0)
+#define XTIMER_MASK                 (0xffff0000)
+#define XTIMER_SHIFT_ON_COMPARE     (4)
+/** @} */
+
+/**
+ * @brief   MSP430 core configuration
+ * @{
+ */
 #define MSP430_INITIAL_CPU_SPEED    7372800uL
 #define F_CPU                       MSP430_INITIAL_CPU_SPEED
 #define F_RC_OSCILLATOR             32768
 #define MSP430_HAS_DCOR             1
 #define MSP430_HAS_EXTERNAL_CRYSTAL 1
-
-typedef uint8_t radio_packet_length_t;
+/** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _CHRONOS_BOARD_H */
+#endif /* _CHRONOS_BOARD_H_ */
 /** @} */

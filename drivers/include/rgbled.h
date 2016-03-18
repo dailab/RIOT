@@ -8,7 +8,7 @@
 
 /**
  * @defgroup    driver_rgbled RGB-LED driver
- * @ingroup     drivers
+ * @ingroup     drivers_actuators
  * @brief       High-level driver for RGB-LEDs
  * @{
  *
@@ -18,8 +18,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __RGBLED_H
-#define __RGBLED_H
+#ifndef RGBLED_H
+#define RGBLED_H
 
 #include "color.h"
 #include "periph/pwm.h"
@@ -62,5 +62,5 @@ void rgbled_set(rgbled_t *led, color_rgb_t *color);
 }
 #endif
 
-#endif /* __RGBLED_H */
+#endif /* RGBLED_H */
 /** @} */

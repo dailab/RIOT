@@ -96,12 +96,12 @@ static void my_cbor_print(const cbor_stream_t *stream)
 #endif
 
 static unsigned char stream_data[1024];
-cbor_stream_t stream = {stream_data, sizeof(stream_data), 0};
+static cbor_stream_t stream = {stream_data, sizeof(stream_data), 0};
 
-cbor_stream_t empty_stream = {NULL, 0, 0}; /* stream that is not large enough */
+static cbor_stream_t empty_stream = {NULL, 0, 0}; /* stream that is not large enough */
 
-unsigned char invalid_stream_data[] = {0x40}; /* empty string encoded in CBOR */
-cbor_stream_t invalid_stream = {invalid_stream_data, sizeof(invalid_stream_data),
+static unsigned char invalid_stream_data[] = {0x40}; /* empty string encoded in CBOR */
+static cbor_stream_t invalid_stream = {invalid_stream_data, sizeof(invalid_stream_data),
                                 sizeof(invalid_stream_data)
                                };
 
@@ -351,6 +351,7 @@ static void test_array(void)
         TEST_ASSERT_EQUAL_INT(1, i);
         offset += cbor_deserialize_int(&stream, offset, &i);
         TEST_ASSERT_EQUAL_INT(2, i);
+        TEST_ASSERT_EQUAL_INT(sizeof(data), offset);
     }
 
     cbor_clear(&stream);
@@ -374,6 +375,7 @@ static void test_array(void)
         char buffer[1024];
         offset += cbor_deserialize_byte_string(&stream, offset, buffer, sizeof(buffer));
         TEST_ASSERT_EQUAL_STRING("a", &(buffer[0]));
+        TEST_ASSERT_EQUAL_INT(sizeof(data), offset);
     }
 }
 
@@ -442,6 +444,7 @@ static void test_map(void)
         TEST_ASSERT_EQUAL_INT(2, key);
         offset += cbor_deserialize_byte_string(&stream, offset, value, sizeof(value));
         TEST_ASSERT_EQUAL_STRING("2", &(value[0]));
+        TEST_ASSERT_EQUAL_INT(sizeof(data), offset);
     }
 }
 

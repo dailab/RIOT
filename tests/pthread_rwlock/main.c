@@ -34,7 +34,7 @@
 #include "random.h"
 #include "sched.h"
 #include "thread.h"
-#include "vtimer.h"
+#include "xtimer.h"
 
 #define NUM_READERS_HIGH 2
 #define NUM_READERS_LOW 3
@@ -58,9 +58,9 @@ static volatile unsigned counter;
 
 static void do_sleep(int factor)
 {
-    uint32_t timeout_us = (genrand_uint32() % 100000) * factor;
+    uint32_t timeout_us = (random_uint32() % 100000) * factor;
     /* PRINTF("sleep for % 8i µs.", timeout_us); */
-    vtimer_usleep(timeout_us);
+    xtimer_usleep(timeout_us);
 }
 
 static void *writer(void *arg)
@@ -97,7 +97,7 @@ static void *reader(void *arg)
 
 int main(void)
 {
-    static char stacks[NUM_CHILDREN][KERNEL_CONF_STACKSIZE_MAIN];
+    static char stacks[NUM_CHILDREN][THREAD_STACKSIZE_MAIN];
 
     puts("Main start.");
 
@@ -108,27 +108,27 @@ int main(void)
 
         if (i < NUM_READERS) {
             if (i < NUM_READERS_HIGH) {
-                prio = PRIORITY_MAIN + 1;
+                prio = THREAD_PRIORITY_MAIN + 1;
             }
             else {
-                prio = PRIORITY_MAIN + 2;
+                prio = THREAD_PRIORITY_MAIN + 2;
             }
             fun = reader;
             name = "reader";
         }
         else {
             if (i - NUM_READERS < NUM_WRITERS_HIGH) {
-                prio = PRIORITY_MAIN + 1;
+                prio = THREAD_PRIORITY_MAIN + 1;
             }
             else {
-                prio = PRIORITY_MAIN + 2;
+                prio = THREAD_PRIORITY_MAIN + 2;
             }
             fun = writer;
             name = "writer";
         }
 
         thread_create(stacks[i], sizeof(stacks[i]),
-                      prio, CREATE_WOUT_YIELD | CREATE_STACKTEST,
+                      prio, THREAD_CREATE_WOUT_YIELD | THREAD_CREATE_STACKTEST,
                       fun, NULL, name);
     }
 

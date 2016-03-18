@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Martin Lenders <mlenders@inf.fu-berlin.de>
+ * Copyright (C) 2014 Martine Lenders <mlenders@inf.fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -15,17 +15,18 @@
  *
  * @author      Martine Lenders <mlenders@inf.fu-berlin.de>
  * @author      René Kijewski <rene.kijewski@fu-berlin.de>
+ * @author      Oliver Hahm <oliver.hahm@inria.fr>
  *
  * @}
  */
 
 #include <stdio.h>
 
-#include "cpu-conf.h"
+#include "cpu_conf.h"
 #include "thread.h"
 
-#define THREAD1_STACKSIZE   (KERNEL_CONF_STACKSIZE_PRINTF)
-#define THREAD2_STACKSIZE   (KERNEL_CONF_STACKSIZE_PRINTF)
+#define THREAD1_STACKSIZE   (THREAD_STACKSIZE_MAIN)
+#define THREAD2_STACKSIZE   (THREAD_STACKSIZE_MAIN)
 
 #ifndef TEST_EXECUTION_NUM
 #define TEST_EXECUTION_NUM  (10)
@@ -93,9 +94,9 @@ static void *thread2(void *args)
 
 int main(void)
 {
-    thread2_pid = thread_create(thread2_stack, THREAD2_STACKSIZE, PRIORITY_MAIN - 1,
+    thread2_pid = thread_create(thread2_stack, THREAD2_STACKSIZE, THREAD_PRIORITY_MAIN - 2,
                                 0, thread2, NULL, "thread2");
-    thread1_pid = thread_create(thread1_stack, THREAD1_STACKSIZE, PRIORITY_MAIN - 2,
+    thread1_pid = thread_create(thread1_stack, THREAD1_STACKSIZE, THREAD_PRIORITY_MAIN - 1,
                                 0, thread1, NULL, "thread1");
     return 0;
 }

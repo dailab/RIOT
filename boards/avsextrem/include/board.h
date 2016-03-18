@@ -31,27 +31,29 @@
 extern "C" {
 #endif
 
-#define LED_RED_PIN (BIT25)
-#define LED_GREEN_PIN (BIT26)
+/**
+ * @brief   LED pin definitions and handlers
+ * @{
+ */
+#define LED0_PIN            GPIO_PIN(2, 25)
+#define LED1_PIN            GPIO_PIN(2, 26)
 
-#define LED_GREEN_OFF (FIO3SET = LED_GREEN_PIN)
-#define LED_GREEN_ON (FIO3CLR = LED_GREEN_PIN)
-#define LED_GREEN_TOGGLE (FIO3PIN ^= LED_GREEN_PIN)
+#define LED0_MASK           (BIT25)
+#define LED1_MASK           (BIT26)
 
-#define LED_RED_OFF (FIO3SET = LED_RED_PIN)
-#define LED_RED_ON (FIO3CLR = LED_RED_PIN)
-#define LED_RED_TOGGLE (FIO3PIN ^= LED_RED_PIN)
+#define LED0_OFF            (FIO3SET  = LED0_MASK)
+#define LED0_ON             (FIO3CLR  = LED0_MASK)
+#define LED0_TOGGLE         (FIO3PIN ^= LED0_MASK)
 
-#ifdef MODULE_FAT
-#define CFG_CONF_MEM_SIZE             0x7FFFFFFF
-#define SYSLOG_CONF_NUM_INTERFACES        2
-#else
-#define SYSLOG_CONF_NUM_INTERFACES        1
-#endif
+#define LED1_OFF            (FIO3SET  = LED1_MASK)
+#define LED1_ON             (FIO3CLR  = LED1_MASK)
+#define LED1_TOGGLE         (FIO3PIN ^= LED1_MASK)
+/** @} */
 
+/**
+ * @brief Initialize the board's clock system
+ */
 void init_clks1(void);
-
-typedef uint8_t radio_packet_length_t;
 
 #ifdef __cplusplus
 }

@@ -7,10 +7,10 @@
  */
 
 /**
- * @ingroup         cpu_cc2538_definitions
+ * @ingroup         cpu_cc2538_regs
  * @{
  *
- * @file            cc2538.h
+ * @file
  * @brief           CC2538 MCU interrupt and register definitions
  *
  * @author          Ian Martin <ian@locicontrols.com>
@@ -808,6 +808,8 @@ typedef volatile uint32_t cc2538_reg_t; /**< Least-significant 32 bits of the IE
 
 #define XOSC32M_FREQ                32000000 /**< 32 MHz external oscillator/clock frequency */
 #define RCOSC16M_FREQ               16000000 /**< 16 MHz internal RC oscillator frequency */
+
+#define CC2538_VTOR_ALIGN                512 /**< CC2538 Vector Table alignment */
 
 #ifdef __cplusplus
 }

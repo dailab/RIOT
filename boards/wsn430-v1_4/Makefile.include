@@ -1,4 +1,2 @@
-export INCLUDES += -I$(RIOTBOARD)/wsn430-v1_4/include -I$(RIOTBOARD)/wsn430-common/include
-
-include $(RIOTBOARD)/$(BOARD)/Makefile.dep
+USEMODULE += wsn430-common
 include $(RIOTBOARD)/wsn430-common/Makefile.include

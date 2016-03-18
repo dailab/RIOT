@@ -9,7 +9,7 @@
  *
  * @ingroup ps
  * @{
- * @file    ps.c
+ * @file
  * @brief   UNIX like ps command
  * @author  Kaspar Schleiser <kaspar@schleiser.de>
  * @}
@@ -18,10 +18,13 @@
 #include <stdio.h>
 
 #include "thread.h"
-#include "hwtimer.h"
 #include "sched.h"
-#include "tcb.h"
+#include "thread.h"
 #include "kernel_types.h"
+
+#ifdef MODULE_SCHEDSTATISTICS
+#include "xtimer.h"
+#endif
 
 /* list of states copied from tcb.h */
 const char *state_names[] = {
@@ -38,7 +41,7 @@ const char *state_names[] = {
 /**
  * @brief Prints a list of running threads including stack usage to stdout.
  */
-void thread_print_all(void)
+void ps(void)
 {
     const char queued_name[] = {'_', 'Q'};
 #ifdef DEVELHELP
@@ -53,7 +56,7 @@ void thread_print_all(void)
 #ifdef DEVELHELP
            "| stack ( used) | location   "
 #endif
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
            "| runtime | switches"
 #endif
            "\n",
@@ -63,7 +66,7 @@ void thread_print_all(void)
            "state");
 
     for (kernel_pid_t i = KERNEL_PID_FIRST; i <= KERNEL_PID_LAST; i++) {
-        tcb_t *p = (tcb_t *)sched_threads[i];
+        thread_t *p = (thread_t *)sched_threads[i];
 
         if (p != NULL) {
             int state = p->status;                                                 /* copy state */
@@ -75,8 +78,8 @@ void thread_print_all(void)
             stacksz -= thread_measure_stack_free(p->stack_start);
             overall_used += stacksz;
 #endif
-#if SCHEDSTATISTICS
-            double runtime_ticks =  sched_pidlist[i].runtime_ticks / (double) hwtimer_now() * 100;
+#ifdef MODULE_SCHEDSTATISTICS
+            double runtime_ticks =  sched_pidlist[i].runtime_ticks / (double) xtimer_now() * 100;
             int switches = sched_pidlist[i].schedules;
 #endif
             printf("\t%3" PRIkernel_pid
@@ -87,7 +90,7 @@ void thread_print_all(void)
 #ifdef DEVELHELP
                    " | %5i (%5i) | %p "
 #endif
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
                    " | %6.3f%% |  %8d"
 #endif
                    "\n",
@@ -99,7 +102,7 @@ void thread_print_all(void)
 #ifdef DEVELHELP
                    , p->stack_size, stacksz, p->stack_start
 #endif
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
                    , runtime_ticks, switches
 #endif
                   );

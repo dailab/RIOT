@@ -19,7 +19,7 @@
  * @file
  * @brief  Implementation of LIS3DH SPI driver
  *
- * @author Joakim Gebart <joakim.gebart@eistec.se>
+ * @author Joakim Nohlgård <joakim.nohlgard@eistec.se>
  */
 
 
@@ -30,18 +30,16 @@ static int lis3dh_read_regs(const lis3dh_t *dev, const lis3dh_reg_t reg, const u
                             uint8_t *buf);
 
 
-int lis3dh_init(lis3dh_t *dev, spi_t spi, gpio_t cs_pin, gpio_t int1_pin, gpio_t int2_pin, lis3dh_scale_t scale)
+int lis3dh_init(lis3dh_t *dev, spi_t spi, gpio_t cs_pin, uint8_t scale)
 {
     uint8_t in;
 
     dev->spi = spi;
     dev->cs = cs_pin;
-    dev->int1 = int1_pin;
-    dev->int2 = int2_pin;
     dev->scale = 0;
 
     /* CS */
-    gpio_init_out(dev->cs, GPIO_NOPULL);
+    gpio_init(dev->cs, GPIO_OUT);
     gpio_set(dev->cs);
 
     if (lis3dh_read_regs(dev, LIS3DH_REG_WHO_AM_I, 1, &in) < 0) {
@@ -54,17 +52,30 @@ int lis3dh_init(lis3dh_t *dev, spi_t spi, gpio_t cs_pin, gpio_t int1_pin, gpio_t
         return -1;
     }
 
-    /* Set block data update and little endian mode. */
+    /* Clear all settings */
+    lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG1, LIS3DH_CTRL_REG1_XYZEN_MASK);
+    /* Disable HP filter */
+    lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG2, 0);
+    /* Disable INT1 interrupt sources */
+    lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG3, 0);
+    /* Set block data update and little endian, set Normal mode (LP=0, HR=1) */
     lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG4,
                      (LIS3DH_CTRL_REG4_BDU_ENABLE |
-                      LIS3DH_CTRL_REG4_BLE_LITTLE_ENDIAN));
+                      LIS3DH_CTRL_REG4_BLE_LITTLE_ENDIAN |
+                      LIS3DH_CTRL_REG4_HR_MASK));
+    /* Disable FIFO */
+    lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG5, 0);
+    /* Reset INT2 settings */
+    lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG6, 0);
+
+    /* Configure scale */
     lis3dh_set_scale(dev, scale);
+
     return 0;
 }
 
 int lis3dh_read_xyz(const lis3dh_t *dev, lis3dh_data_t *acc_data)
 {
-    int32_t tmp;
     uint8_t i;
     /* Set READ MULTIPLE mode */
     static const uint8_t addr = (LIS3DH_REG_OUT_X_L | LIS3DH_SPI_READ_MASK | LIS3DH_SPI_MULTI_MASK);
@@ -77,6 +88,9 @@ int lis3dh_read_xyz(const lis3dh_t *dev, lis3dh_data_t *acc_data)
     if (spi_transfer_regs(dev->spi, addr, NULL, (char *)acc_data,
                           sizeof(lis3dh_data_t)) != sizeof(lis3dh_data_t)) {
         /* Transfer error */
+        gpio_set(dev->cs);
+        /* Release the bus for other threads. */
+        spi_release(dev->spi);
         return -1;
     }
 
@@ -86,7 +100,7 @@ int lis3dh_read_xyz(const lis3dh_t *dev, lis3dh_data_t *acc_data)
 
     /* Scale to milli-G */
     for (i = 0; i < 3; ++i) {
-        tmp = (int32_t)(((int16_t *)acc_data)[i]);
+        int32_t tmp = (int32_t)(((int16_t *)acc_data)[i]);
         tmp *= dev->scale;
         tmp /= 32768;
         (((int16_t *)acc_data)[i]) = (int16_t)tmp;
@@ -122,47 +136,79 @@ int lis3dh_set_axes(lis3dh_t *dev, const uint8_t axes)
     return lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG1, LIS3DH_CTRL_REG1_XYZEN_MASK, axes);
 }
 
-int lis3dh_set_fifo_mode(lis3dh_t *dev, const lis3dh_fifo_mode_t mode)
+int lis3dh_set_fifo(lis3dh_t *dev, const uint8_t mode, const uint8_t watermark)
 {
-    return lis3dh_write_bits(dev, LIS3DH_REG_FIFO_CTRL_REG, LIS3DH_FIFO_CTRL_REG_FM_MASK,
-                             mode);
+    int status;
+    uint8_t reg;
+    reg = (watermark << LIS3DH_FIFO_CTRL_REG_FTH_SHIFT)
+            & LIS3DH_FIFO_CTRL_REG_FTH_MASK;
+    reg |= mode;
+    status = lis3dh_write_reg(dev, LIS3DH_REG_FIFO_CTRL_REG, reg);
+    if (status < 0) {
+        /* communication error */
+        return status;
+    }
+    if (mode != 0x00) {
+        status = lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG5,
+            LIS3DH_CTRL_REG5_FIFO_EN_MASK, LIS3DH_CTRL_REG5_FIFO_EN_MASK);
+    } else {
+        status = lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG5,
+            LIS3DH_CTRL_REG5_FIFO_EN_MASK, 0);
+    }
+    return status;
 }
 
-int lis3dh_set_fifo(lis3dh_t *dev, const uint8_t enable)
+int lis3dh_set_odr(lis3dh_t *dev, const uint8_t odr)
 {
-    return lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG5, LIS3DH_CTRL_REG5_FIFO_EN_MASK,
-                             (enable ? LIS3DH_CTRL_REG5_FIFO_EN_MASK : 0));
+    return lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG1,
+        LIS3DH_CTRL_REG1_ODR_MASK, odr);
 }
 
-int lis3dh_set_odr(lis3dh_t *dev, const lis3dh_odr_t odr)
+int lis3dh_set_scale(lis3dh_t *dev, const uint8_t scale)
 {
-    return lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG1, LIS3DH_CTRL_REG1_ODR_MASK,
-                             odr);
-}
-
-int lis3dh_set_scale(lis3dh_t *dev, const lis3dh_scale_t scale)
-{
-    /* Sensor full range is -32768 -- +32767 */
+    uint8_t scale_reg;
+    /* Sensor full range is -32768 -- +32767 (measurements are left adjusted) */
     /*  => Scale factor is scale/32768 */
     switch (scale)
     {
-        case LIS3DH_SCALE_2G:
+        case 2:
             dev->scale = 2000;
+            scale_reg = LIS3DH_CTRL_REG4_SCALE_2G;
             break;
-        case LIS3DH_SCALE_4G:
+        case 4:
             dev->scale = 4000;
+            scale_reg = LIS3DH_CTRL_REG4_SCALE_4G;
             break;
-        case LIS3DH_SCALE_8G:
+        case 8:
             dev->scale = 8000;
+            scale_reg = LIS3DH_CTRL_REG4_SCALE_8G;
             break;
-        case LIS3DH_SCALE_16G:
+        case 16:
             dev->scale = 16000;
+            scale_reg = LIS3DH_CTRL_REG4_SCALE_16G;
             break;
         default:
             return -1;
     }
     return lis3dh_write_bits(dev, LIS3DH_REG_CTRL_REG4, LIS3DH_CTRL_REG4_FS_MASK,
-                             scale);
+                             scale_reg);
+}
+
+int lis3dh_set_int1(lis3dh_t *dev, const uint8_t mode)
+{
+    return lis3dh_write_reg(dev, LIS3DH_REG_CTRL_REG3, mode);
+}
+
+int lis3dh_get_fifo_level(lis3dh_t *dev)
+{
+    uint8_t reg;
+    int level;
+
+    if (lis3dh_read_regs(dev, LIS3DH_REG_FIFO_SRC_REG, 1, &reg) != 0) {
+        return -1;
+    }
+    level = (reg & LIS3DH_FIFO_SRC_REG_FSS_MASK) >> LIS3DH_FIFO_SRC_REG_FSS_SHIFT;
+    return level;
 }
 
 
@@ -190,6 +236,9 @@ static int lis3dh_read_regs(const lis3dh_t *dev, const lis3dh_reg_t reg, const u
 
     if (spi_transfer_regs(dev->spi, addr, NULL, (char *)buf, len) < 0) {
         /* Transfer error */
+        gpio_set(dev->cs);
+        /* Release the bus for other threads. */
+        spi_release(dev->spi);
         return -1;
     }
 
@@ -221,6 +270,9 @@ static int lis3dh_write_reg(const lis3dh_t *dev, const lis3dh_reg_t reg, const u
 
     if (spi_transfer_reg(dev->spi, addr, value, NULL) < 0) {
         /* Transfer error */
+        gpio_set(dev->cs);
+        /* Release the bus for other threads. */
+        spi_release(dev->spi);
         return -1;
     }
 

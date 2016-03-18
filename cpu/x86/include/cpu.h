@@ -26,13 +26,13 @@
  * @author  René Kijewski <rene.kijewski@fu-berlin.de>
  */
 
-#ifndef CPU__X86__CPU__H__
-#define CPU__X86__CPU__H__
+#ifndef CPU_X86_CPU_H_
+#define CPU_X86_CPU_H_
 
-#include "attributes.h"
+#include "kernel_defines.h"
 #include "irq.h"
 #include "ucontext.h"
-#include "cpu-conf.h"
+#include "cpu_conf.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -43,15 +43,12 @@
 extern "C" {
 #endif
 
-static inline void __attribute__((always_inline)) dINT(void)
-{
-    asm volatile ("cli");
-}
-
-static inline void __attribute__((always_inline)) eINT(void)
-{
-    asm volatile ("sti");
-}
+/**
+ * @brief x86 has architecture specific atomic_cas in x86_atomic.c
+ * @{
+ */
+#define ARCH_HAS_ATOMIC_COMPARE_AND_SWAP 1
+/** @} */
 
 /**
  * @brief   Disable interrupts and halt forever.
@@ -119,6 +116,16 @@ void x86_init_board(void);
  * The regions are expected to contain memory that lies inside the elf sections.
  */
 bool x86_get_memory_region(uint64_t *start, uint64_t *len, unsigned long *cnt);
+
+/**
+ * @brief   Prints the last instruction's address
+ */
+static inline void cpu_print_last_instruction(void)
+{
+    void *p;
+    __asm__("1: mov 1b, %0" : "=r" (p));
+    printf("%p\n", p);
+}
 
 #ifdef __cplusplus
 }

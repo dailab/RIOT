@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * Copyright (C) 2013 Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -18,11 +18,11 @@
  * @file
  * @brief       Basic definitions for the native board
  *
- * @author      Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @author      Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  */
 
-#ifndef BOARD_H
-#define BOARD_H
+#ifndef BOARD_H_
+#define BOARD_H_
 
 #include <stdint.h>
 
@@ -30,26 +30,28 @@
 extern "C" {
 #endif
 
-#define F_CPU 1000000
-
+/**
+ * @brief   LED handlers
+ * @{
+ */
 void _native_LED_GREEN_OFF(void);
-#define LED_GREEN_OFF (_native_LED_GREEN_OFF())
 void _native_LED_GREEN_ON(void);
-#define LED_GREEN_ON (_native_LED_GREEN_ON())
 void _native_LED_GREEN_TOGGLE(void);
-#define LED_GREEN_TOGGLE (_native_LED_GREEN_TOGGLE())
 void _native_LED_RED_OFF(void);
-#define LED_RED_OFF (_native_LED_RED_OFF())
 void _native_LED_RED_ON(void);
-#define LED_RED_ON (_native_LED_RED_ON())
 void _native_LED_RED_TOGGLE(void);
-#define LED_RED_TOGGLE (_native_LED_RED_TOGGLE())
 
-typedef uint16_t radio_packet_length_t;
+#define LED0_ON             (_native_LED_RED_ON())
+#define LED0_OFF            (_native_LED_RED_OFF())
+#define LED0_TOGGLE         (_native_LED_RED_TOGGLE())
+#define LED1_ON             (_native_LED_GREEN_ON())
+#define LED1_OFF            (_native_LED_GREEN_OFF())
+#define LED1_TOGGLE         (_native_LED_GREEN_TOGGLE())
+/** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
 /** @} */
-#endif /* BOARD_H */
+#endif /* BOARD_H_ */

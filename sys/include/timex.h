@@ -22,7 +22,6 @@
 #define __TIMEX_H
 
 #include <stdint.h>
-#include <stdio.h>
 #include <inttypes.h>
 
 #ifdef __cplusplus
@@ -30,23 +29,36 @@ extern "C" {
 #endif
 
 /**
- * @brief Formater for unsigned 32 bit values
- *
- *        mspgcc bug : PRIxxx macros not defined before mid-2011 versions
- */
-#ifndef PRIu32
-#define PRIu32 "lu"
-#endif
-
-/**
  * @brief The number of microseconds per second
  */
-#define SEC_IN_USEC 1000000
+#define SEC_IN_USEC (1000000U)
+
+/**
+ * @brief The number of milliseconds per second
+ */
+#define SEC_IN_MS   (1000U)
+
+/**
+ * @brief The number of microseconds per millisecond
+ */
+#define MS_IN_USEC  (1000U)
+
+/**
+ * @brief The number of nanoseconds per microsecond
+ */
+#define USEC_IN_NS  (1000)
 
 /**
  * @brief The maximum length of the string representation of a timex timestamp
  */
-#define TIMEX_MAX_STR_LEN   (18)
+#define TIMEX_MAX_STR_LEN   (20)
+/* 20 =
+ *  + 10 byte: 2^32-1 for seconds
+ *  + 1 byte: decimal point
+ *  + 6 byte: microseconds (normalized)
+ *  + 2 byte: " s" (unit)
+ *  + 1 byte: '\0'
+ */
 
 /**
  * @brief A timex timestamp
@@ -156,25 +168,16 @@ static inline timex_t timex_from_uint64(const uint64_t timestamp)
 /**
  * @brief Converts a timex timestamp to a string
  *
+ * @pre memory at timestamp >= TIMEX_MAX_STR_LEN
+ *
  * @param[in]  t            The timestamp to convert
  * @param[out] timestamp    The output char buffer for the converted timestamp
  *
  * @note The timestamp will be normalized
- * @note The buffer must have a size of TIMEX_MAX_STR_LEN characters
  *
  * @return A pointer to the string representation of the timestamp
  */
-static inline const char *timex_to_str(timex_t t, char *timestamp)
-{
-    timex_normalize(&t);
-    /* 2^32 seconds have maximum 10 digits, microseconds are always < 1000000
-     * in a normalized timestamp, plus two chars for the point and terminator
-     * => 10 + 6 + 2 = 20 */
-    /* TODO: replace call to snprintf by something more efficient */
-    snprintf(timestamp, TIMEX_MAX_STR_LEN, "%" PRIu32 ".%06" PRIu32 " s",
-             t.seconds, t.microseconds);
-    return timestamp;
-}
+const char *timex_to_str(timex_t t, char *timestamp);
 
 #ifdef __cplusplus
 }

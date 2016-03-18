@@ -10,7 +10,7 @@
  * @ingroup     core_sched
  * @{
  *
- * @file        sched.c
+ * @file
  * @brief       Scheduler implementation
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
@@ -22,34 +22,38 @@
 #include <stdint.h>
 
 #include "sched.h"
-#include "kernel.h"
-#include "kernel_internal.h"
 #include "clist.h"
 #include "bitarithm.h"
 #include "irq.h"
 #include "thread.h"
 #include "irq.h"
+#include "log.h"
 
-#if SCHEDSTATISTICS
-#include "hwtimer.h"
+#ifdef MODULE_SCHEDSTATISTICS
+#include "xtimer.h"
 #endif
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+#if ENABLE_DEBUG
+/* For PRIu16 etc. */
+#include <inttypes.h>
+#endif
+
 volatile int sched_num_threads = 0;
 
 volatile unsigned int sched_context_switch_request;
 
-volatile tcb_t *sched_threads[KERNEL_PID_LAST + 1];
-volatile tcb_t *sched_active_thread;
+volatile thread_t *sched_threads[KERNEL_PID_LAST + 1];
+volatile thread_t *sched_active_thread;
 
 volatile kernel_pid_t sched_active_pid = KERNEL_PID_UNDEF;
 
 clist_node_t *sched_runqueues[SCHED_PRIO_LEVELS];
 static uint32_t runqueue_bitcache = 0;
 
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
 static void (*sched_cb) (uint32_t timestamp, uint32_t value) = NULL;
 schedstat sched_pidlist[KERNEL_PID_LAST + 1];
 #endif
@@ -58,13 +62,13 @@ int sched_run(void)
 {
     sched_context_switch_request = 0;
 
-    tcb_t *active_thread = (tcb_t *)sched_active_thread;
+    thread_t *active_thread = (thread_t *)sched_active_thread;
 
     /* The bitmask in runqueue_bitcache is never empty,
      * since the threading should not be started before at least the idle thread was started.
      */
     int nextrq = bitarithm_lsb(runqueue_bitcache);
-    tcb_t *next_thread = clist_get_container(sched_runqueues[nextrq], tcb_t, rq_entry);
+    thread_t *next_thread = clist_get_container(sched_runqueues[nextrq], thread_t, rq_entry);
 
     DEBUG("sched_run: active thread: %" PRIkernel_pid ", next thread: %" PRIkernel_pid "\n",
           (active_thread == NULL) ? KERNEL_PID_UNDEF : active_thread->pid,
@@ -75,8 +79,8 @@ int sched_run(void)
         return 0;
     }
 
-#ifdef SCHEDSTATISTICS
-    unsigned long time = hwtimer_now();
+#ifdef MODULE_SCHEDSTATISTICS
+    unsigned long time = xtimer_now();
 #endif
 
     if (active_thread) {
@@ -86,11 +90,11 @@ int sched_run(void)
 
 #ifdef SCHED_TEST_STACK
         if (*((uintptr_t *) active_thread->stack_start) != (uintptr_t) active_thread->stack_start) {
-            printf("scheduler(): stack overflow detected, pid=%" PRIkernel_pid "\n", active_thread->pid);
+            LOG_WARNING("scheduler(): stack overflow detected, pid=%" PRIkernel_pid "\n", active_thread->pid);
         }
 #endif
 
-#ifdef SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
         schedstat *active_stat = &sched_pidlist[active_thread->pid];
         if (active_stat->laststart) {
             active_stat->runtime_ticks += time - active_stat->laststart;
@@ -98,7 +102,7 @@ int sched_run(void)
 #endif
     }
 
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
     schedstat *next_stat = &sched_pidlist[next_thread->pid];
     next_stat->laststart = time;
     next_stat->schedules++;
@@ -109,21 +113,21 @@ int sched_run(void)
 
     next_thread->status = STATUS_RUNNING;
     sched_active_pid = next_thread->pid;
-    sched_active_thread = (volatile tcb_t *) next_thread;
+    sched_active_thread = (volatile thread_t *) next_thread;
 
     DEBUG("sched_run: done, changed sched_active_thread.\n");
 
     return 1;
 }
 
-#if SCHEDSTATISTICS
+#ifdef MODULE_SCHEDSTATISTICS
 void sched_register_cb(void (*callback)(uint32_t, uint32_t))
 {
     sched_cb = callback;
 }
 #endif
 
-void sched_set_status(tcb_t *process, unsigned int status)
+void sched_set_status(thread_t *process, unsigned int status)
 {
     if (status >= STATUS_ON_RUNQUEUE) {
         if (!(process->status >= STATUS_ON_RUNQUEUE)) {
@@ -150,7 +154,7 @@ void sched_set_status(tcb_t *process, unsigned int status)
 
 void sched_switch(uint16_t other_prio)
 {
-    tcb_t *active_thread = (tcb_t *) sched_active_thread;
+    thread_t *active_thread = (thread_t *) sched_active_thread;
     uint16_t current_prio = active_thread->priority;
     int on_runqueue = (active_thread->status >= STATUS_ON_RUNQUEUE);
 
@@ -181,7 +185,7 @@ NORETURN void sched_task_exit(void)
     sched_threads[sched_active_pid] = NULL;
     sched_num_threads--;
 
-    sched_set_status((tcb_t *)sched_active_thread, STATUS_STOPPED);
+    sched_set_status((thread_t *)sched_active_thread, STATUS_STOPPED);
 
     sched_active_thread = NULL;
     cpu_switch_context_exit();

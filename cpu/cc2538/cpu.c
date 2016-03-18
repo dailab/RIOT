@@ -10,12 +10,14 @@
  * @ingroup     cpu_cc2538
  * @{
  *
- * @file        cpu.c
+ * @file
  * @brief       Implementation of the CPU initialization
  *
  * @author      Ian Martin <ian@locicontrols.com>
  * @}
  */
+
+#include <assert.h>
 
 #include "cpu.h"
 
@@ -39,17 +41,14 @@ static void cpu_clock_init(void);
  */
 void cpu_init(void)
 {
-    /* configure the vector table location to internal flash */
-    SCB->VTOR = FLASH_BASE;
-
+    /* initialize the Cortex-M core */
+    cortexm_init();
     /* Enable the CC2538's more compact alternate interrupt mapping */
     SYS_CTRL->I_MAP = 1;
-
     /* initialize the clock system */
     cpu_clock_init();
-
-    /* set pendSV interrupt to lowest possible priority */
-    NVIC_SetPriority(PendSV_IRQn, 0xff);
+    /* initialize the GPIO controller */
+    cc2538_gpio_init();
 }
 
 /**
@@ -78,10 +77,10 @@ static void cpu_clock_init(void)
 #endif
 
     /* Configure the clock settings: */
-    SYS_CTRL->CLOCK_CTRL = CLOCK_CTRL_VALUE;
+    SYS_CTRL->cc2538_sys_ctrl_clk_ctrl.CLOCK_CTRL = CLOCK_CTRL_VALUE;
 
     /* Wait for the new clock settings to take effect: */
-    while ( (SYS_CTRL->CLOCK_STA ^ CLOCK_CTRL_VALUE) & CLOCK_STA_MASK );
+    while ((SYS_CTRL->cc2538_sys_ctrl_clk_sta.CLOCK_STA ^ CLOCK_CTRL_VALUE) & CLOCK_STA_MASK);
 
 #if SYS_CTRL_OSC32K_USE_XTAL
     /* Wait for the 32-kHz crystal oscillator to stabilize: */
@@ -89,4 +88,3 @@ static void cpu_clock_init(void)
     while (!SYS_CTRL->CLOCK_STAbits.SYNC_32K);
 #endif
 }
-

@@ -7,17 +7,19 @@
  */
 
 /**
- * @ingroup     board_nucleo-l1
+ * @ingroup     boards_nucleo-l1
  * @{
  *
- * @file        periph_conf.h
+ * @file
  * @brief       Peripheral MCU configuration for the nucleo-l1 board
  *
  * @author      Thomas Eichinger <thomas.eichinger@fu-berlin.de>
  */
 
-#ifndef __PERIPH_CONF_H
-#define __PERIPH_CONF_H
+#ifndef PERIPH_CONF_H_
+#define PERIPH_CONF_H_
+
+#include "periph_cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,12 +29,12 @@ extern "C" {
  * @name Clock system configuration
  * @{
  **/
-#define CLOCK_HSI           (16000000U)             /* frequency of external oscillator */
+#define CLOCK_HSI           (16000000U)             /* frequency of internal oscillator */
 #define CLOCK_CORECLOCK     (32000000U)             /* targeted core clock frequency */
 /* configuration of PLL prescaler and multiply values */
-/* CORECLOCK := HSI / PLL_HSI_DIV * PLL_HSI_MUL */
-#define CLOCK_PLL_HSE_DIV   RCC_CFGR_PLLDIV2
-#define CLOCK_PLL_HSE_MUL   RCC_CFGR_PLLMUL4
+/* CORECLOCK := HSI / CLOCK_PLL_DIV * CLOCK_PLL_MUL */
+#define CLOCK_PLL_DIV       RCC_CFGR_PLLDIV2
+#define CLOCK_PLL_MUL       RCC_CFGR_PLLMUL4
 /* configuration of peripheral bus clock prescalers */
 #define CLOCK_AHB_DIV       RCC_CFGR_HPRE_DIV1      /* AHB clock -> 32MHz */
 #define CLOCK_APB2_DIV      RCC_CFGR_PPRE2_DIV1     /* APB2 clock -> 32MHz */
@@ -45,37 +47,14 @@ extern "C" {
  * @brief Timer configuration
  * @{
  */
-#define TIMER_NUMOF         (2U)
-#define TIMER_0_EN          1
-#define TIMER_1_EN          1
-
-/* Timer 0 configuration */
-#define TIMER_0_DEV_0       TIM2
-#define TIMER_0_DEV_1       TIM3
-#define TIMER_0_CHANNELS    4
-#define TIMER_0_PRESCALER   (32U)
-#define TIMER_0_MAX_VALUE   (0xffff)
-#define TIMER_0_CLKEN()     (RCC->APB1ENR |= (RCC_APB1ENR_TIM2EN | RCC_APB1ENR_TIM3EN))
-#define TIMER_0_ISR_0       isr_tim2
-#define TIMER_0_ISR_1       isr_tim3
-#define TIMER_0_IRQ_CHAN_0  TIM2_IRQn
-#define TIMER_0_IRQ_CHAN_1  TIM3_IRQn
-#define TIMER_0_IRQ_PRIO    1
-#define TIMER_0_TRIG_SEL    TIM_SMCR_TS_0
-
-/* Timer 1 configuration */
-#define TIMER_1_DEV_0       TIM4
-#define TIMER_1_DEV_1       TIM5
-#define TIMER_1_CHANNELS    4
-#define TIMER_1_PRESCALER   (32U)
-#define TIMER_1_MAX_VALUE   (0xffff)
-#define TIMER_1_CLKEN()     (RCC->APB1ENR |= (RCC_APB1ENR_TIM4EN | RCC_APB1ENR_TIM5EN))
-#define TIMER_1_ISR_0       isr_tim4
-#define TIMER_1_ISR_1       isr_tim5
-#define TIMER_1_IRQ_CHAN_0  TIM4_IRQn
-#define TIMER_1_IRQ_CHAN_1  TIM5_IRQn
-#define TIMER_1_IRQ_PRIO    1
-#define TIMER_1_TRIG_SEL    TIM_SMCR_TS_1
+static const timer_conf_t timer_config[] = {
+    /* device, RCC bit, IRQ bit */
+    {TIM5, 3, TIM5_IRQn},
+};
+/* interrupt routines */
+#define TIMER_0_ISR         (isr_tim5)
+/* number of defined timers */
+#define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
 
 /**
@@ -93,16 +72,13 @@ extern "C" {
 #define UART_0_ISR          isr_usart2
 #define UART_0_BUS_FREQ     32000000
 /* UART 0 pin configuration */
-#define UART_0_PORT         GPIOA
-#define UART_0_PORT_CLKEN() (RCC->AHBENR |= RCC_AHBENR_GPIOAEN)
-#define UART_0_RX_PIN       3
-#define UART_0_TX_PIN       2
-#define UART_0_AF           7
+#define UART_0_RX_PIN       GPIO_PIN(PORT_A, 3)
+#define UART_0_TX_PIN       GPIO_PIN(PORT_A, 2)
+#define UART_0_AF           GPIO_AF7
 
 /**
  * @brief GPIO configuration
  */
-#define GPIO_NUMOF          16
 #define GPIO_0_EN           1
 #define GPIO_1_EN           1
 #define GPIO_2_EN           1
@@ -262,31 +238,33 @@ extern "C" {
  * @name I2C configuration
   * @{
  */
-#define I2C_NUMOF           (1U)
 #define I2C_0_EN            1
+#define I2C_1_EN            1
+#define I2C_NUMOF           (I2C_0_EN + I2C_1_EN)
 #define I2C_IRQ_PRIO        1
 #define I2C_APBCLK          (36000000U)
 
 /* I2C 0 device configuration */
-#define I2C_0_DEV           I2C1
-#define I2C_0_CLKEN()       (RCC->APB1ENR |= RCC_APB1ENR_I2C1EN)
-#define I2C_0_CLKDIS()      (RCC->APB1ENR &= ~(RCC_APB1ENR_I2C1EN))
-#define I2C_0_EVT_IRQ       I2C1_EV_IRQn
 #define I2C_0_EVT_ISR       isr_i2c1_ev
-#define I2C_0_ERR_IRQ       I2C1_ER_IRQn
 #define I2C_0_ERR_ISR       isr_i2c1_er
-/* I2C 0 pin configuration */
-#define I2C_0_PORT_CLKEN()  (RCC->AHBENR |= RCC_AHBENR_GPIOBEN)
-#define I2C_0_PORT          GPIOB
-#define I2C_0_SCL_PIN       8
-#define I2C_0_SCL_AF        4
-#define I2C_0_SDA_PIN       9
-#define I2C_0_SDA_AF        4
+
+/* I2C 1 device configuration */
+#define I2C_1_EVT_ISR       isr_i2c2_ev
+#define I2C_1_ERR_ISR       isr_i2c2_er
+
+static const i2c_conf_t i2c_config[] = {
+    /* device, port, scl-, sda-pin-number, I2C-AF, ER-IRQn, EV-IRQn */
+    {I2C1, GPIO_PIN(PORT_B,  8), GPIO_PIN(PORT_B,  9), GPIO_OD_PU,
+     GPIO_AF4, I2C1_ER_IRQn, I2C1_EV_IRQn},
+    {I2C2, GPIO_PIN(PORT_B, 10), GPIO_PIN(PORT_B, 11), GPIO_OD_PU,
+     GPIO_AF4, I2C2_ER_IRQn, I2C2_EV_IRQn},
+};
+
 /** @} */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __PERIPH_CONF_H */
+#endif /* PERIPH_CONF_H_ */
 /** @} */

@@ -4,7 +4,7 @@
  * Wrap system calls and system call invoking library calls to make
  * sure no context switches happen during a system call.
  *
- * Copyright (C) 2013 Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * Copyright (C) 2013 Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -13,7 +13,7 @@
  * @ingroup native_cpu
  * @{
  * @file
- * @author  Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @author  Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  */
 
 #ifndef _GNU_SOURCE
@@ -30,15 +30,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#ifdef MODULE_VTIMER
+#ifdef MODULE_XTIMER
 #include <sys/time.h>
 #endif
 #include <ifaddrs.h>
+#include <sys/stat.h>
 
-#include "kernel.h"
 #include "cpu.h"
 #include "irq.h"
-#include "vtimer.h"
+#include "xtimer.h"
 
 #include "native_internal.h"
 
@@ -66,6 +66,7 @@ int (*real_printf)(const char *format, ...);
 int (*real_getaddrinfo)(const char *node, ...);
 int (*real_getifaddrs)(struct ifaddrs **ifap);
 int (*real_getpid)(void);
+int (*real_chdir)(const char *path);
 int (*real_close)(int);
 int (*real_creat)(const char *path, ...);
 int (*real_dup2)(int, int);
@@ -81,12 +82,15 @@ int (*real_pipe)(int[2]);
 int (*real_select)(int nfds, ...);
 int (*real_setitimer)(int which, const struct itimerval
         *restrict value, struct itimerval *restrict ovalue);
+int (*real_setsid)(void);
 int (*real_setsockopt)(int socket, ...);
 int (*real_socket)(int domain, int type, int protocol);
 int (*real_unlink)(const char *);
 long int (*real_random)(void);
 const char* (*real_gai_strerror)(int errcode);
 FILE* (*real_fopen)(const char *path, const char *mode);
+mode_t (*real_umask)(mode_t cmask);
+ssize_t (*real_writev)(int fildes, const struct iovec *iov, int iovcnt);
 
 #ifdef __MACH__
 #else
@@ -116,7 +120,7 @@ void _native_syscall_leave(void)
        )
     {
         _native_in_isr = 1;
-        dINT();
+        unsigned int mask = disableIRQ();
         _native_cur_ctx = (ucontext_t *)sched_active_thread->sp;
         native_isr_context.uc_stack.ss_sp = __isr_stack;
         native_isr_context.uc_stack.ss_size = SIGSTKSZ;
@@ -125,12 +129,33 @@ void _native_syscall_leave(void)
         if (swapcontext(_native_cur_ctx, &native_isr_context) == -1) {
             err(EXIT_FAILURE, "_native_syscall_leave: swapcontext");
         }
-        eINT();
+        restoreIRQ(mask);
     }
 }
 
+/* make use of TLSF if it is included, except when building with valgrind
+ * support, where one probably wants to make use of valgrind's memory leak
+ * detection abilities*/
+#if !(defined MODULE_TLSF) || (defined(HAVE_VALGRIND_H))
+int _native_in_malloc = 0;
 void *malloc(size_t size)
 {
+    /* dynamically load malloc when it's needed - this is necessary to
+     * support g++ 5.2.0 as it uses malloc before startup runs */
+    if (!real_malloc) {
+        if (_native_in_malloc) {
+            /* XXX: This is a dirty hack for behaviour that came along
+             * with g++ 5.2.0.
+             * Throw it out when whatever made it necessary it is fixed. */
+            return NULL;
+        }
+        else {
+            _native_in_malloc = 1;
+            *(void **)(&real_malloc) = dlsym(RTLD_NEXT, "malloc");
+            _native_in_malloc = 0;
+        }
+    }
+
     void *r;
     _native_syscall_enter();
     r = real_malloc(size);
@@ -145,7 +170,11 @@ void free(void *ptr)
     _native_syscall_leave();
 }
 
+#ifdef NATIVE_IN_CALLOC
+int _native_in_calloc = 1;
+#else
 int _native_in_calloc = 0;
+#endif
 void *calloc(size_t nmemb, size_t size)
 {
     /* dynamically load calloc when it's needed - this is necessary to
@@ -178,6 +207,7 @@ void *realloc(void *ptr, size_t size)
     _native_syscall_leave();
     return r;
 }
+#endif /* !(defined MODULE_TLSF) || (defined(HAVE_VALGRIND_H)) */
 
 ssize_t _native_read(int fd, void *buf, size_t count)
 {
@@ -196,6 +226,17 @@ ssize_t _native_write(int fd, const void *buf, size_t count)
 
     _native_syscall_enter();
     r = real_write(fd, buf, count);
+    _native_syscall_leave();
+
+    return r;
+}
+
+ssize_t _native_writev(int fd, const struct iovec *iov, int iovcnt)
+{
+    ssize_t r;
+
+    _native_syscall_enter();
+    r = real_writev(fd, iov, iovcnt);
     _native_syscall_leave();
 
     return r;
@@ -365,7 +406,10 @@ int getpid(void)
 int _gettimeofday(struct timeval *tp, void *restrict tzp)
 {
     (void) tzp;
-    vtimer_gettimeofday(tp);
+    timex_t now;
+    xtimer_now_timex(&now);
+    tp->tv_sec = now.seconds;
+    tp->tv_usec = now.microseconds;
     return 0;
 }
 #endif
@@ -393,12 +437,14 @@ void _native_init_syscalls(void)
     *(void **)(&real_getifaddrs) = dlsym(RTLD_NEXT, "getifaddrs");
     *(void **)(&real_getpid) = dlsym(RTLD_NEXT, "getpid");
     *(void **)(&real_pipe) = dlsym(RTLD_NEXT, "pipe");
+    *(void **)(&real_chdir) = dlsym(RTLD_NEXT, "chdir");
     *(void **)(&real_close) = dlsym(RTLD_NEXT, "close");
     *(void **)(&real_creat) = dlsym(RTLD_NEXT, "creat");
     *(void **)(&real_fork) = dlsym(RTLD_NEXT, "fork");
     *(void **)(&real_dup2) = dlsym(RTLD_NEXT, "dup2");
     *(void **)(&real_select) = dlsym(RTLD_NEXT, "select");
     *(void **)(&real_setitimer) = dlsym(RTLD_NEXT, "setitimer");
+    *(void **)(&real_setsid) = dlsym(RTLD_NEXT, "setsid");
     *(void **)(&real_setsockopt) = dlsym(RTLD_NEXT, "setsockopt");
     *(void **)(&real_socket) = dlsym(RTLD_NEXT, "socket");
     *(void **)(&real_unlink) = dlsym(RTLD_NEXT, "unlink");
@@ -413,6 +459,8 @@ void _native_init_syscalls(void)
     *(void **)(&real_feof) = dlsym(RTLD_NEXT, "feof");
     *(void **)(&real_ferror) = dlsym(RTLD_NEXT, "ferror");
     *(void **)(&real_clearerr) = dlsym(RTLD_NEXT, "clearerr");
+    *(void **)(&real_umask) = dlsym(RTLD_NEXT, "umask");
+    *(void **)(&real_writev) = dlsym(RTLD_NEXT, "writev");
 #ifdef __MACH__
 #else
     *(void **)(&real_clock_gettime) = dlsym(RTLD_NEXT, "clock_gettime");

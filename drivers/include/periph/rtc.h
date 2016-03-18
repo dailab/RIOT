@@ -7,8 +7,8 @@
  */
 
 /**
- * @defgroup    driver_periph_rtc RTC
- * @ingroup     driver_periph
+ * @defgroup    drivers_periph_rtc RTC
+ * @ingroup     drivers_periph
  * @brief       Low-level RTC (Real Time Clock) peripheral driver
  *
  * @note
@@ -23,8 +23,8 @@
  * @author      Thomas Eichinger <thomas.eichinger@fu-berlin.de>
  */
 
-#ifndef __RTC_H
-#define __RTC_H
+#ifndef RTC_H
+#define RTC_H
 
 #include <time.h>
 #include "periph_conf.h"
@@ -114,5 +114,5 @@ void rtc_poweroff(void);
 }
 #endif
 
-#endif /* __RTC_H */
+#endif /* RTC_H */
 /** @} */

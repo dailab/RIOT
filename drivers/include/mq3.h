@@ -8,7 +8,7 @@
 
 /**
  * @defgroup    driver_mq3 MQ-3 Alcohol Tester
- * @ingroup     drivers
+ * @ingroup     drivers_sensors
  * @brief       Device driver for the MQ-3 alcohol sensor
  * @{
  *
@@ -18,8 +18,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __MQ3_H
-#define __MQ3_H
+#ifndef MQ3_H
+#define MQ3_H
 
 #include "periph/adc.h"
 
@@ -33,8 +33,7 @@ extern "C" {
  * @brief device descriptor for a MQ-3 sensor
  */
 typedef struct {
-    adc_t adc_dev;          /**< the used ADC device */
-    int adc_chan;           /**< used channel of the ADC */
+    adc_t adc_line;         /**< the used ADC line */
 } mq3_t;
 
 /**
@@ -47,12 +46,11 @@ typedef struct {
  *
  * @param[out] dev      device descriptor of an MQ-3 sensor
  * @param[in] adc       the ADC device the sensor is connected to
- * @param[in] channel   the channel of the ADC device used
  *
  * @return              0 on success
  * @return              -1 on error
  */
-int mq3_init(mq3_t *dev, adc_t adc, int channel);
+int mq3_init(mq3_t *dev, adc_t adc_line);
 
 /**
  * @brief Read the RAW sensor value, can be between 0 and MQ3_MAX_RAW_VALUE
@@ -76,5 +74,5 @@ int mq3_read(mq3_t *dev);
 }
 #endif
 
-#endif /* __MQ3_H */
+#endif /* MQ3_H */
 /** @} */

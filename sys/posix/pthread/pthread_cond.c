@@ -10,7 +10,7 @@
  * @ingroup     sys
  * @{
  *
- * @file        pthread_cond.c
+ * @file
  * @brief       Condition variable implementation
  *
  * @author      Martin Landsmann <martin.landsmann@haw-hamburg.de>
@@ -25,8 +25,6 @@
 #include "sched.h"
 #include "irq.h"
 #include "debug.h"
-
-struct vtimer_t timer;
 
 int pthread_cond_condattr_destroy(struct pthread_condattr_t *attr)
 {
@@ -144,7 +142,7 @@ int pthread_cond_signal(struct pthread_cond_t *cond)
     priority_queue_node_t *head = priority_queue_remove_head(&(cond->queue));
     int other_prio = -1;
     if (head != NULL) {
-        tcb_t *other_thread = (tcb_t *) sched_threads[head->data];
+        thread_t *other_thread = (thread_t *) sched_threads[head->data];
         if (other_thread) {
             other_prio = other_thread->priority;
             sched_set_status(other_thread, STATUS_PENDING);
@@ -178,7 +176,7 @@ int pthread_cond_broadcast(struct pthread_cond_t *cond)
             break;
         }
 
-        tcb_t *other_thread = (tcb_t *) sched_threads[head->data];
+        thread_t *other_thread = (thread_t *) sched_threads[head->data];
         if (other_thread) {
             other_prio = max_prio(other_prio, other_thread->priority);
             sched_set_status(other_thread, STATUS_PENDING);

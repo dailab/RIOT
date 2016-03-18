@@ -7,8 +7,8 @@
  */
 
 /**
- * @defgroup    driver_periph_spi SPI
- * @ingroup     driver_periph
+ * @defgroup    drivers_periph_spi SPI
+ * @ingroup     drivers_periph
  * @brief       Low-level SPI peripheral driver
  *
  * The current design of this interface targets implementations that use the SPI in blocking mode.
@@ -22,9 +22,12 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __SPI_H
-#define __SPI_H
+#ifndef SPI_H
+#define SPI_H
 
+#include <stdint.h>
+
+#include "periph_cpu.h"
 #include "periph_conf.h"
 
 #ifdef __cplusplus
@@ -55,7 +58,9 @@ typedef enum {
 /**
  * @brief The SPI mode is defined by the four possible combinations of clock polarity and
  *        clock phase.
+ * @{
  */
+#ifndef HAVE_SPI_CONF_T
 typedef enum {
     /**
      * The first data bit is sampled by the receiver on the first SCK edge. The
@@ -82,13 +87,18 @@ typedef enum {
      */
     SPI_CONF_SECOND_FALLING = 3
 } spi_conf_t;
+#endif
+/** @} */
 
 /**
  * @brief Define a set of pre-defined SPI clock speeds.
  *
  * The actual speed of the bus can vary to some extend, as the combination of CPU clock and
  * available prescale values on certain platforms may not make the exact values possible.
+ *
+ * @{
  */
+#ifndef HAVE_SPI_SPEED_T
 typedef enum {
     SPI_SPEED_100KHZ = 0,       /**< drive the SPI bus with 100KHz */
     SPI_SPEED_400KHZ,           /**< drive the SPI bus with 400KHz */
@@ -96,6 +106,8 @@ typedef enum {
     SPI_SPEED_5MHZ,             /**< drive the SPI bus with 5MHz */
     SPI_SPEED_10MHZ             /**< drive the SPI bus with 10MHz */
 } spi_speed_t;
+#endif
+/** @} */
 
 /**
  * @brief Initialize the given SPI device to work in master mode
@@ -252,5 +264,5 @@ void spi_poweroff(spi_t dev);
 }
 #endif
 
-#endif /* __SPI_H */
+#endif /* SPI_H */
 /** @} */

@@ -10,13 +10,13 @@
  * @ingroup     cpu_samd21
  * @{
  *
- * @file        spi.c
+ * @file
  * @brief       Low-level SPI driver implementation
  *
  * @author      Thomas Eichinger <thomas.eichinger@fu-berlin.de>
  * @author      Troels Hoffmeyer <troels.d.hoffmeyer@gmail.com>
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
- * @author      Joakim Gebart <joakim.gebart@eistec.se>
+ * @author      Joakim Nohlgård <joakim.nohlgard@eistec.se>
  *
  * @}
  */
@@ -66,9 +66,19 @@ int spi_init_master(spi_t dev, spi_conf_t conf, spi_speed_t speed)
         f_baud = 1000000;
         break;
     case SPI_SPEED_5MHZ:
+#if CLOCK_CORECLOCK >= 5000000
+        f_baud = 5000000;
+        break;
+#else
         return -1;
+#endif
     case SPI_SPEED_10MHZ:
+#if CLOCK_CORECLOCK >= 10000000
+        f_baud = 10000000;
+        break;
+#else
         return -1;
+#endif
     }
     switch(conf)
     {
@@ -102,7 +112,7 @@ int spi_init_master(spi_t dev, spi_conf_t conf, spi_speed_t speed)
                           | (SERCOM4_GCLK_ID_CORE << GCLK_CLKCTRL_ID_Pos)));
 
         /* Setup clock */
-        while (GCLK->STATUS.bit.SYNCBUSY);
+        while (GCLK->STATUS.bit.SYNCBUSY) {}
         /* Mux enable*/
         SPI_0_SCLK_DEV.PINCFG[ SPI_0_SCLK_PIN ].bit.PMUXEN = 1;
         SPI_0_MISO_DEV.PINCFG[ SPI_0_MISO_PIN ].bit.PMUXEN = 1;
@@ -168,19 +178,21 @@ int spi_init_master(spi_t dev, spi_conf_t conf, spi_speed_t speed)
         return -1;
     }
     spi_dev->CTRLA.bit.ENABLE = 0;  /* Disable spi to write confs */
-    while (spi_dev->SYNCBUSY.reg);
+    while (spi_dev->SYNCBUSY.reg) {}
     spi_dev->CTRLA.reg |= SERCOM_SPI_CTRLA_MODE_SPI_MASTER;
-    while (spi_dev->SYNCBUSY.reg);
+    while (spi_dev->SYNCBUSY.reg) {}
 
-    spi_dev->BAUD.bit.BAUD = (uint8_t) (((uint32_t) SPI_0_F_REF) / (2 * f_baud) - 1); /* Syncronous mode*/
+    spi_dev->BAUD.bit.BAUD = (uint8_t) (((uint32_t)CLOCK_CORECLOCK) / (2 * f_baud) - 1); /* Syncronous mode*/
+
+
     spi_dev->CTRLA.reg |= (SERCOM_SPI_CTRLA_DOPO(dopo))
                           |  (SERCOM_SPI_CTRLA_DIPO(dipo))
                           |  (cpha << SERCOM_SPI_CTRLA_CPHA_Pos)
                           |  (cpol << SERCOM_SPI_CTRLA_CPOL_Pos);
 
-    while (spi_dev->SYNCBUSY.reg);
+    while (spi_dev->SYNCBUSY.reg) {}
     spi_dev->CTRLB.reg = (SERCOM_SPI_CTRLB_CHSIZE(0) | SERCOM_SPI_CTRLB_RXEN);
-    while(spi_dev->SYNCBUSY.reg);
+    while(spi_dev->SYNCBUSY.reg) {}
     spi_poweron(dev);
     return 0;
 }
@@ -188,8 +200,9 @@ int spi_init_master(spi_t dev, spi_conf_t conf, spi_speed_t speed)
 int spi_init_slave(spi_t dev, spi_conf_t conf, char (*cb)(char))
 {
     /* TODO */
-    return 0;
+    return -1;
 }
+
 void spi_transmission_begin(spi_t dev, char reset_val)
 {
     /* TODO*/
@@ -197,7 +210,7 @@ void spi_transmission_begin(spi_t dev, char reset_val)
 
 int spi_acquire(spi_t dev)
 {
-    if (dev >= SPI_NUMOF) {
+    if ((unsigned int)dev >= SPI_NUMOF) {
         return -1;
     }
     mutex_lock(&locks[dev]);
@@ -206,7 +219,7 @@ int spi_acquire(spi_t dev)
 
 int spi_release(spi_t dev)
 {
-    if (dev >= SPI_NUMOF) {
+    if ((unsigned int)dev >= SPI_NUMOF) {
         return -1;
     }
     mutex_unlock(&locks[dev]);
@@ -216,7 +229,7 @@ int spi_release(spi_t dev)
 int spi_transfer_byte(spi_t dev, char out, char *in)
 {
     SercomSpi* spi_dev = 0;
-    int transfered = 0;
+    char tmp;
 
     switch(dev)
     {
@@ -232,61 +245,17 @@ int spi_transfer_byte(spi_t dev, char out, char *in)
 #endif
     }
 
-    while (!spi_dev->INTFLAG.bit.DRE); /* while data register is not empty*/
+    while (!spi_dev->INTFLAG.bit.DRE) {} /* while data register is not empty*/
     spi_dev->DATA.bit.DATA = out;
-    transfered++;
+
+    while (!spi_dev->INTFLAG.bit.RXC) {} /* while receive is not complete*/
+    tmp = (char)spi_dev->DATA.bit.DATA;
+
     if (in != NULL)
     {
-        while (!spi_dev->INTFLAG.bit.RXC); /* while receive is not complete*/
-        *in = spi_dev->DATA.bit.DATA;
-        transfered++;
+        in[0] = tmp;
     }
-    else
-    {
-        spi_dev->DATA.reg;
-    }
-    return transfered;
-}
-
-int spi_transfer_bytes(spi_t dev, char *out, char *in, unsigned int length)
-{
-    int transfered = 0;
-
-    if (out != NULL) {
-        DEBUG("out*: %p out: %x length: %x\n", out, *out, length);
-        while (length--) {
-            int ret = spi_transfer_byte(dev, *(out)++, 0);
-            if (ret <  0) {
-                return ret;
-            }
-            transfered += ret;
-        }
-    }
-    if (in != NULL) {
-        while (length--) {
-            int ret = spi_transfer_byte(dev, 0, in++);
-            if (ret <  0) {
-                return ret;
-            }
-            transfered += ret;
-        }
-        DEBUG("in*: %p in: %x transfered: %x\n", in, *(in-transfered), transfered);
-    }
-
-    DEBUG("sent %x byte(s)\n", transfered);
-    return transfered;
-}
-
-int spi_transfer_reg(spi_t dev, uint8_t reg, char out, char *in)
-{
-    spi_transfer_byte(dev, reg, NULL);
-    return spi_transfer_byte(dev, out, in);
-}
-
-int spi_transfer_regs(spi_t dev, uint8_t reg, char *out, char *in, unsigned int length)
-{
-    spi_transfer_byte(dev, reg, NULL);
-    return spi_transfer_bytes(dev, out, in, length);
+    return 1;
 }
 
 void spi_poweron(spi_t dev)
@@ -295,13 +264,13 @@ void spi_poweron(spi_t dev)
 #ifdef SPI_0_EN
     case SPI_0:
         SPI_0_DEV.CTRLA.reg |= SERCOM_SPI_CTRLA_ENABLE;
-        while(SPI_0_DEV.SYNCBUSY.bit.ENABLE);
+        while(SPI_0_DEV.SYNCBUSY.bit.ENABLE) {}
         break;
 #endif
 #ifdef SPI_1_EN
     case SPI_1:
         SPI_1_DEV.CTRLA.reg |= SERCOM_SPI_CTRLA_ENABLE;
-        while(SPI_1_DEV.SYNCBUSY.bit.ENABLE);
+        while(SPI_1_DEV.SYNCBUSY.bit.ENABLE) {}
         break;
 #endif
     }
@@ -312,16 +281,17 @@ void spi_poweroff(spi_t dev)
     switch(dev) {
 #ifdef SPI_0_EN
     case SPI_0:
-        SPI_0_DEV.CTRLA.bit.ENABLE = 0; /*Disable spi*/
-        while(SPI_0_DEV.SYNCBUSY.bit.ENABLE);
+        SPI_0_DEV.CTRLA.bit.ENABLE = 0; /* Disable spi */
+        while(SPI_0_DEV.SYNCBUSY.bit.ENABLE) {}
         break;
 #endif
 #ifdef SPI_1_EN
     case SPI_1:
-        SPI_1_DEV.CTRLA.bit.ENABLE = 0; /*Disable spi*/
-        while(SPI_1_DEV.SYNCBUSY.bit.ENABLE);
+        SPI_1_DEV.CTRLA.bit.ENABLE = 0; /* Disable spi */
+        while(SPI_1_DEV.SYNCBUSY.bit.ENABLE) {}
         break;
 #endif
     }
 }
+
 #endif /* SPI_0_EN || SPI_1_EN */

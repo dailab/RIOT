@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Martin Lenders
+ * Copyright (C) 2014 Martine Lenders <mlenders@inf.fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -10,6 +10,7 @@
 
 #include "embUnit.h"
 #include "lpm.h"
+#include "xtimer.h"
 
 #define UNCURRY(FUN, ARGS) FUN(ARGS)
 #define RUN_TEST_SUITES(...) MAP(RUN_TEST_SUITE, __VA_ARGS__)
@@ -21,6 +22,11 @@
 
 int main(void)
 {
+#ifdef MODULE_XTIMER
+    /* auto_init is disabled, but some modules depends on this module being initialized */
+    xtimer_init();
+#endif
+
 #ifdef OUTPUT
     TextUIRunner_setOutputter(OUTPUTTER);
 #endif
@@ -31,6 +37,5 @@ int main(void)
 #endif
     TESTS_END();
 
-    lpm_set(LPM_POWERDOWN);
     return 0;
 }

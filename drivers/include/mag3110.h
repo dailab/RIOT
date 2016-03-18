@@ -8,15 +8,15 @@
 
 /**
  * @defgroup    drivers_mag3110 MAG3110 3-Axis Digital Magnetometer
- * @ingroup     drivers
+ * @ingroup     drivers_sensors
  * @brief       Driver for the Freescale MAG3110 magnetometer.
  *              After initialization and set activ the magnetometer
  *              will make measurements at periodic times.
- *              The output rate and over sample ratio 
+ *              The output rate and over sample ratio
  *              can be determined by magnetometer initialization.
  *              The measured values of magnetic field strength and
  *              die temperature have uncalibrated offsets.
- *              To get correct measuremend values, the individual 
+ *              To get correct measuremend values, the individual
  *              offsets must be measured and set accordingly.
  *
  * @{
@@ -43,39 +43,39 @@ extern "C"
 #define MAG3110_I2C_ADDRESS             0x0E /**< Magnetometer Default Address */
 #endif
 
-#define MAG3110_DROS_8000_16		0 /**< Output Rate 80 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_4000_32		1 /**< Output Rate 40 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_2000_64		2 /**< Output Rate 20 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_1000_128		3 /**< Output Rate 10 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_4000_16		4 /**< Output Rate 40 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_2000_32		5 /**< Output Rate 20 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_1000_64		6 /**< Output Rate 10 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0500_128		7 /**< Output Rate 5 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_2000_16		8 /**< Output Rate 20 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_1000_32		9 /**< Output Rate 10 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0500_64		10 /**< Output Rate 5 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0250_128		11 /**< Output Rate 2.5 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_1000_16		12 /**< Output Rate 10 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_0500_32		13 /**< Output Rate 5 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0250_64		14 /**< Output Rate 2.5 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0125_128		15 /**< Output Rate 1.25 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_0500_16		16 /**< Output Rate 5 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_0250_32		17 /**< Output Rate 2.5 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0125_64		18 /**< Output Rate 1.25 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0063_128		19 /**< Output Rate 0.63 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_0250_16		20 /**< Output Rate 2.5 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_0125_32		21 /**< Output Rate 1.25 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0063_64		22 /**< Output Rate 0.63 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0031_128		23 /**< Output Rate 0.31 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_0125_16		24 /**< Output Rate 1.25 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_0063_32		25 /**< Output Rate 0.63 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0031_64		26 /**< Output Rate 0.31 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0016_128		27 /**< Output Rate 0.16 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_0063_16		28 /**< Output Rate 0.63 Hz, Over Sample Ratio 16 */
-#define MAG3110_DROS_0031_32		29 /**< Output Rate 0.31 Hz, Over Sample Ratio 32 */
-#define MAG3110_DROS_0016_64		30 /**< Output Rate 0.16 Hz, Over Sample Ratio 64 */
-#define MAG3110_DROS_0008_128		31 /**< Output Rate 0.08 Hz, Over Sample Ratio 128 */
-#define MAG3110_DROS_DEFAULT		MAG3110_DROS_0125_128 /**< Default Setting for testing */
+#define MAG3110_DROS_8000_16    0 /**< Output Rate 80 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_4000_32    1 /**< Output Rate 40 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_2000_64    2 /**< Output Rate 20 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_1000_128   3 /**< Output Rate 10 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_4000_16    4 /**< Output Rate 40 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_2000_32    5 /**< Output Rate 20 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_1000_64    6 /**< Output Rate 10 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0500_128   7 /**< Output Rate 5 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_2000_16    8 /**< Output Rate 20 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_1000_32    9 /**< Output Rate 10 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0500_64    10 /**< Output Rate 5 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0250_128   11 /**< Output Rate 2.5 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_1000_16    12 /**< Output Rate 10 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_0500_32    13 /**< Output Rate 5 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0250_64    14 /**< Output Rate 2.5 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0125_128   15 /**< Output Rate 1.25 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_0500_16    16 /**< Output Rate 5 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_0250_32    17 /**< Output Rate 2.5 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0125_64    18 /**< Output Rate 1.25 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0063_128   19 /**< Output Rate 0.63 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_0250_16    20 /**< Output Rate 2.5 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_0125_32    21 /**< Output Rate 1.25 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0063_64    22 /**< Output Rate 0.63 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0031_128   23 /**< Output Rate 0.31 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_0125_16    24 /**< Output Rate 1.25 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_0063_32    25 /**< Output Rate 0.63 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0031_64    26 /**< Output Rate 0.31 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0016_128   27 /**< Output Rate 0.16 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_0063_16    28 /**< Output Rate 0.63 Hz, Over Sample Ratio 16 */
+#define MAG3110_DROS_0031_32    29 /**< Output Rate 0.31 Hz, Over Sample Ratio 32 */
+#define MAG3110_DROS_0016_64    30 /**< Output Rate 0.16 Hz, Over Sample Ratio 64 */
+#define MAG3110_DROS_0008_128   31 /**< Output Rate 0.08 Hz, Over Sample Ratio 128 */
+#define MAG3110_DROS_DEFAULT    MAG3110_DROS_0125_128 /**< Default Setting for testing */
 
 /**
  * @brief Device descriptor for MAG3110 magnetometer.
@@ -152,8 +152,8 @@ int mag3110_set_standby(mag3110_t *dev);
  *
  * @param[in]  dev          device descriptor of magnetometer
  *
- * @return                  >0 if x-, y- and z-axis new sample is ready 
- * @return                  0 if measurement is in progress 
+ * @return                  >0 if x-, y- and z-axis new sample is ready
+ * @return                  0 if measurement is in progress
  * @return                  -1 on error
  */
 int mag3110_is_ready(mag3110_t *dev);
@@ -178,7 +178,7 @@ int mag3110_read(mag3110_t *dev, int16_t *x, int16_t *y, int16_t *z, uint8_t *st
  * @brief Read die temperature.
  *
  * @param[in]  dev          device descriptor of magnetometer
- * @param[out] dtemp        die temperature 
+ * @param[out] dtemp        die temperature
  *
  * @return                  0 on success
  * @return                  -1 on error

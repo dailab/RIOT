@@ -10,7 +10,7 @@
  * @addtogroup  core_util
  * @{
  *
- * @file        cib.h
+ * @file
  * @brief       Circular integer buffer interface
  * @details     This structure provides an organizational interface
  *              and combined with an memory array forms a circular buffer.
@@ -18,8 +18,10 @@
  * @author      unknown, propably Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef __CIB_H
-#define __CIB_H
+#ifndef CIB_H
+#define CIB_H
+
+#include "assert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,9 +47,13 @@ typedef struct {
  * @param[out] cib      Buffer to initialize.
  *                      Must not be NULL.
  * @param[in]  size     Size of the buffer, must not exceed MAXINT/2.
+ *                      Should be equal to 0 or power of 2.
  */
 static inline void cib_init(cib_t *__restrict cib, unsigned int size)
 {
+    /* check if size is a power of 2 by comparing it to its complement */
+    assert(!(size & (size - 1)));
+
     cib_t c = CIB_INIT(size);
     *cib = c;
 }
@@ -105,5 +111,5 @@ static inline int cib_put(cib_t *__restrict cib)
 }
 #endif
 
-#endif /* __CIB_H */
+#endif /* CIB_H */
 /** @} */

@@ -7,8 +7,8 @@
  */
 
 /**
- * @defgroup    driver_lis3dh LIS3DH accelerometer
- * @ingroup     drivers
+ * @defgroup    drivers_lis3dh LIS3DH accelerometer
+ * @ingroup     drivers_sensors
  * @brief       Device driver for the LIS3DH accelerometer
  * @{
  *
@@ -16,7 +16,7 @@
  * @brief       Device driver interface for the LIS3DH accelerometer
  *
  *
- * @author      Joakim Gebart <joakim.gebart@eistec.se
+ * @author      Joakim Nohlgård <joakim.nohlgard@eistec.se>
  */
 
 #ifndef LIS3DH_H_
@@ -243,7 +243,7 @@ typedef enum {
  * @brief High pass filter enabled for CLICK function.
  *
  *  0. filter bypassed
- *  1. filter enabled@
+ *  1. filter enabled
  */
 #define LIS3DH_CTRL_REG2_HPCLICK_MASK  (1 << 2)
 
@@ -387,17 +387,15 @@ typedef enum {
 /** @} */
 
 /**
- * @brief Scale parameters
- *
- * Use these names when calling lis3dh_set_scale()
+ * @name Scale register values symbolic names
  */
-typedef enum {
-    LIS3DH_SCALE_2G  = (0), /**< Scale: +/- 2G */
-    LIS3DH_SCALE_4G  = (LIS3DH_CTRL_REG4_FS0_MASK), /**< Scale: +/- 4G */
-    LIS3DH_SCALE_8G  = (LIS3DH_CTRL_REG4_FS1_MASK), /**< Scale: +/- 8G */
-    /** Scale: +/- 16G */
-    LIS3DH_SCALE_16G = (LIS3DH_CTRL_REG4_FS1_MASK | LIS3DH_CTRL_REG4_FS0_MASK)
-} lis3dh_scale_t;
+/** @{ */
+#define LIS3DH_CTRL_REG4_SCALE_2G  (0) /**< Scale: +/- 2G */
+#define LIS3DH_CTRL_REG4_SCALE_4G  (LIS3DH_CTRL_REG4_FS0_MASK) /**< Scale: +/- 4G */
+#define LIS3DH_CTRL_REG4_SCALE_8G  (LIS3DH_CTRL_REG4_FS1_MASK) /**< Scale: +/- 8G */
+/** Scale: +/- 16G */
+#define LIS3DH_CTRL_REG4_SCALE_16G (LIS3DH_CTRL_REG4_FS1_MASK | LIS3DH_CTRL_REG4_FS0_MASK)
+/** @} */
 
 /**
  * @brief High resolution output mode
@@ -643,38 +641,40 @@ typedef enum {
 
 
 /**
- * @brief Allowed values for the Output Data Rate of the sensor.
+ * @name Output Data Rates (ODR)
  *
  * Use these when calling lis3dh_set_odr(odr).
  */
-typedef enum {
-    LIS3DH_ODR_POWERDOWN = (0x00 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_1Hz       = (0x01 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_10Hz      = (0x02 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_25Hz      = (0x03 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_50Hz      = (0x04 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_100Hz     = (0x05 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_200Hz     = (0x06 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_400Hz     = (0x07 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_LP1600Hz  = (0x08 << LIS3DH_CTRL_REG1_ODR_SHIFT),
-    LIS3DH_ODR_NP1250Hz_LP5000HZ = (0x09 << LIS3DH_CTRL_REG1_ODR_SHIFT)
-} lis3dh_odr_t;
+/** @{ */
+#define LIS3DH_ODR_POWERDOWN (0x00 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_1Hz       (0x01 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_10Hz      (0x02 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_25Hz      (0x03 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_50Hz      (0x04 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_100Hz     (0x05 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_200Hz     (0x06 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_400Hz     (0x07 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_LP1600Hz  (0x08 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+/* Normal mode 1250 Hz and Low power mode 5000 Hz share the same setting */
+#define LIS3DH_ODR_NP1250Hz  (0x09 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+#define LIS3DH_ODR_LP5000HZ  (0x09 << LIS3DH_CTRL_REG1_ODR_SHIFT)
+/** @} */
 
 /**
- * @brief Allowed FIFO modes.
+ * @name FIFO modes.
  *
- * Used when calling lis3dh_set_fifo_mode()
+ * Used when calling lis3dh_set_fifo()
  */
-typedef enum {
-    /** FIFO mode: Bypass */
-    LIS3DH_FIFO_MODE_BYPASS = (0x00 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT),
-    /** FIFO mode: FIFO */
-    LIS3DH_FIFO_MODE_FIFO = (0x01 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT),
-    /** FIFO mode: Stream */
-    LIS3DH_FIFO_MODE_STREAM = (0x02 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT),
-    /** FIFO mode: Stream to FIFO */
-    LIS3DH_FIFO_MODE_STREAM_TO_FIFO = (0x03 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT)
-} lis3dh_fifo_mode_t;
+/** @{ */
+/** FIFO mode: Bypass */
+#define LIS3DH_FIFO_MODE_BYPASS (0x00 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT)
+/** FIFO mode: FIFO */
+#define LIS3DH_FIFO_MODE_FIFO (0x01 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT)
+/** FIFO mode: Stream */
+#define LIS3DH_FIFO_MODE_STREAM (0x02 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT)
+/** FIFO mode: Stream to FIFO */
+#define LIS3DH_FIFO_MODE_STREAM_TO_FIFO (0x03 << LIS3DH_FIFO_CTRL_REG_FM_SHIFT)
+/** @} */
 
 /**
  * @brief Device descriptor for LIS3DH sensors
@@ -684,6 +684,13 @@ typedef struct {
     gpio_t cs;              /**< Chip select pin */
     gpio_t int1;            /**< INT1 pin */
     gpio_t int2;            /**< INT2 (DRDY) pin */
+    uint8_t scale;          /**< Default sensor scale: 2, 4, 8, or 16 (G) */
+    uint8_t odr;            /**< Default sensor ODR setting: LIS3DH_ODR_xxxHz */
+} lis3dh_params_t;
+
+typedef struct {
+    spi_t spi;              /**< SPI device the sensor is connected to */
+    gpio_t cs;              /**< Chip select pin */
     int16_t scale;          /**< Current scale setting of the sensor */
 } lis3dh_t;
 
@@ -695,8 +702,7 @@ typedef struct __attribute__((packed))
     int16_t acc_x;          /**< Acceleration in the X direction in milli-G */
     int16_t acc_y;          /**< Acceleration in the Y direction in milli-G */
     int16_t acc_z;          /**< Acceleration in the Z direction in milli-G */
-}
-lis3dh_data_t;
+} lis3dh_data_t;
 
 
 /**
@@ -705,14 +711,12 @@ lis3dh_data_t;
  * @param[in]  dev          Device descriptor of sensor to initialize
  * @param[in]  spi          SPI bus the accelerometer is connected to
  * @param[in]  cs_pin       GPIO connected to the chip select pin of the accelerometer
- * @param[in]  int1_pin     GPIO connected to the INT1 pin of the accelerometer
- * @param[in]  int2_pin     GPIO connected to the INT2 pin of the accelerometer
  * @param[in]  scale        Initial scale setting of the sensor
  *
  * @return                  0 on success
  * @return                  -1 on error
  */
-int lis3dh_init(lis3dh_t *dev, spi_t spi, gpio_t cs_pin, gpio_t int1_pin, gpio_t int2_pin, lis3dh_scale_t scale);
+int lis3dh_init(lis3dh_t *dev, spi_t spi, gpio_t cs_pin, uint8_t scale);
 
 /**
  * @brief Read 3D acceleration data from the accelerometer
@@ -792,26 +796,16 @@ int lis3dh_set_aux_adc(lis3dh_t *dev, const uint8_t enable, const uint8_t temper
 int lis3dh_set_axes(lis3dh_t *dev, const uint8_t axes);
 
 /**
- * @brief Set the FIFO mode.
- *
- * @param[in]  dev          Device descriptor of sensor
- * @param[in]  mode         The chosen FIFO mode.
- *
- * @return                  0 on success
- * @return                  -1 on error
- */
-int lis3dh_set_fifo_mode(lis3dh_t *dev, const lis3dh_fifo_mode_t mode);
-
-/**
  * @brief Enable/disable the FIFO.
  *
  * @param[in]  dev          Device descriptor of sensor
- * @param[in]  enable       If zero, disable the FIFO, otherwise enables the FIFO.
+ * @param[in]  mode         FIFO mode, see data sheet for details.
+ * @param[in]  watermark    Watermark level for FIFO level interrupts
  *
  * @return                  0 on success
  * @return                  -1 on error
  */
-int lis3dh_set_fifo(lis3dh_t *dev, const uint8_t enable);
+int lis3dh_set_fifo(lis3dh_t *dev, const uint8_t mode, const uint8_t watermark);
 
 /**
  * Set the output data rate of the sensor.
@@ -822,21 +816,44 @@ int lis3dh_set_fifo(lis3dh_t *dev, const uint8_t enable);
  * @return                  0 on success
  * @return                  -1 on error
  */
-int lis3dh_set_odr(lis3dh_t *dev, const lis3dh_odr_t odr);
+int lis3dh_set_odr(lis3dh_t *dev, const uint8_t odr);
 
 /**
  * @brief Set the full scale range of the sensor.
  *
- * Valid values for scale is 2, 4, 8, 16 and represents the full range of the
+ * Valid values for scale are 2, 4, 8, 16 and represents the full range of the
  * sensor.
  *
  * @param[in]  dev          Device descriptor of sensor
- * @param  scale            The chosen sensitivity scale.
+ * @param[in]  scale        The chosen sensitivity scale.
  *
  * @return                  0 on success
  * @return                  -1 on error
  */
-int lis3dh_set_scale(lis3dh_t *dev, const lis3dh_scale_t scale);
+int lis3dh_set_scale(lis3dh_t *dev, const uint8_t scale);
+
+/**
+ * @brief Set INT1 pin function
+ *
+ * Set the bits of CTRL_REG3 for choosing sources for the INT1 pin.
+ *
+ * @param[in]  dev          Device descriptor of sensor
+ * @param[in]  mode         CTRL_REG3 value, see data sheet for details.
+ *
+ * @return                  0 on success
+ * @return                  -1 on error
+ */
+int lis3dh_set_int1(lis3dh_t *dev, const uint8_t mode);
+
+/**
+ * @brief Get the current number of elements in the FIFO
+ *
+ * @param[in]  dev          Device descriptor of sensor
+ *
+ * @return                  number of elements in device FIFO on success
+ * @return                  -1 on error
+ */
+int lis3dh_get_fifo_level(lis3dh_t *dev);
 
 #ifdef __cplusplus
 }

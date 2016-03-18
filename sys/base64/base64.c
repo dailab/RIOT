@@ -10,7 +10,7 @@
 /**
  * @ingroup base64
  * @{
- * @file    base64.c
+ * @file
  * @brief   Functions to encode and decode base64
  *
  * @author  Martin Landsmann <Martin.Landsmann@HAW-Hamburg.de>
@@ -107,10 +107,6 @@ int base64_encode(unsigned char *data_in, size_t data_in_size, \
 
     /* The last character is not finished yet */
     njump++;
-
-    if (njump == 4) {
-        nNum = (tmpval >> (2 * njump));
-    }
 
     nNum = nLst << (8 - 2 * njump);
     base64_out[iterate_base64_buffer++] = getsymbol(nNum);

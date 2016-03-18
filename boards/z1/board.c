@@ -10,10 +10,10 @@
  */
 
 /**
- * @ingroup     board_z1
+ * @ingroup     boards_z1
  * @{
  *
- * @file        board.c
+ * @file
  * @brief       Board specific implementations for the Zolertia Z1
  *
  * @author      Kévin Roussel <Kevin.Roussel@inria.fr>
@@ -24,9 +24,7 @@
 
 #include "cpu.h"
 #include "board.h"
-
-void uart_init(void);
-
+#include "uart_stdio.h"
 
 static void z1_ports_init(void)
 {
@@ -190,8 +188,8 @@ void msp430_init_dco(void)
 #else
     /* default values for quick start-up */
     DCOCTL = 0x00;   /* avoid possible temporary overclocking... */
-    BCSCTL1 = 0x0d;
-    DCOCTL = 0x9a;
+    BCSCTL1 = 0x8d;  /* as seen in Contiki code */
+    DCOCTL = 0x88;   /* as seen in Contiki code */
 #endif
 
     /* Other clock configuration */
@@ -217,8 +215,8 @@ void board_init(void)
     /* initializes DCO */
     msp430_init_dco();
 
-    /* initialize UART/USB module */
-    uart_init();
+    /* initialize STDIO over UART */
+    uart_stdio_init();
 
     /* enable interrupts */
     __bis_SR_register(GIE);

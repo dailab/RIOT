@@ -12,16 +12,17 @@
  * @ingroup     core
  * @{
  *
- * @file        mutex.h
+ * @file
  * @brief       RIOT synchronization API
  *
  * @author      Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef __MUTEX_H_
-#define __MUTEX_H_
+#ifndef MUTEX_H_
+#define MUTEX_H_
 
 #include "priority_queue.h"
+#include "atomic.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -37,7 +38,7 @@ typedef struct mutex_t {
      *          never be changed by the user.**
      * @internal
      */
-    unsigned int val;
+    atomic_int_t val;
     /**
      * @brief   The process waiting queue of the mutex. **Must never be changed
      *          by the user.**
@@ -50,7 +51,7 @@ typedef struct mutex_t {
  * @brief Static initializer for mutex_t.
  * @details This initializer is preferable to mutex_init().
  */
-#define MUTEX_INIT { 0, PRIORITY_QUEUE_INIT }
+#define MUTEX_INIT { ATOMIC_INIT(0), PRIORITY_QUEUE_INIT }
 
 /**
  * @brief Initializes a mutex object.
@@ -100,5 +101,5 @@ void mutex_unlock_and_sleep(mutex_t *mutex);
 }
 #endif
 
-#endif /* __MUTEX_H_ */
+#endif /* MUTEX_H_ */
 /** @} */

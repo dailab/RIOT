@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Martin Lenders
+ * Copyright (C) 2014 Martine Lenders <mlenders@inf.fu-berlin.de>
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,12 +7,11 @@
  */
 
 /**
- * @addtogroup unittests
- * @addtogroup sys
- * @{
+ * @defgroup unittests Unittests
+ * @ingroup  sys
  *
- * @file
- * @brief Common header file for unittests
+ * @note
+ * Please refer to https://github.com/RIOT-OS/RIOT/wiki/Testing-RIOT
  *
  * @author Martine Lenders <mlenders@inf.fu-berlin.de>
  */
@@ -23,9 +22,11 @@
 #include "embUnit/embUnit.h"
 
 #ifdef OUTPUT
-#   define OUTPUT_XML      (1)
-#   define OUTPUT_TEXT     (2)
-#   define OUTPUT_COMPILER (4)
+#   define OUTPUT_XML       (1)
+#   define OUTPUT_TEXT      (2)
+#   define OUTPUT_COMPILER  (4)
+#   define OUTPUT_COLORTEXT (8)
+#   define OUTPUT_COLOR     (16)
 
 #   if (OUTPUT==OUTPUT_XML)
 #       include "embUnit/XMLOutputter.h"
@@ -36,6 +37,12 @@
 #   elif (OUTPUT==OUTPUT_COMPILER)
 #       include "embUnit/CompilerOutputter.h"
 #       define OUTPUTTER   (CompilerOutputter_outputter())
+#   elif (OUTPUT==OUTPUT_COLORTEXT)
+#       include "embUnit/ColorTextOutputter.h"
+#       define OUTPUTTER   (ColorTextOutputter_outputter())
+#   elif (OUTPUT==OUTPUT_COLOR)
+#       include "embUnit/ColorOutputter.h"
+#       define OUTPUTTER   (ColorOutputter_outputter())
 #   endif
 
 #   include "embUnit/TextUIRunner.h"
@@ -58,7 +65,3 @@ extern "C" {
 #endif
 
 #endif
-
-/**
- * @}
- */

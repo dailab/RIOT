@@ -7,8 +7,8 @@
  */
 
 /**
- * @defgroup    driver_isl29020 ISL29020 light sensor
- * @ingroup     drivers
+ * @defgroup    drivers_isl29020 ISL29020 light sensor
+ * @ingroup     drivers_sensors
  * @brief       Device driver for the ISL29020 light sensor
  * @{
  *
@@ -18,8 +18,8 @@
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  */
 
-#ifndef __ISL29020_H
-#define __ISL29020_H
+#ifndef ISL29020_H
+#define ISL29020_H
 
 #include <stdint.h>
 #include "periph/i2c.h"
@@ -39,11 +39,11 @@ extern "C" {
 typedef struct {
     i2c_t i2c;                  /**< I2C device the sensor is connected to */
     uint8_t address;            /**< I2C bus address of the sensor */
-    float lux_fac;              /**< factor to calculate actual LUX value */
+    float lux_fac;              /**< factor to calculate actual lux value */
 } isl29020_t;
 
 /**
- * @brief Possible modes for the ISR29020 sensor
+ * @brief Possible modes for the ISL29020 sensor
  */
 typedef enum {
     ISL29020_MODE_AMBIENT = 0,  /**< set sensor to detect ambient light */
@@ -51,14 +51,24 @@ typedef enum {
 } isl29020_mode_t;
 
 /**
- * @brief Possible range values for the ISR29020 sensor
+ * @brief Possible range values for the ISL29020 sensor
  */
 typedef enum {
-    ISL29020_RANGE_1K = 0,      /**< set range to 0-1000 LUX */
-    ISL29020_RANGE_4K = 1,      /**< set range to 0-4000 LUX */
-    ISL29020_RANGE_16K = 2,     /**< set range to 0-16000 LUX */
-    ISL29020_RANGE_64K = 3      /**< set range to 0-64000 LUX */
+    ISL29020_RANGE_1K = 0,      /**< set range to 0-1000 lux */
+    ISL29020_RANGE_4K = 1,      /**< set range to 0-4000 lux */
+    ISL29020_RANGE_16K = 2,     /**< set range to 0-16000 lux */
+    ISL29020_RANGE_64K = 3      /**< set range to 0-64000 lux */
 } isl29020_range_t;
+
+/**
+ * @brief Data structure holding the full set of configuration parameters
+ */
+typedef struct {
+    i2c_t i2c;                  /**< I2C bus the device is connected to */
+    uint8_t addr;               /**< address on that bus */
+    isl29020_range_t range;     /**< range setting to use */
+    isl29020_mode_t mode;       /**< measurement mode to use */
+} isl29020_params_t;
 
 /**
  * @brief Initialize a new ISL29020 device
@@ -76,11 +86,11 @@ int isl29020_init(isl29020_t *dev, i2c_t i2c, uint8_t address,
                   isl29020_range_t range, isl29020_mode_t mode);
 
 /**
- * @brief Read a lighting value from the sensor, the result is given in LUX
+ * @brief Read a lighting value from the sensor, the result is given in lux
  *
  * @param[in] dev       device descriptor of an ISL29020 device
  *
- * @return              the measured brightness in LUX
+ * @return              the measured brightness in lux
  * @return              -1 on error
  */
 int isl29020_read(isl29020_t *dev);
@@ -109,5 +119,5 @@ int isl29020_disable(isl29020_t *dev);
 }
 #endif
 
-#endif /* __ISL29020_H */
+#endif /* ISL29020_H */
 /** @} */

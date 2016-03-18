@@ -6,42 +6,59 @@
  * directory for more details.
  */
 
-#ifndef __LTC4150_ARCH_H
-#define __LTC4150_ARCH_H
+/**
+ * @defgroup    drivers_ltc4150 LTC4150
+ * @ingroup     drivers_sensors
+ * @brief       Driver for the Linear Technology LTC4150 Coulomb Counter
+ * @{
+ *
+ * @file
+ * @brief       LTC4150 Coulomb Counter
+ *
+ * @author      Heiko Will <heiko.will@fu-berlin.de>
+ */
+
+#ifndef LTC4150_ARCH_H
+#define LTC4150_ARCH_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @defgroup    ltc4150 LTC4150
- * @ingroup     drivers
- * @brief       Driver for the Linear Technology LTC4150 Coulomb Counter
+ * @brief   Constants used by the driver
  * @{
- *
- * @file        ltc4150_arch.h
- * @brief       LTC4150 Coulomb Counter
- *
- * @author      Heiko Will
  */
-
 #define _GFH (double)32.631375
 #define _R_SENSE (double)0.330
 #define SUPPLY_VOLTAGE  (5)
+/** @} */
 
-/** board specific ltc4150 interrupt disable */
+/**
+ * @brief   Board specific ltc4150 interrupt disable
+ **/
 void ltc4150_disable_int(void);
-/** board specific ltc4150 interrupt enable */
+
+/**
+ * @brief   Board specific ltc4150 interrupt enable
+ **/
 void ltc4150_enable_int(void);
-/** board specific synchronization of ltc4150 */
+
+/**
+ * @brief   Board specific synchronization of ltc4150
+ **/
 void ltc4150_sync_blocking(void);
-/** board specific ltc4150 initialization */
+
+/**
+ * @brief   Board specific ltc4150 initialization
+ **/
 void ltc4150_arch_init(void);
 
 /**
- * ltc4150 interrupt handler,
- * shall be called on ltc4150 interrupt,
- * implemented in driver
+ * @brief   Ltc4150 interrupt handler
+ *
+ * This handler shall be called on ltc4150 interrupt, it is implemented in the
+ * driver.
  */
 void ltc4150_interrupt(void);
 
@@ -50,4 +67,4 @@ void ltc4150_interrupt(void);
 #endif
 
 /** * @} */
-#endif /* __LTC4150_ARCH_H */
+#endif /* LTC4150_ARCH_H */

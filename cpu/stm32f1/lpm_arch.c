@@ -11,7 +11,7 @@
  * @ingroup     cpu_stm32f1
  * @{
  *
- * @file        lpm_arch.c
+ * @file
  * @brief       Implementation of the kernel's lpm interface
  *
  * @author      Alaeddine Weslati <alaeddine.weslati@inria.fr>
@@ -29,6 +29,7 @@ void lpm_arch_init(void)
 
 enum lpm_mode lpm_arch_set(enum lpm_mode target)
 {
+    (void) target;
     /* TODO */
     return 0;
 }

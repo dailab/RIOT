@@ -94,7 +94,7 @@
  * -  24-31: (Reserved)      - No support
  * - 32-255: (Unassigned)    - No support
  *
- * TODO: API for Indefinite-Length Byte Strings and Text Strings
+ * @todo API for Indefinite-Length Byte Strings and Text Strings
  *       (see https://tools.ietf.org/html/rfc7049#section-2.2.2)
  */
 
@@ -369,6 +369,17 @@ size_t cbor_deserialize_double(const cbor_stream_t *stream, size_t offset,
  * @return Number of bytes written to stream @p stream
  */
 size_t cbor_serialize_byte_string(cbor_stream_t *stream, const char *val);
+
+/**
+ * @brief Serializes an arbitrary byte string
+ *
+ * @param[out] stream   The destination stream for serializing the byte stream
+ * @param[in] val       The arbitrary byte string which may include null bytes
+ * @param[in] length    The size of the byte string in bytes
+ *
+ * @return Number of bytes written to stream @p stream
+ */
+size_t cbor_serialize_byte_stringl(cbor_stream_t *stream, const char *val, size_t length);
 
 /**
  * @brief Deserialize bytes from @p stream to @p val

@@ -28,7 +28,6 @@
  * @}
  */
 
-#include "x86_hwtimer.h"
 #include "x86_interrupts.h"
 #include "x86_memory.h"
 #include "x86_pci.h"
@@ -39,10 +38,11 @@
 #include "x86_uart.h"
 
 #include <cpu.h>
-#include <kernel_internal.h>
 #include <tlsf-malloc.h>
 
 #include <stdio.h>
+
+#include "kernel_init.h"
 
 /* Must be <= 0x1000 because otherwise x86_map_physical_pages() might get a page out of this pool.
  * Because static memory has the PT_G flag, flushing the TLB would cause a stale PT
@@ -52,7 +52,7 @@ static char early_malloc_pool[0x1000] __attribute__((aligned(4)));
 
 void x86_startup(void)
 {
-    tlsf_add_pool(early_malloc_pool, sizeof early_malloc_pool);
+    tlsf_create_with_pool(early_malloc_pool, sizeof early_malloc_pool);
 
     x86_early_init_uart();
     x86_init_threading();
@@ -62,7 +62,6 @@ void x86_startup(void)
     x86_init_memory();
     x86_init_rtc();
     x86_init_pit();
-    x86_init_hwtimer();
     x86_init_pci();
     puts("RIOT x86 hardware initialization complete.");
 

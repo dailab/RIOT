@@ -13,7 +13,7 @@
  * @file
  * @brief       Test application for the PIR motion sensor driver
  *
- * @author      Ludwig Ortmann <ludwig.ortmann@fu-berlin.de>
+ * @author      Ludwig Knüpfer <ludwig.knuepfer@fu-berlin.de>
  *
  * @}
  */
@@ -25,11 +25,11 @@
 #include <stdio.h>
 
 #include "thread.h"
-#include "vtimer.h"
+#include "xtimer.h"
 #include "pir.h"
 
-char pir_handler_stack[KERNEL_CONF_STACKSIZE_MAIN];
-pir_t dev;
+static char pir_handler_stack[THREAD_STACKSIZE_MAIN];
+static pir_t dev;
 
 void* pir_handler(void *arg)
 {
@@ -62,7 +62,7 @@ void* pir_handler(void *arg)
 int main(void)
 {
     puts("PIR motion sensor test application\n");
-    printf("Initializing PIR sensor at GPIO_%i... ", PIR_GPIO);
+    printf("Initializing PIR sensor at GPIO_%ld... ", (long)PIR_GPIO);
     if (pir_init(&dev, PIR_GPIO) == 0) {
         puts("[OK]\n");
     }
@@ -75,12 +75,12 @@ int main(void)
     puts("Printing sensor state every second.");
     while (1) {
         printf("Status: %s\n", pir_get_status(&dev) == PIR_STATUS_LO ? "lo" : "hi");
-        vtimer_usleep(1000 * 1000);
+        xtimer_usleep(1000 * 1000);
     }
 #else
    thread_create(
-           pir_handler_stack, sizeof(pir_handler_stack), PRIORITY_MAIN - 1,
-           CREATE_WOUT_YIELD | CREATE_STACKTEST,
+           pir_handler_stack, sizeof(pir_handler_stack), THREAD_PRIORITY_MAIN - 1,
+           THREAD_CREATE_WOUT_YIELD | THREAD_CREATE_STACKTEST,
            pir_handler, NULL, "pir_handler");
 #endif
     return 0;

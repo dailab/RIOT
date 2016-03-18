@@ -81,6 +81,9 @@
 /* Extra defines not related to the protocol itself */
 #define CBOR_STREAM_PRINT_BUFFERSIZE 1024 /* bytes */
 
+/* Array size */
+#define MAX_TIMESTRING_LENGTH   (21)
+
 #ifndef INFINITY
 #define INFINITY (1.0/0.0)
 #endif
@@ -157,7 +160,7 @@ double decode_float_half(unsigned char *halfp)
         val = mant == 0 ? INFINITY : NAN;
     }
 
-    return half & 0x8000 ? -val : val;
+    return (half & 0x8000) ? -val : val;
 }
 
 /**
@@ -576,6 +579,11 @@ size_t cbor_serialize_byte_string(cbor_stream_t *stream, const char *val)
     return encode_bytes(CBOR_BYTES, stream, val, strlen(val));
 }
 
+size_t cbor_serialize_byte_stringl(cbor_stream_t *stream, const char *val, size_t length)
+{
+    return encode_bytes(CBOR_BYTES, stream, val, length);
+}
+
 size_t cbor_deserialize_unicode_string(const cbor_stream_t *stream, size_t offset, char *val,
                                        size_t length)
 {
@@ -689,7 +697,6 @@ size_t cbor_deserialize_date_time(const cbor_stream_t *stream, size_t offset, st
 
 size_t cbor_serialize_date_time(cbor_stream_t *stream, struct tm *val)
 {
-    static const int MAX_TIMESTRING_LENGTH = 21;
     CBOR_ENSURE_SIZE(stream, MAX_TIMESTRING_LENGTH + 1); /* + 1 tag byte */
 
     char time_str[MAX_TIMESTRING_LENGTH];

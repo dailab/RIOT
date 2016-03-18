@@ -10,14 +10,14 @@
  *
  * @ingroup  core_util
  * @{
- * @file   ringbuffer.h
+ * @file
  * @author Kaspar Schleiser <kaspar@schleiser.de>
  * @author René Kijewski <rene.kijewski@fu-berlin.de>
  * @}
  */
 
-#ifndef __RINGBUFFER_H
-#define __RINGBUFFER_H
+#ifndef RINGBUFFER_H
+#define RINGBUFFER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -154,4 +154,4 @@ unsigned ringbuffer_peek(const ringbuffer_t *__restrict rb, char *buf, unsigned 
 }
 #endif
 
-#endif /* __RINGBUFFER_H */
+#endif /* RINGBUFFER_H */

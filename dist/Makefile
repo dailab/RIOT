@@ -33,11 +33,8 @@ QUIET ?= 1
 # Modules to include:
 
 #USEMODULE += shell
-#USEMODULE += uart0
 #USEMODULE += posix
 #USEMODULE += vtimer
-#USEMODULE += defaulttransceiver
-#USEMODULE += sixlowpan
 
 #export INCLUDES += -Iapplication_include
 
