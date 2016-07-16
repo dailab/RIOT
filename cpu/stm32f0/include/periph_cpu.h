@@ -20,29 +20,10 @@
 #define PERIPH_CPU_H
 
 #include "periph_cpu_common.h"
-#include "cpu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief   Overwrite the default gpio_t type definition
- * @{
- */
-#define HAVE_GPIO_T
-typedef uint32_t gpio_t;
-/** @} */
-
-/**
- * @brief   Definition of a fitting UNDEF value
- */
-#define GPIO_UNDEF          (0xffffffff)
-
-/**
- * @brief   Define a CPU specific GPIO pin generator macro
- */
-#define GPIO_PIN(x, y)      ((GPIOA_BASE + (x << 10)) | y)
 
 /**
  * @brief   Generate GPIO mode bitfields
@@ -54,6 +35,7 @@ typedef uint32_t gpio_t;
  */
 #define GPIO_MODE(io, pr, ot)   ((io << 0) | (pr << 2) | (ot << 4))
 
+#ifndef DOXYGEN
 /**
  * @brief   Override GPIO mode options
  * @{
@@ -80,6 +62,7 @@ typedef enum {
     GPIO_BOTH = 3           /**< emit interrupt on both flanks */
 } gpio_flank_t;
 /** @} */
+#endif /* ndef DOXYGEN */
 
 /**
  * @brief   Available ports on the STM32F4 family
@@ -102,6 +85,7 @@ typedef enum {
     GPIO_AF3,               /**< use alternate function 3 */
 } gpio_af_t;
 
+#ifndef DOXYGEN
 /**
  * @brief   Override ADC resolution values
  * @{
@@ -116,6 +100,7 @@ typedef enum {
     ADC_RES_16BIT = (0xff)          /**< not applicable */
 } adc_res_t;
 /** @} */
+#endif /* ndef DOXYGEN */
 
 /**
  * @brief   ADC line configuration values
@@ -126,6 +111,14 @@ typedef struct {
 } adc_conf_t;
 
 /**
+ * @brief   DAC line configuration data
+ */
+typedef struct {
+    gpio_t pin;             /**< pin connected to the line */
+    uint8_t chan;           /**< DAC device used for this line */
+} dac_conf_t;
+
+/**
  * @brief   Configure the alternate function for the given pin
  *
  * @note    This is meant for internal use in STM32F4 peripheral drivers only
@@ -134,13 +127,6 @@ typedef struct {
  * @param[in] af        alternate function to use
  */
 void gpio_init_af(gpio_t pin, gpio_af_t af);
-
-/**
- * @brief   Configure the given pin to be used as ADC input
- *
- * @param[in] pin       pin to configure
- */
-void gpio_init_analog(gpio_t pin);
 
 #ifdef __cplusplus
 }

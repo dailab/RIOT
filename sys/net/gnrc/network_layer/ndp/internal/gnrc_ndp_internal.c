@@ -51,7 +51,7 @@ static inline void _send_delayed(xtimer_t *t, msg_t *msg, uint32_t interval, gnr
 {
     xtimer_remove(t);
     msg->type = GNRC_NETAPI_MSG_TYPE_SND;
-    msg->content.ptr = (char *) pkt;
+    msg->content.ptr = pkt;
     xtimer_set_msg(t, interval, msg, gnrc_ipv6_pid);
 }
 
@@ -837,8 +837,7 @@ static gnrc_pktsnip_t *_build_headers(kernel_pid_t iface, gnrc_pktsnip_t *payloa
                                       ipv6_addr_t *dst, ipv6_addr_t *src)
 {
     gnrc_pktsnip_t *l2hdr;
-    gnrc_pktsnip_t *iphdr = gnrc_ipv6_hdr_build(payload, (uint8_t *)src, sizeof(ipv6_addr_t),
-                                                (uint8_t *)dst, sizeof(ipv6_addr_t));
+    gnrc_pktsnip_t *iphdr = gnrc_ipv6_hdr_build(payload, src, dst);
     if (iphdr == NULL) {
         DEBUG("ndp internal: error allocating IPv6 header.\n");
         return NULL;

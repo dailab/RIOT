@@ -27,6 +27,14 @@
 #include "net/gnrc/conn.h"
 #endif
 
+#ifdef MODULE_LWIP_CONN_UDP
+#include "lwip/conn.h"
+#endif
+
+#ifdef MODULE_EMB6_CONN_UDP
+#include "emb6/conn/udp.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

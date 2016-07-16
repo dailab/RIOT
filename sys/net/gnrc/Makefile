@@ -7,6 +7,9 @@ endif
 ifneq (,$(filter gnrc_conn_udp,$(USEMODULE)))
     DIRS += conn/udp
 endif
+ifneq (,$(filter gnrc_csma_sender,$(USEMODULE)))
+    DIRS += link_layer/csma_sender
+endif
 ifneq (,$(filter gnrc_icmpv6,$(USEMODULE)))
     DIRS += network_layer/icmpv6
 endif
@@ -84,6 +87,9 @@ ifneq (,$(filter gnrc_rpl,$(USEMODULE)))
 endif
 ifneq (,$(filter gnrc_rpl_srh,$(USEMODULE)))
     DIRS += routing/rpl/srh
+endif
+ifneq (,$(filter gnrc_rpl_p2p,$(USEMODULE)))
+    DIRS += routing/rpl/p2p
 endif
 ifneq (,$(filter gnrc_sixlowpan,$(USEMODULE)))
     DIRS += network_layer/sixlowpan

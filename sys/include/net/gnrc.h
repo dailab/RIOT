@@ -121,11 +121,11 @@
  *         msg_receive(&msg);
  *         switch (msg.type) {
  *             case GNRC_NETAPI_MSG_TYPE_RCV:
- *                 pkt = (gnrc_pktsnip_t *) msg.content.ptr;
+ *                 pkt = msg.content.ptr;
  *                 _handle_incoming_pkt(pkt);
  *                 break;
  *             case GNRC_NETAPI_MSG_TYPE_SND:
- *                 pkt = (gnrc_pktsnip_t *) msg.content.ptr;
+ *                 pkt = msg.content.ptr;
  *                 _handle_outgoing_pkt(pkt);
  *                 break;
  *              case GNRC_NETAPI_MSG_TYPE_SET:
@@ -180,7 +180,7 @@
  *
  * - To include the default network device(s) on your board:
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ {.mk}
- *   USEMODULE += gnrc_netif_default
+ *   USEMODULE += gnrc_netdev_default
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
  * - To auto-initialize these network devices as GNRC network interfaces

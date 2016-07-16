@@ -44,6 +44,13 @@ extern "C" {
 /** @} */
 
 /**
+ * @brief   DAC configuration
+ * @{
+ */
+#define DAC_NUMOF           (0)
+/** @} */
+
+/**
  * @brief Timer configuration
  * @{
  */
@@ -56,6 +63,12 @@ static const timer_conf_t timer_config[] = {
 /* number of defined timers */
 #define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
+
+/**
+ * @name Real time counter configuration
+ * @{
+ */
+#define RTC_NUMOF           (1U)
 
 /**
  * @brief UART configuration

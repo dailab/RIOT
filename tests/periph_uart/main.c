@@ -51,21 +51,21 @@ static char printer_stack[THREAD_STACKSIZE_MAIN];
 
 static int parse_dev(char *arg)
 {
-    int dev = atoi(arg);
-    if (dev == UART_STDIO_DEV) {
-        printf("Error: The selected UART_DEV(%i) is used for the shell!\n", dev);
-        return -2;
-    }
-    if (dev < 0 || dev >= UART_NUMOF) {
+    unsigned dev = (unsigned)atoi(arg);
+    if (dev >= UART_NUMOF) {
         printf("Error: Invalid UART_DEV device specified (%i).\n", dev);
         return -1;
+    }
+    else if (UART_DEV(dev) == UART_STDIO_DEV) {
+        printf("Error: The selected UART_DEV(%i) is used for the shell!\n", dev);
+        return -2;
     }
     return dev;
 }
 
 static void rx_cb(void *arg, uint8_t data)
 {
-    int dev = (int)arg;
+    uart_t dev = (uart_t)arg;
 
     ringbuffer_add_one(&(ctx[dev].rx_buf), data);
     if (data == 0) {
@@ -84,7 +84,7 @@ static void *printer(void *arg)
 
     while (1) {
         msg_receive(&msg);
-        int dev = (int)msg.content.value;
+        uart_t dev = (uart_t)msg.content.value;
         char c;
 
         printf("UART_DEV(%i) RX: ", dev);
@@ -179,7 +179,7 @@ int main(void)
     printf("UART used for STDIO (the shell): UART_DEV(%i)\n\n", UART_STDIO_DEV);
 
     /* initialize ringbuffers */
-    for (int i = 0; i < UART_NUMOF; i++) {
+    for (unsigned i = 0; i < UART_NUMOF; i++) {
         ringbuffer_init(&(ctx[i].rx_buf), ctx[i].rx_mem, UART_BUFSIZE);
     }
 

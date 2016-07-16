@@ -45,7 +45,7 @@ static void _nc_remove(kernel_pid_t iface, gnrc_ipv6_nc_t *entry)
     }
 
     DEBUG("ipv6_nc: Remove %s for interface %" PRIkernel_pid "\n",
-          ipv6_addr_to_str(addr_str, ipv6_addr, sizeof(addr_str)),
+          ipv6_addr_to_str(addr_str, &(entry->ipv6_addr), sizeof(addr_str)),
           iface);
 
 #ifdef MODULE_GNRC_NDP_NODE
@@ -60,7 +60,7 @@ static void _nc_remove(kernel_pid_t iface, gnrc_ipv6_nc_t *entry)
 
     gnrc_ipv6_netif_t *if_entry = gnrc_ipv6_netif_get(iface);
 
-    if ((if_entry != NULL) && (if_entry->rtr_adv_msg.content.ptr == (char *) entry)) {
+    if ((if_entry != NULL) && (if_entry->rtr_adv_msg.content.ptr == entry)) {
         /* cancel timer set by gnrc_ndp_rtr_sol_handle */
         xtimer_remove(&if_entry->rtr_adv_timer);
     }
@@ -175,18 +175,18 @@ gnrc_ipv6_nc_t *gnrc_ipv6_nc_add(kernel_pid_t iface, const ipv6_addr_t *ipv6_add
 
 #ifdef MODULE_GNRC_SIXLOWPAN_ND_ROUTER
     free_entry->type_timeout_msg.type = GNRC_SIXLOWPAN_ND_MSG_AR_TIMEOUT;
-    free_entry->type_timeout_msg.content.ptr = (char *) free_entry;
+    free_entry->type_timeout_msg.content.ptr = free_entry;
 #endif
 
     free_entry->rtr_timeout_msg.type = GNRC_NDP_MSG_RTR_TIMEOUT;
-    free_entry->rtr_timeout_msg.content.ptr = (char *) free_entry;
+    free_entry->rtr_timeout_msg.content.ptr = free_entry;
 
 #if defined(MODULE_GNRC_NDP_ROUTER) || defined(MODULE_GNRC_SIXLOWPAN_ND_BORDER_ROUTER)
     free_entry->rtr_adv_msg.type = GNRC_NDP_MSG_RTR_ADV_DELAY;
-    free_entry->rtr_adv_msg.content.ptr = (char *) free_entry;
+    free_entry->rtr_adv_msg.content.ptr = free_entry;
 #endif
 
-    free_entry->nbr_sol_msg.content.ptr = (char *) free_entry;
+    free_entry->nbr_sol_msg.content.ptr = free_entry;
 
     return free_entry;
 }
@@ -264,7 +264,7 @@ gnrc_ipv6_nc_t *gnrc_ipv6_nc_still_reachable(const ipv6_addr_t *ipv6_addr)
 
     if ((gnrc_ipv6_nc_get_state(entry) != GNRC_IPV6_NC_STATE_INCOMPLETE) &&
         (gnrc_ipv6_nc_get_state(entry) != GNRC_IPV6_NC_STATE_UNMANAGED)) {
-#if defined(MODULE_GNRC_IPV6_NETIF) && defined(MODULE_VTIMER) && defined(MODULE_GNRC_IPV6)
+#if defined(MODULE_GNRC_IPV6_NETIF) && defined(MODULE_XTIMER) && defined(MODULE_GNRC_IPV6)
         gnrc_ipv6_netif_t *iface = gnrc_ipv6_netif_get(entry->iface);
 
         gnrc_ndp_internal_reset_nbr_sol_timer(entry, iface->reach_time,

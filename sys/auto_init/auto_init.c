@@ -24,6 +24,10 @@
 #include "config.h"
 #endif
 
+#ifdef MODULE_BMP180
+#include "bmp180.h"
+#endif
+
 #ifdef MODULE_SHT11
 #include "sht11.h"
 #endif
@@ -76,6 +80,10 @@
 #include "net/gnrc/udp.h"
 #endif
 
+#ifdef MODULE_LWIP
+#include "lwip.h"
+#endif
+
 #ifdef MODULE_FIB
 #include "net/fib.h"
 #endif
@@ -105,6 +113,10 @@ void auto_init(void)
     DEBUG("Auto init rtc module.\n");
     rtc_init();
 #endif
+#ifdef MODULE_BMP180
+    DEBUG("Auto init BMP180 module.\n");
+    bmp180_auto_init();
+#endif
 #ifdef MODULE_SHT11
     DEBUG("Auto init SHT11 module.\n");
     sht11_init();
@@ -119,7 +131,7 @@ void auto_init(void)
 #endif
 #ifdef MODULE_MCI
     DEBUG("Auto init mci module.\n");
-    MCI_initialize();
+    mci_initialize();
 #endif
 #ifdef MODULE_PROFILING
     extern void profiling_init(void);
@@ -150,7 +162,10 @@ void auto_init(void)
     extern void dht_auto_init(void);
     dht_auto_init();
 #endif
-
+#ifdef MODULE_LWIP
+    DEBUG("Bootstraping lwIP.\n");
+    lwip_bootstrap();
+#endif
 
 /* initialize network devices */
 #ifdef MODULE_AUTO_INIT_GNRC_NETIF
@@ -158,6 +173,11 @@ void auto_init(void)
 #ifdef MODULE_AT86RF2XX
     extern void auto_init_at86rf2xx(void);
     auto_init_at86rf2xx();
+#endif
+
+#ifdef MODULE_CC2420
+    extern void auto_init_cc2420(void);
+    auto_init_cc2420();
 #endif
 
 #ifdef MODULE_ENCX24J600
@@ -185,6 +205,11 @@ void auto_init(void)
     auto_init_cc110x();
 #endif
 
+#ifdef MODULE_CC2538_RF
+    extern void auto_init_cc2538_rf(void);
+    auto_init_cc2538_rf();
+#endif
+
 #ifdef MODULE_XBEE
     extern void auto_init_xbee(void);
     auto_init_xbee();
@@ -206,6 +231,11 @@ void auto_init(void)
     gnrc_ipv6_netif_init_by_dev();
 #endif
 
+#ifdef MODULE_GNRC_UHCPC
+    extern void auto_init_gnrc_uhcpc(void);
+    auto_init_gnrc_uhcpc();
+#endif
+
 /* initialize sensors and actuators */
 #ifdef MODULE_AUTO_INIT_SAUL
     DEBUG("auto_init SAUL\n");
@@ -213,6 +243,10 @@ void auto_init(void)
 #ifdef MODULE_SAUL_GPIO
     extern void auto_init_gpio(void);
     auto_init_gpio();
+#endif
+#ifdef MODULE_SAUL_ADC
+    extern void auto_init_adc(void);
+    auto_init_adc();
 #endif
 #ifdef MODULE_LSM303DLHC
     extern void auto_init_lsm303dlhc(void);
@@ -234,6 +268,19 @@ void auto_init(void)
     extern void auto_init_lis3dh(void);
     auto_init_lis3dh();
 #endif
+#ifdef MODULE_MMA8652
+    extern void auto_init_mma8652(void);
+    auto_init_mma8652();
+#endif
 
 #endif /* MODULE_AUTO_INIT_SAUL */
+
+#ifdef MODULE_AUTO_INIT_GNRC_RPL
+
+#ifdef MODULE_GNRC_RPL
+    extern void auto_init_gnrc_rpl(void);
+    auto_init_gnrc_rpl();
+#endif
+
+#endif /* MODULE_AUTO_INIT_GNRC_RPL */
 }
