@@ -1,0 +1,56 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ENABLE_DEBUG	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define ENABLE_DEBUG /;"	macro	line:32	file:
+UDMA_ENABLED	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define UDMA_ENABLED /;"	macro	line:35	file:
+CHECKSUM_LEN	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define CHECKSUM_LEN /;"	macro	line:36	file:
+RX_ACTIVE	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define RX_ACTIVE /;"	macro	line:42	file:
+RF_MUST_RESET	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define RF_MUST_RESET /;"	macro	line:43	file:
+RF_ON	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define RF_ON /;"	macro	line:44	file:
+_MAX_MHR_OVERHEAD	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define _MAX_MHR_OVERHEAD /;"	macro	line:47	file:
+RESET_DELAY	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^#define RESET_DELAY /;"	macro	line:49	file:
+device	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^cc2538rf_t* device;$/;"	variable	line:51
+cc2538rf_driver	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^const gnrc_netdev_driver_t cc2538rf_driver = {$/;"	variable	line:70
+cc2538rf_driver_netdev2	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^const netdev2_driver_t cc2538rf_driver_netdev2 = {$/;"	variable	line:79
+_make_data_frame_hdr	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static size_t _make_data_frame_hdr(cc2538rf_t *dev, uint8_t *buf,$/;"	function	line:88	file:	signature:(cc2538rf_t *dev, uint8_t *buf, gnrc_netif_hdr_t *hdr)
+_send_netdev2	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _send_netdev2(netdev2_t *netdev, const struct iovec *vector, int count){$/;"	function	line:170	file:	signature:(netdev2_t *netdev, const struct iovec *vector, int count)
+_send	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _send(gnrc_netdev_t *netdev, gnrc_pktsnip_t *pkt){$/;"	function	line:176	file:	signature:(gnrc_netdev_t *netdev, gnrc_pktsnip_t *pkt)
+_recv	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _recv(netdev2_t *netdev, char *buf, int len, void *info)$/;"	function	line:285	file:	signature:(netdev2_t *netdev, char *buf, int len, void *info)
+_add_event_cb	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _add_event_cb(gnrc_netdev_t *dev, gnrc_netdev_event_cb_t cb)$/;"	function	line:290	file:	signature:(gnrc_netdev_t *dev, gnrc_netdev_event_cb_t cb)
+_rem_event_cb	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _rem_event_cb(gnrc_netdev_t *dev, gnrc_netdev_event_cb_t cb)$/;"	function	line:305	file:	signature:(gnrc_netdev_t *dev, gnrc_netdev_event_cb_t cb)
+_get	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _get(gnrc_netdev_t *device, netopt_t opt, void *val, size_t max_len)$/;"	function	line:320	file:	signature:(gnrc_netdev_t *device, netopt_t opt, void *val, size_t max_len)
+_get_netdev2	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _get_netdev2(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)$/;"	function	line:487	file:	signature:(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
+_set	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _set(gnrc_netdev_t *device, netopt_t opt, void *val, size_t len)$/;"	function	line:493	file:	signature:(gnrc_netdev_t *device, netopt_t opt, void *val, size_t len)
+_set_netdev2	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _set_netdev2(netdev2_t *netdev, netopt_t opt, void *val, size_t len)$/;"	function	line:555	file:	signature:(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
+_isr_event	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static void _isr_event(gnrc_netdev_t *device, uint32_t event_type)$/;"	function	line:561	file:	signature:(gnrc_netdev_t *device, uint32_t event_type)
+_isr	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static void _isr(netdev2_t *netdev)$/;"	function	line:566	file:	signature:(netdev2_t *netdev)
+_init	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static int _init(netdev2_t *netdev)$/;"	function	line:572	file:	signature:(netdev2_t *netdev)
+cc2538rf_init	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^int cc2538rf_init(cc2538rf_t *dev)$/;"	function	line:577	signature:(cc2538rf_t *dev)
+cc2538rf_reset	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_reset(cc2538rf_t *dev)$/;"	function	line:715	signature:(cc2538rf_t *dev)
+cc2538rf_cca	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^bool cc2538rf_cca(cc2538rf_t *dev)$/;"	function	line:721	signature:(cc2538rf_t *dev)
+cc2538rf_send	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^size_t cc2538rf_send(cc2538rf_t *dev, uint8_t *data, size_t len)$/;"	function	line:728	signature:(cc2538rf_t *dev, uint8_t *data, size_t len)
+cc2538rf_tx_prepare	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_tx_prepare(cc2538rf_t *dev)$/;"	function	line:735	signature:(cc2538rf_t *dev)
+cc2538rf_tx_load	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^size_t cc2538rf_tx_load(uint8_t *data,$/;"	function	line:740	signature:(uint8_t *data, size_t len, size_t offset)
+cc2538rf_tx_exec	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_tx_exec(void)$/;"	function	line:749	signature:(void)
+cc2538rf_rx_len	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^size_t cc2538rf_rx_len(cc2538rf_t *dev)$/;"	function	line:754	signature:(cc2538rf_t *dev)
+cc2538rf_flush_tx_fifo	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_flush_tx_fifo(void)$/;"	function	line:760	signature:(void)
+cc2538rf_flush_rx_fifo	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_flush_rx_fifo(void)$/;"	function	line:766	signature:(void)
+_make_netif_hdr	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static gnrc_pktsnip_t *_make_netif_hdr(uint8_t *mhr)$/;"	function	line:773	file:	signature:(uint8_t *mhr)
+_get_frame_hdr_len	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^static size_t _get_frame_hdr_len(uint8_t *mhr)$/;"	function	line:841	file:	signature:(uint8_t *mhr)
+cc2538rf_rx_read	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_rx_read(void)$/;"	function	line:875	signature:(void)
+cc2538rf_get_chan	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^uint8_t cc2538rf_get_chan(cc2538rf_t *dev)$/;"	function	line:991	signature:(cc2538rf_t *dev)
+cc2538rf_set_chan	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_set_chan(cc2538rf_t *dev, uint8_t chan)$/;"	function	line:997	signature:(cc2538rf_t *dev, uint8_t chan)
+cc2538rf_set_addr_long	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_set_addr_long(cc2538rf_t *dev, uint64_t addr)$/;"	function	line:1005	signature:(cc2538rf_t *dev, uint64_t addr)
+cc2538rf_get_addr_long	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^uint64_t cc2538rf_get_addr_long(cc2538rf_t *dev)$/;"	function	line:1027	signature:(cc2538rf_t *dev)
+cc2538rf_set_addr_short	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_set_addr_short(cc2538rf_t *dev, uint16_t addr)$/;"	function	line:1038	signature:(cc2538rf_t *dev, uint16_t addr)
+cc2538rf_get_addr_short	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^uint16_t cc2538rf_get_addr_short(cc2538rf_t *dev)$/;"	function	line:1049	signature:(cc2538rf_t *dev)
+cc2538rf_set_pan	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void cc2538rf_set_pan(cc2538rf_t *dev, uint16_t pan)$/;"	function	line:1056	signature:(cc2538rf_t *dev, uint16_t pan)
+cc2538rf_get_pan	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^uint16_t cc2538rf_get_pan(cc2538rf_t *dev)$/;"	function	line:1065	signature:(cc2538rf_t *dev)
+handle_rfcoretxrx_isr	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void handle_rfcoretxrx_isr(void)$/;"	function	line:1071	signature:(void)
+isr_rfcoretx	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void isr_rfcoretx(void)$/;"	function	line:1130	signature:(void)
+isr_rfcoretx_alternate	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void isr_rfcoretx_alternate(void)$/;"	function	line:1137	signature:(void)
+isr_ssi1	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void isr_ssi1(void)$/;"	function	line:1144	signature:(void)
+isr_rfcoreerr	/media/128g/Developement/workspace/RIOT/cpu/cc2538/cc2538rf.c	/^void isr_rfcoreerr(void)$/;"	function	line:1150	signature:(void)
