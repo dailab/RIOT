@@ -20,12 +20,8 @@
 
 #include "auto_init.h"
 
-#ifdef MODULE_CONFIG
-#include "config.h"
-#endif
-
-#ifdef MODULE_BMP180
-#include "bmp180.h"
+#ifdef MODULE_IO1_XPLAINED
+#include "io1_xplained.h"
 #endif
 
 #ifdef MODULE_SHT11
@@ -92,16 +88,15 @@
 #include "random.h"
 #endif
 
+#ifdef MODULE_GCOAP
+#include "net/gnrc/coap.h"
+#endif
+
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
 void auto_init(void)
 {
-#ifdef MODULE_CONFIG
-    DEBUG("Auto init loading config\n");
-    config_load();
-#endif
-
 #ifdef MODULE_TINYMT32
     random_init(0);
 #endif
@@ -113,9 +108,9 @@ void auto_init(void)
     DEBUG("Auto init rtc module.\n");
     rtc_init();
 #endif
-#ifdef MODULE_BMP180
-    DEBUG("Auto init BMP180 module.\n");
-    bmp180_auto_init();
+#ifdef MODULE_IO1_XPLAINED
+    DEBUG("Auto init IO1 Xplained extension module.\n");
+    io1_xplained_auto_init();
 #endif
 #ifdef MODULE_SHT11
     DEBUG("Auto init SHT11 module.\n");
@@ -165,6 +160,10 @@ void auto_init(void)
 #ifdef MODULE_LWIP
     DEBUG("Bootstraping lwIP.\n");
     lwip_bootstrap();
+#endif
+#ifdef MODULE_GCOAP
+    DEBUG("Auto init gcoap module.\n");
+    gcoap_init();
 #endif
 
 /* initialize network devices */
@@ -225,6 +224,16 @@ void auto_init(void)
     auto_init_netdev2_tap();
 #endif
 
+#ifdef MODULE_NORDIC_SOFTDEVICE_BLE
+    extern void gnrc_nordic_ble_6lowpan_init(void);
+    gnrc_nordic_ble_6lowpan_init();
+#endif
+
+#ifdef MODULE_W5100
+    extern void auto_init_w5100(void);
+    auto_init_w5100();
+#endif
+
 #endif /* MODULE_AUTO_INIT_GNRC_NETIF */
 
 #ifdef MODULE_GNRC_IPV6_NETIF
@@ -271,6 +280,14 @@ void auto_init(void)
 #ifdef MODULE_MMA8652
     extern void auto_init_mma8652(void);
     auto_init_mma8652();
+#endif
+#ifdef MODULE_SI70XX
+    extern void auto_init_si70xx(void);
+    auto_init_si70xx();
+#endif
+#ifdef MODULE_BMP180
+    extern void auto_init_bmp180(void);
+    auto_init_bmp180();
 #endif
 
 #endif /* MODULE_AUTO_INIT_SAUL */

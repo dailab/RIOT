@@ -67,12 +67,14 @@
 static const timer_conf_t timer_config[] = {
     {
         .dev      = TIM2,
+        .max      = 0x0000ffff,
         .rcc_mask = RCC_APB1ENR_TIM2EN,
         .bus      = APB1,
         .irqn     = TIM2_IRQn
     },
     {
         .dev      = TIM3,
+        .max      = 0x0000ffff,
         .rcc_mask = RCC_APB1ENR_TIM3EN,
         .bus      = APB1,
         .irqn     = TIM3_IRQn
@@ -114,8 +116,8 @@ static const uart_conf_t uart_config[] = {
 
 /* SPI 0 device configuration */
 #define SPI_0_DEV           SPI1
-#define SPI_0_CLKEN()       (RCC->APB2ENR |= RCC_APB2ENR_SPI1EN)
-#define SPI_0_CLKDIS()      (RCC->APB2ENR &= ~(RCC_APB2ENR_SPI1EN))
+#define SPI_0_CLKEN()       (periph_clk_en(APB2, RCC_APB2ENR_SPI1EN))
+#define SPI_0_CLKDIS()      (periph_clk_dis(APB2, RCC_APB2ENR_SPI1EN))
 #define SPI_0_BUS_DIV       0   /* 1 -> SPI runs with full CPU clock, 0 -> half CPU clock */
 /* SPI 0 pin configuration */
 #define SPI_0_CLK_PIN       GPIO_PIN(PORT_B,15)

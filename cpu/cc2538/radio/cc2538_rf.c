@@ -28,6 +28,8 @@
 #define ENABLE_DEBUG    (0)
 #include "debug.h"
 
+#define CC2538_ACCEPT_FT_2_ACK     (1 << 5)
+
 typedef struct {
     cc2538_reg_t *reg_addr;
     uint32_t value;
@@ -65,13 +67,13 @@ bool cc2538_channel_clear(void)
     if (RFCORE->XREG_FSMSTAT0bits.FSM_FFCTRL_STATE == FSM_STATE_IDLE) {
         bool result;
         cc2538_on();
-        RFCORE_WAIT_UNTIL(RFCORE->cc2538_rfcore_xreg_rssistat.XREG_RSSISTATbits.RSSI_VALID);
+        RFCORE_WAIT_UNTIL(RFCORE->XREG_RSSISTATbits.RSSI_VALID);
         result = BOOLEAN(RFCORE->XREG_FSMSTAT1bits.CCA);
         cc2538_off();
         return result;
     }
     else {
-        RFCORE_WAIT_UNTIL(RFCORE->cc2538_rfcore_xreg_rssistat.XREG_RSSISTATbits.RSSI_VALID);
+        RFCORE_WAIT_UNTIL(RFCORE->XREG_RSSISTATbits.RSSI_VALID);
         return BOOLEAN(RFCORE->XREG_FSMSTAT1bits.CCA);
     }
 }
@@ -134,7 +136,8 @@ void cc2538_init(void)
     /* Flush the receive and transmit FIFOs */
     RFCORE_SFR_RFST = ISFLUSHTX;
     RFCORE_SFR_RFST = ISFLUSHRX;
-
+    /* Disable/filter l2 Acks */
+    RFCORE_XREG_FRMFILT1 &= ~CC2538_ACCEPT_FT_2_ACK;
     cc2538_on();
 }
 
@@ -173,8 +176,6 @@ void cc2538_setup(cc2538_rf_t *dev)
     netdev2_t *netdev = (netdev2_t *)dev;
 
     netdev->driver = &cc2538_rf_driver;
-
-    mutex_init(&dev->mutex);
 
     cc2538_init();
 }

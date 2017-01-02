@@ -40,11 +40,13 @@ extern "C" {
 #define CLOCK_AHB_DIV       RCC_CFGR_HPRE_DIV1      /* AHB clock -> 72MHz */
 #define CLOCK_APB2_DIV      RCC_CFGR_PPRE2_DIV1     /* APB2 clock -> 72MHz */
 #define CLOCK_APB1_DIV      RCC_CFGR_PPRE1_DIV2     /* APB1 clock -> 36MHz */
-/* resulting bus clocks */
-#define CLOCK_APB1          (CLOCK_CORECLOCK / 2)
-#define CLOCK_APB2          (CLOCK_CORECLOCK)
 /* configuration of flash access cycles */
 #define CLOCK_FLASH_LATENCY FLASH_ACR_LATENCY_2
+
+/* bus clocks for simplified peripheral initialization, UPDATE MANUALLY! */
+#define CLOCK_AHB           (CLOCK_CORECLOCK / 1)
+#define CLOCK_APB2          (CLOCK_CORECLOCK / 1)
+#define CLOCK_APB1          (CLOCK_CORECLOCK / 2)
 /** @} */
 
 /**
@@ -66,12 +68,14 @@ extern "C" {
 static const timer_conf_t timer_config[] = {
     {
         .dev      = TIM2,
+        .max      = 0x0000ffff,
         .rcc_mask = RCC_APB1ENR_TIM2EN,
         .bus      = APB1,
         .irqn     = TIM2_IRQn
     },
     {
         .dev      = TIM3,
+        .max      = 0x0000ffff,
         .rcc_mask = RCC_APB1ENR_TIM3EN,
         .bus      = APB1,
         .irqn     = TIM3_IRQn
@@ -146,8 +150,8 @@ static const uart_conf_t uart_config[] = {
 
 /* I2C 0 device configuration */
 #define I2C_0_DEV           I2C1
-#define I2C_0_CLKEN()       (RCC->APB1ENR |= RCC_APB1ENR_I2C1EN)
-#define I2C_0_CLKDIS()      (RCC->APB1ENR &= ~(RCC_APB1ENR_I2C1EN))
+#define I2C_0_CLKEN()       (periph_clk_en(APB1, RCC_APB1ENR_I2C1EN))
+#define I2C_0_CLKDIS()      (periph_clk_dis(APB1, RCC_APB1ENR_I2C1EN))
 #define I2C_0_EVT_IRQ       I2C1_EV_IRQn
 #define I2C_0_EVT_ISR       isr_i2c1_ev
 #define I2C_0_ERR_IRQ       I2C1_ER_IRQn

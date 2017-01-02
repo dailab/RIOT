@@ -19,8 +19,6 @@
  */
 
 #include "cpu.h"
-#include "sched.h"
-#include "thread.h"
 #include "periph/uart.h"
 
 /**
@@ -45,7 +43,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
 
     /* initialize UART in blocking mode first */
     res = init_base(uart, baudrate);
-    if (res < 0) {
+    if (res != UART_OK) {
         return res;
     }
 
@@ -69,7 +67,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
     uart_config[uart].rx_cb = rx_cb;
     uart_config[uart].arg = arg;
 
-    return 0;
+    return UART_OK;
 }
 
 int init_base(uart_t uart, uint32_t baudrate)
@@ -110,8 +108,14 @@ int init_base(uart_t uart, uint32_t baudrate)
             break;
 #endif
         default:
-            return -1;
+            return UART_NODEV;
     }
+
+    /* Make sure port and dev are != NULL here, i.e. that the variables are
+     * assigned in all non-returning branches of the switch at the top of this
+     * function. */
+    assert(port != NULL);
+    assert(dev != NULL);
 
     /* configure RX and TX pins, set pin to use alternative function mode */
     port->MODER &= ~(3 << (rx_pin * 2) | 3 << (tx_pin * 2));
@@ -143,7 +147,7 @@ int init_base(uart_t uart, uint32_t baudrate)
     /* enable receive and transmit mode */
     dev->CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 
-    return 0;
+    return UART_OK;
 }
 
 void uart_write(uart_t uart, const uint8_t *data, size_t len)
@@ -198,9 +202,7 @@ static inline void irq_handler(uint8_t uartnum, USART_TypeDef *dev)
         /* do nothing on overrun */
         dev->ICR |= USART_ICR_ORECF;
     }
-    if (sched_context_switch_request) {
-        thread_yield();
-    }
+    cortexm_isr_end();
 }
 
 #if UART_0_EN

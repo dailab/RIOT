@@ -27,9 +27,6 @@
 #include "periph/uart.h"
 #include "periph/gpio.h"
 
-#include "sched.h"
-#include "thread.h"
-
 /**
  * @brief Allocate memory to store the callback functions.
  */
@@ -43,10 +40,10 @@ static inline USART_TypeDef *dev(uart_t uart)
 static void clk_en(uart_t uart)
 {
     if (uart_config[uart].bus == APB1) {
-        RCC->APB1ENR |= uart_config[uart].rcc_pin;
+        periph_clk_en(APB1, uart_config[uart].rcc_pin);
     }
     else {
-        RCC->APB2ENR |= uart_config[uart].rcc_pin;
+        periph_clk_en(APB2, uart_config[uart].rcc_pin);
     }
 }
 
@@ -58,7 +55,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
 
     /* make sure the given device is valid */
     if (uart >= UART_NUMOF) {
-        return -1;
+        return UART_NODEV;
     }
 
     /* save ISR context */
@@ -89,7 +86,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
     dev(uart)->CR1 = (USART_CR1_UE | USART_CR1_TE |
                       USART_CR1_RE | USART_CR1_RXNEIE);
 
-    return 0;
+    return UART_OK;
 }
 
 void uart_write(uart_t uart, const uint8_t *data, size_t len)
@@ -112,9 +109,7 @@ static inline void irq_handler(uart_t uart)
         /* ORE is cleared by reading SR and DR sequentially */
         dev(uart)->DR;
     }
-    if (sched_context_switch_request) {
-        thread_yield();
-    }
+    cortexm_isr_end();
 }
 
 #ifdef UART_0_ISR

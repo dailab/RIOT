@@ -30,7 +30,7 @@ extern "C" {
  */
 #if defined(CPU_MODEL_STM32F401RE)
 #define ADC_DEVS            (1U)
-#elif defined(CPU_MODEL_STM32F407VG) || defined(CPU_MODEL_STM32F415RG)
+#elif defined(CPU_MODEL_STM32F407VG) || defined(CPU_MODEL_STM32F415RG) || defined(CPU_MODEL_STM32F446RE)
 #define ADC_DEVS            (3U)
 #endif
 
@@ -50,12 +50,12 @@ extern "C" {
  */
 #define HAVE_ADC_RES_T
 typedef enum {
-    ADC_RES_6BIT  = 0x03000000,  /**< ADC resolution: 6 bit */
-    ADC_RES_8BIT  = 0x02000000,  /**< ADC resolution: 8 bit */
-    ADC_RES_10BIT = 0x01000000,  /**< ADC resolution: 10 bit */
-    ADC_RES_12BIT = 0x00000000,  /**< ADC resolution: 12 bit */
-    ADC_RES_14BIT = 1,           /**< ADC resolution: 14 bit (not supported) */
-    ADC_RES_16BIT = 2            /**< ADC resolution: 16 bit (not supported)*/
+    ADC_RES_6BIT  = 0x03000000,     /**< ADC resolution: 6 bit */
+    ADC_RES_8BIT  = 0x02000000,     /**< ADC resolution: 8 bit */
+    ADC_RES_10BIT = 0x01000000,     /**< ADC resolution: 10 bit */
+    ADC_RES_12BIT = 0x00000000,     /**< ADC resolution: 12 bit */
+    ADC_RES_14BIT = 1,              /**< ADC resolution: 14 bit (not supported) */
+    ADC_RES_16BIT = 2               /**< ADC resolution: 16 bit (not supported)*/
 } adc_res_t;
 /** @} */
 #endif /* ndef DOXYGEN */
@@ -101,27 +101,6 @@ enum {
     PORT_H = 7,             /**< port H */
     PORT_I = 8              /**< port I */
 };
-
-/**
- * @brief   Available MUX values for configuring a pin's alternate function
- */
-typedef enum {
-    GPIO_AF0 = 0,           /**< use alternate function 0 */
-    GPIO_AF1,               /**< use alternate function 1 */
-    GPIO_AF2,               /**< use alternate function 2 */
-    GPIO_AF3,               /**< use alternate function 3 */
-    GPIO_AF4,               /**< use alternate function 4 */
-    GPIO_AF5,               /**< use alternate function 5 */
-    GPIO_AF6,               /**< use alternate function 6 */
-    GPIO_AF7,               /**< use alternate function 7 */
-    GPIO_AF8,               /**< use alternate function 8 */
-    GPIO_AF9,               /**< use alternate function 9 */
-    GPIO_AF10,              /**< use alternate function 10 */
-    GPIO_AF11,              /**< use alternate function 11 */
-    GPIO_AF12,              /**< use alternate function 12 */
-    GPIO_AF13,              /**< use alternate function 13 */
-    GPIO_AF14               /**< use alternate function 14 */
-} gpio_af_t;
 
 /**
  * @brief   Structure for UART configuration data
@@ -175,9 +154,10 @@ void gpio_init_af(gpio_t pin, gpio_af_t af);
 static inline void dma_poweron(int stream)
 {
     if (stream < 8) {
-        RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-    } else {
-        RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+        periph_clk_en(AHB1, RCC_AHB1ENR_DMA1EN);
+    }
+    else {
+        periph_clk_en(AHB1, RCC_AHB1ENR_DMA2EN);
     }
 }
 
@@ -205,6 +185,7 @@ static inline DMA_TypeDef *dma_base(int stream)
 static inline DMA_Stream_TypeDef *dma_stream(int stream)
 {
     uint32_t base = (uint32_t)dma_base(stream);
+
     return (DMA_Stream_TypeDef *)(base + (0x10 + (0x18 * (stream & 0x7))));
 }
 

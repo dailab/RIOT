@@ -19,8 +19,6 @@
  */
 
 #include "cpu.h"
-#include "sched.h"
-#include "thread.h"
 #include "periph/uart.h"
 #include "periph/gpio.h"
 
@@ -35,7 +33,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
 {
     /* do basic initialization */
     int res = init_base(uart, baudrate);
-    if (res < 0) {
+    if (res != UART_OK) {
         return res;
     }
 
@@ -65,7 +63,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
 #endif
     }
 
-    return 0;
+    return UART_OK;
 }
 
 static int init_base(uart_t uart, uint32_t baudrate)
@@ -110,8 +108,12 @@ static int init_base(uart_t uart, uint32_t baudrate)
             break;
 #endif
         default:
-            return -1;
+            return UART_NODEV;
     }
+
+    /* Make sure dev is != NULL here, i.e. that the variable is assigned in
+     * all non-returning branches of the switch at the top of this function. */
+    assert(dev != NULL);
 
     /* uart_configure RX and TX pins, set pin to use alternative function mode */
     gpio_init(tx_pin, GPIO_OUT);
@@ -130,7 +132,7 @@ static int init_base(uart_t uart, uint32_t baudrate)
     dev->CR2 = 0;
     dev->CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 
-    return 0;
+    return UART_OK;
 }
 
 void uart_write(uart_t uart, const uint8_t *data, size_t len)
@@ -157,6 +159,10 @@ void uart_write(uart_t uart, const uint8_t *data, size_t len)
             return;
     }
 
+    /* Make sure dev is != NULL here, i.e. that the variable is assigned in
+     * all non-returning branches of the switch at the top of this function. */
+    assert(dev != NULL);
+
     for (size_t i = 0; i < len; i++) {
         while (!(dev->SR & USART_SR_TXE)) {}
         dev->DR = data[i];
@@ -169,9 +175,7 @@ static inline void irq_handler(uint8_t uartnum, USART_TypeDef *dev)
         uint8_t data = (uint8_t)dev->DR;
         uart_config[uartnum].rx_cb(uart_config[uartnum].arg, data);
     }
-    if (sched_context_switch_request) {
-        thread_yield();
-    }
+    cortexm_isr_end();
 }
 
 #if UART_0_EN

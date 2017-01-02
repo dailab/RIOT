@@ -29,9 +29,7 @@
 #include <unistd.h>
 
 #ifdef __MACH__
-#define _POSIX_C_SOURCE
 #include <net/if.h>
-#undef _POSIX_C_SOURCE
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <net/if_dl.h>
@@ -67,8 +65,8 @@ netdev2_tap_t netdev2_tap;
 
 /* netdev2 interface */
 static int _init(netdev2_t *netdev);
-static int _send(netdev2_t *netdev, const struct iovec *vector, int n);
-static int _recv(netdev2_t *netdev, char* buf, int n, void *info);
+static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned n);
+static int _recv(netdev2_t *netdev, void *buf, size_t n, void *info);
 
 static inline void _get_mac_addr(netdev2_t *netdev, uint8_t *dst)
 {
@@ -211,7 +209,7 @@ static void _continue_reading(netdev2_tap_t *dev)
     _native_in_syscall--;
 }
 
-static int _recv(netdev2_t *netdev2, char *buf, int len, void *info)
+static int _recv(netdev2_t *netdev2, void *buf, size_t len, void *info)
 {
     netdev2_tap_t *dev = (netdev2_tap_t*)netdev2;
     (void)info;
@@ -275,7 +273,7 @@ static int _recv(netdev2_t *netdev2, char *buf, int len, void *info)
         }
     }
     else if (nread == 0) {
-        DEBUG("_native_handle_tap_input: ignoring null-event");
+        DEBUG("_native_handle_tap_input: ignoring null-event\n");
     }
     else {
         errx(EXIT_FAILURE, "internal error _rx_event");
@@ -284,13 +282,13 @@ static int _recv(netdev2_t *netdev2, char *buf, int len, void *info)
     return -1;
 }
 
-static int _send(netdev2_t *netdev, const struct iovec *vector, int n)
+static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned n)
 {
     netdev2_tap_t *dev = (netdev2_tap_t*)netdev;
     int res = _native_writev(dev->tap_fd, vector, n);
 #ifdef MODULE_NETSTATS_L2
     size_t bytes = 0;
-    for (int i = 0; i < n; i++) {
+    for (unsigned i = 0; i < n; i++) {
         bytes += vector->iov_len;
         vector++;
     }
@@ -307,8 +305,9 @@ void netdev2_tap_setup(netdev2_tap_t *dev, const netdev2_tap_params_t *params) {
     strncpy(dev->tap_name, *(params->tap_name), IFNAMSIZ);
 }
 
-static void _tap_isr(int fd) {
+static void _tap_isr(int fd, void *arg) {
     (void) fd;
+    (void) arg;
 
     netdev2_t *netdev = (netdev2_t *)&netdev2_tap;
 
@@ -393,7 +392,7 @@ static int _init(netdev2_t *netdev)
 
     /* configure signal handler for fds */
     native_async_read_setup();
-    native_async_read_add_handler(dev->tap_fd, _tap_isr);
+    native_async_read_add_handler(dev->tap_fd, NULL, _tap_isr);
 
 #ifdef MODULE_NETSTATS_L2
     memset(&netdev->stats, 0, sizeof(netstats_t));

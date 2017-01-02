@@ -29,11 +29,6 @@ extern "C" {
 #endif
 
 /**
- * @brief Use the UART 0 for STDIO on this board
- */
-#define UART_STDIO_DEV      UART_DEV(0)
-
-/**
 * @brief As the CPU is too slow to handle 115200 baud, we set the default
 *        baudrate to 9600 for this board
 */
@@ -52,12 +47,29 @@ extern "C" {
 #define LED0_TOGGLE         (PORTB ^=  LED0_MASK)
 /** @} */
 
+
+/**
+ * Context swap defines
+ * Setup to use PJ6 which is pin change interrupt 15 (PCINT15)
+ * This emulates a software triggered interrupt
+ **/
+#define AVR_CONTEXT_SWAP_INIT do { \
+    DDRJ |= (1 << PJ6); \
+    PCICR |= (1 << PCIE1); \
+    PCMSK1 |= (1 << PCINT15); \
+} while (0)
+#define AVR_CONTEXT_SWAP_INTERRUPT_VECT  PCINT1_vect
+#define AVR_CONTEXT_SWAP_TRIGGER   PORTJ ^= (1 << PJ6)
+
+
+
 /**
  * @brief xtimer configuration values
  * @{
  */
 #define XTIMER_WIDTH                (16)
 #define XTIMER_SHIFT                (2)
+#define XTIMER_HZ                   (250000UL)
 #define XTIMER_BACKOFF              (40)
 /** @} */
 

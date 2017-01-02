@@ -96,7 +96,7 @@ void *mid_sleep(void *arg)
 void *ticker(void *arg)
 {
     (void)arg;
-    uint32_t base = xtimer_now();
+    xtimer_ticks32_t base = xtimer_now();
 
     while (1) {
         ++short_ticks;
@@ -113,7 +113,7 @@ void *ticker(void *arg)
             msg_send(&msg, print_pid);
         }
 
-        xtimer_usleep_until(&base, INT_SHORT);
+        xtimer_periodic_wakeup(&base, INT_SHORT);
     }
 
     return NULL;
