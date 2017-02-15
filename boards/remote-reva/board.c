@@ -26,7 +26,7 @@
 #include "fancy_leds.h"
 
 static inline void leds_init(void);
-static inline void rf_switch_init(void);
+//static inline void rf_switch_init(void);
 
 void board_init(void)
 {
@@ -61,10 +61,10 @@ static inline void leds_init(void)
  * enable either the 2.4GHz or Sub-1GHz RF interface to the RP-SMA connector
  * to use an external antenna.  As default we prefer to use the 2.4GHz RF.
  *
- */
 static void rf_switch_init(void)
 {
-    /* Set RF 2.4GHz as default */
     gpio_init(RF_SWITCH_GPIO, GPIO_OUT);
     RF_SWITCH_2_4_GHZ;
 }
+
+*/

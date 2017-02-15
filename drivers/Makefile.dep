@@ -47,6 +47,10 @@ ifneq (,$(filter bme280,$(USEMODULE)))
     USEMODULE += xtimer
 endif
 
+ifneq (,$(filter cc1200,$(USEMODULE)))
+  USEMODULE += cc110x
+endif
+
 ifneq (,$(filter cc110x,$(USEMODULE)))
   USEMODULE += ieee802154
   USEMODULE += uuid

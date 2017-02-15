@@ -37,7 +37,11 @@ extern "C" {
  * @param buffer    Data to be written
  * @param count     Size of data
  */
+#ifdef MODULE_CC1200
+void cc110x_writeburst_reg(cc110x_t *dev, uint16_t addr, const char *buffer, uint8_t count);
+#else
 void cc110x_writeburst_reg(cc110x_t *dev, uint8_t addr, const char *buffer, uint8_t count);
+#endif
 
 /**
  * @brief Read a set of bytes using burst mode (if available)
@@ -56,7 +60,11 @@ void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t cou
  * @param addr      Destinatoin register
  * @param value     New value
  */
+#ifdef MODULE_CC1200
+void cc110x_write_reg(cc110x_t *dev, uint16_t addr, uint8_t value);
+#else
 void cc110x_write_reg(cc110x_t *dev, uint8_t addr, uint8_t value);
+#endif
 
 /**
  * @brief Read a byte from register

@@ -13,7 +13,7 @@
  * @{
  *
  * @file
- * @brief       Board specific implementations for the firefly Revision A board
+ * @brief       Board specific implementations for the Firefly board
  *
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  *              Antonio Lignan <alinan@zolertia.com>
@@ -26,7 +26,7 @@
 #include "fancy_leds.h"
 
 static inline void leds_init(void);
-static inline void rf_switch_init(void);
+//static inline void rf_switch_init(void);
 
 void board_init(void)
 {
@@ -35,7 +35,7 @@ void board_init(void)
     /* initialize the CPU */
     cpu_init();
     /* initialize the 2.4GHz RF switch */
-    rf_switch_init();
+    //rf_switch_init();
 }
 
 /**
@@ -57,15 +57,14 @@ static inline void leds_init(void)
 /**
  * @brief Initialize the Radio interface SW-controlled Switch
  *
- * The firefly features an on-board RF switch to programatically select to
+ * The RE-Mote features an on-board RF switch to programatically select to
  * enable either the 2.4GHz or Sub-1GHz RF interface to the RP-SMA connector
  * to use an external antenna.  As default we prefer to use the 2.4GHz RF.
  *
- */
 static void rf_switch_init(void)
 {
-    /* Set RF 2.4GHz as default */
-    //gpio_init(RF_SWITCH_GPIO, GPIO_OUT);
-    //RF_SWITCH_2_4_GHZ;
-    //RF_SWITCH_SUB_GHZ;
+    gpio_init(RF_SWITCH_GPIO, GPIO_OUT);
+    RF_SWITCH_2_4_GHZ;
 }
+
+ */

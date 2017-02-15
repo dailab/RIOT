@@ -16,8 +16,8 @@
  * @author    Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef CC1X0X_PARAMS_H
-#define CC1X0X_PARAMS_H
+#ifndef CC110X_PARAMS_H
+#define CC110X_PARAMS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,9 +28,9 @@ extern "C" {
 /**
  * @name CC1X0X configuration
  */
-const cc1x0x_params_t cc1x0x_params[] = {
+const cc110x_params_t cc110x_params[] = {
     {
-        .spi  = SPI_0,
+        .spi  = 0,
         .cs   = CC1200_CSN_GPIO,
         .gdo0 = CC1200_GPD0_GPIO,
         .gdo1 = CC1200_MISO_GPIO,
@@ -42,5 +42,5 @@ const cc1x0x_params_t cc1x0x_params[] = {
 #ifdef __cplusplus
 }
 #endif
-#endif /* CC1X0X_PARAMS_H */
+#endif /* CC110X_PARAMS_H */
 /** @} */

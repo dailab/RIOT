@@ -80,7 +80,11 @@ void cc110x_cs(cc110x_t *dev)
 #endif
 }
 
+#ifdef MODULE_CC1200
+void cc110x_writeburst_reg(cc110x_t *dev, uint16_t addr, const char *src, uint8_t count)
+#else
 void cc110x_writeburst_reg(cc110x_t *dev, uint8_t addr, const char *src, uint8_t count)
+#endif
 {
     unsigned int cpsr;
     lock(dev);
@@ -112,7 +116,11 @@ void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t cou
     spi_release(dev->params.spi);
 }
 
+#ifdef MODULE_CC1200
+void cc110x_write_reg(cc110x_t *dev, uint16_t addr, uint8_t value)
+#else
 void cc110x_write_reg(cc110x_t *dev, uint8_t addr, uint8_t value)
+#endif
 {
     unsigned int cpsr;
     lock(dev);

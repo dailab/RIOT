@@ -1,7 +1,7 @@
-Zolertia Firefly platform
+Zolertia RE-Mote platform
 ============================================
 
-The Firefly platform (Revision A) is a IoT Hardware development platform based
+The RE-Mote platform (Revision B) is a IoT Hardware development platform based
 on TI's CC2538 system on chip (SoC), featuring an ARM Cortex-M3 with 512KB
 flash, 32Kb RAM, double RF interface (Sub-1GHz CC1200 RF transceiver), and the
 following goodies:
@@ -19,7 +19,7 @@ following goodies:
 Changes from Revision A
 =========================
 
-The list of changes are summarized in the [Wiki](https://github.com/Zolertia/Resources/wiki/Firefly:-Enhancements-from-Rev.A-to-Rev.B)
+The list of changes are summarized in the [Wiki](https://github.com/Zolertia/Resources/wiki/RE-Mote:-Enhancements-from-Rev.A-to-Rev.B)
 
 Port Features
 =============
@@ -72,12 +72,12 @@ Else install from <https://launchpad.net/gcc-arm-embedded>
 
 Drivers
 -------
-The Firefly features a CP2104 serial-to-USB module, the driver is commonly found in most OS, but if required it can be downloaded
+The RE-Mote features a CP2104 serial-to-USB module, the driver is commonly found in most OS, but if required it can be downloaded
 from <https://www.silabs.com/products/mcu/Pages/USBtoUARTBridgeVCPDrivers.aspx>
 
 
 ### For the CC2538EM (USB CDC-ACM)
-The Firefly has built-in support for USB 2.0 USB, Vendor and Product IDs are the following:
+The RE-Mote has built-in support for USB 2.0 USB, Vendor and Product IDs are the following:
 
   * VID 0x0451
   * PID 0x16C8
@@ -101,17 +101,17 @@ On OS X, `/dev/tty.SLAB_USBtoUARTx`.
 
 On Linux:
 
-* Firefly over CP2104: `ttyUSB0`
-* Firefly over USB driver (in CDC-ACM): `ttyACMn` (n=0, 1, ....)
+* RE-Mote over CP2104: `ttyUSB0`
+* RE-Mote over USB driver (in CDC-ACM): `ttyACMn` (n=0, 1, ....)
 
 More Reading
 ============
-1. [Zolertia Firefly website][remote-site]
+1. [Zolertia RE-Mote website][remote-site]
 2. [Zolertia Wiki page][zolertia-wiki]
 2. [CC2538 System-on-Chip Solution for 2.4-GHz IEEE 802.15.4 and ZigBee applications (SWRU319B)][cc2538]
 3. [CC1200 sub-1GHz RF transceiver][cc1200]
 
-[remote-site]: http://www.zolertia.io/products "Zolertia Firefly"
+[remote-site]: http://www.zolertia.io/products "Zolertia RE-Mote"
 [zolertia-wiki]: https://github.com/Zolertia/Resources/wiki
 [cc1200]: http://www.ti.com/product/cc1200     "CC1200"
 [cc2538]: http://www.ti.com/product/cc2538     "CC2538"

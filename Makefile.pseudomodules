@@ -62,5 +62,8 @@ PSEUDOMODULES += sock_udp
 PSEUDOMODULES += at86rf23%
 PSEUDOMODULES += at86rf21%
 
+# pseudomodule for the cc1200 to use the c110x code
+PSEUDOMODULES += cc1200
+
 # add all pseudo random number generator variants as pseudomodules
 PSEUDOMODULES += prng_%

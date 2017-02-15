@@ -35,7 +35,7 @@
 #include "cc110x-internal.h"
 #include "cc110x-spi.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 /* Internal function prototypes */
@@ -71,14 +71,46 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     /* Write configuration to configuration registers */
     cc110x_writeburst_reg(dev, 0x00, cc110x_default_conf, cc110x_default_conf_size);
 
+#ifdef MODULE_CC1200
+    /* Write extended config for CC1200 */
+    cc110x_write_reg(dev, CC110X_IF_MIX_CFG, 0x18);
+    cc110x_write_reg(dev, CC110X_TOC_CFG, 0x03);
+    cc110x_write_reg(dev, CC110X_MDMCFG2, 0x02);
+    cc110x_write_reg(dev, CC110X_FREQ2, 0x56);
+    cc110x_write_reg(dev, CC110X_FREQ1, 0xCC);
+    cc110x_write_reg(dev, CC110X_FREQ0, 0xCC);
+    cc110x_write_reg(dev, CC110X_IF_ADC1, 0xEE);
+    cc110x_write_reg(dev, CC110X_IF_ADC0, 0x10);
+    cc110x_write_reg(dev, CC110X_FS_DIG1, 0x18);
+    cc110x_write_reg(dev, CC110X_FS_DIG0, 0x50);
+    cc110x_write_reg(dev, CC110X_FS_CAL1, 0x04);
+    cc110x_write_reg(dev, CC110X_FS_CAL0, 0x0E);
+    cc110x_write_reg(dev, CC110X_FS_DIVTWO, 0x03);
+    cc110x_write_reg(dev, CC110X_FS_DSM0, 0x33);
+    cc110x_write_reg(dev, CC110X_FS_DVC1, 0xF7);
+    cc110x_write_reg(dev, CC110X_FS_DVC0, 0x0F);
+    cc110x_write_reg(dev, CC110X_FS_PFD, 0x00);
+    cc110x_write_reg(dev, CC110X_FS_PRE, 0x6E);
+    cc110x_write_reg(dev, CC110X_FS_REG_DIV_CML, 0x1C);
+    cc110x_write_reg(dev, CC110X_FS_SPARE, 0xAC);
+    cc110x_write_reg(dev, CC110X_FS_VCO0, 0xB5);
+    cc110x_write_reg(dev, CC110X_IFAMP, 0x05);
+    cc110x_write_reg(dev, CC110X_XOSC5, 0x0E);
+    cc110x_write_reg(dev, CC110X_XOSC1, 0x03);
+    cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, CC110X_RF_CFG_RSSI_OFFSET);
+    cc110x_write_reg(dev, CC110X_TXFIRST, 0);
+    cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
+    //cc1x0x_write_reg(dev, CC1X0X_PKT_CFG2, 0x02);
+#else
     /* Write PATABLE (power settings) */
-    cc110x_writeburst_reg(dev, CC110X_PATABLE, CC110X_DEFAULT_PATABLE, 8);
+    cc1x0x_writeburst_reg(dev, CC1X0X_PATABLE, CC1X0X_DEFAULT_PATABLE, 8);
 
     /* set base frequency */
-    cc110x_set_base_freq_raw(dev, CC110X_DEFAULT_FREQ);
+    cc1x0x_set_base_freq_raw(dev, CC1X0X_DEFAULT_FREQ);
 
     /* Set default channel number */
-    cc110x_set_channel(dev, CC110X_DEFAULT_CHANNEL);
+    cc1x0x_set_channel(dev, CC1X0X_DEFAULT_CHANNEL);
+#endif
 
     /* set default node id */
     uint8_t addr;
@@ -98,7 +130,11 @@ uint8_t cc110x_set_address(cc110x_t *dev, uint8_t address)
             __LINE__, (unsigned)address);
     if (!(address < MIN_UID) || (address > MAX_UID)) {
         if (dev->radio_state != RADIO_UNKNOWN) {
+#ifndef MODULE_CC1200
             cc110x_write_register(dev, CC110X_ADDR, address);
+#else
+            cc110x_write_register(dev, CC110X_DEV_ADDR, address);
+#endif           
             dev->radio_address = address;
             return address;
         }
@@ -123,7 +159,20 @@ void cc110x_set_monitor(cc110x_t *dev, uint8_t mode)
 {
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 
+#ifndef MODULE_CC1200
     cc110x_write_register(dev, CC110X_PKTCTRL1, mode ? 0x04 : 0x06);
+#else
+    uint8_t stat = cc110x_read_reg(dev, CC110X_PKT_CFG1);
+    stat &= 0xE6;
+    if(mode){
+        stat |= 0x1;
+    }else{
+        stat |= 0x11;
+    }
+    cc110x_write_register(dev, CC110X_PKT_CFG1, stat);
+#endif
+
+
 }
 
 void cc110x_setup_rx_mode(cc110x_t *dev)
@@ -131,7 +180,13 @@ void cc110x_setup_rx_mode(cc110x_t *dev)
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 
     /* Stay in RX mode until end of packet */
+#ifndef MODULE_CC1200
     cc110x_write_reg(dev, CC110X_MCSM2, 0x07);
+#else
+    uint8_t stat = cc110x_read_reg(dev, CC110X_RFEND_CFG1);
+    stat |= 0xE;
+    cc110x_write_reg(dev, CC110X_RFEND_CFG1, 0xE);
+#endif
     cc110x_switch_to_rx(dev);
 }
 
@@ -189,8 +244,17 @@ int16_t cc110x_set_channel(cc110x_t *dev, uint8_t channr)
     if (channr > MAX_CHANNR) {
         return -1;
     }
-
+#ifndef MODULE_CC1200
     cc110x_write_register(dev, CC110X_CHANNR, channr * 10);
+#else
+    uint32_t freq;
+    freq = CC110X_RF_CFG_CHAN_CENTER_F0 + (channr * CC110X_RF_CFG_CHAN_SPACING) / 1000 /* /1000 because chan_spacing is in Hz */;
+    freq *= 4096; //Frequency Multiplier
+    freq /= 625; //Frequency Divider
+    cc110x_write_reg(dev, CC110X_FREQ2, ((uint8_t *)&freq)[2]);
+    cc110x_write_reg(dev, CC110X_FREQ1, ((uint8_t *)&freq)[1]);
+    cc110x_write_reg(dev, CC110X_FREQ0, ((uint8_t *)&freq)[0]);
+#endif
     dev->radio_channel = channr;
 
     return channr;
@@ -213,8 +277,11 @@ static void _power_up_reset(cc110x_t *dev)
     gpio_set(dev->params.cs);
     gpio_clear(dev->params.cs);
     gpio_set(dev->params.cs);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     xtimer_usleep(RESET_WAIT_TIME);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     _reset(dev);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 #endif
 
