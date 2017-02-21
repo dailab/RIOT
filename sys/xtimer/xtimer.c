@@ -30,7 +30,7 @@
 
 #include "timex.h"
 
-#define ENABLE_DEBUG 0
+#define ENABLE_DEBUG 1
 #include "debug.h"
 
 typedef struct {
@@ -230,6 +230,7 @@ int _xtimer_msg_receive_timeout(msg_t *msg, uint32_t timeout_ticks)
 
 static void _mutex_timeout(void *arg)
 {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     mutex_thread_t *mt = (mutex_thread_t *)arg;
 
     mt->timeout = 1;
@@ -244,6 +245,7 @@ static void _mutex_timeout(void *arg)
 
 int xtimer_mutex_lock_timeout(mutex_t *mutex, uint64_t timeout)
 {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     xtimer_t t;
     mutex_thread_t mt = { mutex, (thread_t *)sched_active_thread, 0 };
 

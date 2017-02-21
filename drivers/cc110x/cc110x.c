@@ -268,7 +268,9 @@ static void _reset(cc110x_t *dev)
     cc110x_wakeup_from_rx(dev);
     cc110x_cs(dev);
     cc110x_strobe(dev, CC110X_SRES);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     xtimer_usleep(100);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 
 static void _power_up_reset(cc110x_t *dev)
@@ -278,7 +280,8 @@ static void _power_up_reset(cc110x_t *dev)
     gpio_clear(dev->params.cs);
     gpio_set(dev->params.cs);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    xtimer_usleep(RESET_WAIT_TIME);
+    //xtimer_usleep(RESET_WAIT_TIME);
+    //xtimer_usleep(2);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     _reset(dev);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);

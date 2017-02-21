@@ -101,12 +101,14 @@ uint64_t _xtimer_now64(void)
 
 void _xtimer_set64(xtimer_t *timer, uint32_t offset, uint32_t long_offset)
 {
-    DEBUG(" _xtimer_set64() offset=%" PRIu32 " long_offset=%" PRIu32 "\n", offset, long_offset);
+    //DEBUG(" _xtimer_set64() offset=%" PRIu32 " long_offset=%" PRIu32 "\n", offset, long_offset);
     if (!long_offset) {
         /* timer fits into the short timer */
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         _xtimer_set(timer, (uint32_t) offset);
     }
     else {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         int state = irq_disable();
         if (_is_set(timer)) {
             _remove(timer);
@@ -128,8 +130,8 @@ void _xtimer_set64(xtimer_t *timer, uint32_t offset, uint32_t long_offset)
 
 void _xtimer_set(xtimer_t *timer, uint32_t offset)
 {
-    DEBUG("timer_set(): offset=%" PRIu32 " now=%" PRIu32 " (%" PRIu32 ")\n",
-          offset, xtimer_now().ticks32, _xtimer_lltimer_now());
+    //DEBUG("timer_set(): offset=%" PRIu32 " now=%" PRIu32 " (%" PRIu32 ")\n",
+    //      offset, xtimer_now().ticks32, _xtimer_lltimer_now());
     if (!timer->callback) {
         DEBUG("timer_set(): timer has no callback.\n");
         return;
@@ -184,6 +186,7 @@ int _xtimer_set_absolute(xtimer_t *timer, uint32_t target)
     }
 
     unsigned state = irq_disable();
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     if (_is_set(timer)) {
         _remove(timer);
     }
@@ -213,8 +216,10 @@ int _xtimer_set_absolute(xtimer_t *timer, uint32_t target)
             }
         }
     }
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 
     irq_restore(state);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 
     return res;
 }
@@ -231,6 +236,7 @@ static void _add_timer_to_list(xtimer_t **list_head, xtimer_t *timer)
 
 static void _add_timer_to_long_list(xtimer_t **list_head, xtimer_t *timer)
 {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     while (*list_head
         && (((*list_head)->long_target < timer->long_target)
         || (((*list_head)->long_target == timer->long_target) && ((*list_head)->target <= timer->target)))) {
@@ -530,4 +536,5 @@ overflow:
 
     /* set low level timer */
     _lltimer_set(next_target);
+        DEBUG("#1\n");
 }
