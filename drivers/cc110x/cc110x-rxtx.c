@@ -40,7 +40,7 @@
 
 #include "log.h"
 
-#define ENABLE_DEBUG (0)
+#define ENABLE_DEBUG (1)
 #include "debug.h"
 
 static void _rx_abort(cc110x_t *dev)
@@ -253,8 +253,10 @@ int cc110x_send(cc110x_t *dev, cc110x_pkt_t *packet)
     switch (dev->radio_state) {
         case RADIO_RX_BUSY:
         case RADIO_TX_BUSY:
+            /*
             DEBUG("cc110x: invalid state for sending: %s\n",
                     cc110x_state_to_text(dev->radio_state));
+                    */
             return -EAGAIN;
     }
 

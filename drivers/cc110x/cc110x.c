@@ -269,7 +269,8 @@ static void _reset(cc110x_t *dev)
     cc110x_cs(dev);
     cc110x_strobe(dev, CC110X_SRES);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    xtimer_usleep(100);
+    //xtimer_usleep(100);
+    xtimer_spin(xtimer_ticks_from_usec(100));
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 
@@ -281,7 +282,7 @@ static void _power_up_reset(cc110x_t *dev)
     gpio_set(dev->params.cs);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     //xtimer_usleep(RESET_WAIT_TIME);
-    //xtimer_usleep(2);
+    xtimer_spin(xtimer_ticks_from_usec(RESET_WAIT_TIME));
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     _reset(dev);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
@@ -322,6 +323,7 @@ int cc110x_rd_set_mode(cc110x_t *dev, int mode)
         case RADIO_MODE_ON:
             LOG_DEBUG("cc110x: switching to RX mode\n");
             cc110x_setup_rx_mode(dev);          /* Set chip to desired mode */
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
             break;
 
         case RADIO_MODE_OFF:
@@ -337,5 +339,6 @@ int cc110x_rd_set_mode(cc110x_t *dev, int mode)
     }
 
     /* Return previous mode */
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     return result;
 }

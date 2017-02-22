@@ -35,6 +35,7 @@
 #ifndef SRAM_BASE
 #define SRAM_BASE 0
 #endif
+#define DEVELHELP
 
 /**
  * @brief   Memory markers, defined in the linker script

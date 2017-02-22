@@ -19,6 +19,7 @@
 
 #ifdef MODULE_CC110X
 
+#define ENABLE_DEBUG    (1)
 #include "log.h"
 #include "debug.h"
 #include "board.h"
@@ -28,6 +29,7 @@
 
 #include "cc110x.h"
 #include "cc110x_params.h"
+
 
 /**
  * @brief   Define stack parameters for the MAC layer thread

@@ -33,7 +33,7 @@
 #include "net/netdev2.h"
 #include "net/gnrc/nettype.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 static int _send(netdev2_t *dev, const struct iovec *vector, unsigned count)
@@ -198,6 +198,7 @@ static int _init(netdev2_t *dev)
 
     /* Switch to RX mode */
     cc110x_rd_set_mode(cc110x, RADIO_MODE_ON);
+    DEBUG("%s:%u\n", __func__, __LINE__);
 
     return 0;
 }

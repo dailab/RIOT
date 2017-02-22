@@ -30,7 +30,7 @@
 #include "irq.h"
 #include "cib.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 #include "thread.h"
 
@@ -317,6 +317,7 @@ static int _msg_receive(msg_t *m, int block)
                   sched_active_thread->pid);
             sched_set_status(me, STATUS_RECEIVE_BLOCKED);
 
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
             irq_restore(state);
             thread_yield_higher();
 
@@ -326,6 +327,7 @@ static int _msg_receive(msg_t *m, int block)
             irq_restore(state);
         }
 
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         return 1;
     }
     else {

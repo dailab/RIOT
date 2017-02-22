@@ -49,6 +49,11 @@ static inline void lock(cc110x_t *dev)
 
 void cc110x_cs(cc110x_t *dev)
 {
+#ifdef MODULE_CC1200
+    gpio_clear(dev->params.cs);
+    return;
+#endif 
+
     volatile int retry_count = 0;
     /* Switch MISO/GDO1 to GPIO input mode */
 #ifndef GPIO_READS_SPI_PINS
