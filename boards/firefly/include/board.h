@@ -82,10 +82,12 @@
  *
  * @{
  */
+ /*
 #define RF_SWITCH_GPIO      GPIO_PD2
 #define RF_SWITCH_SUB_GHZ   gpio_set(RF_SWITCH_GPIO)
 #define RF_SWITCH_2_4_GHZ   gpio_clear(RF_SWITCH_GPIO)
 #define RF_SWITCH_TOGGLE    gpio_toggle(RF_SWITCH_GPIO)
+*/
 /** @} */
 
 /**
