@@ -55,7 +55,10 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     dev->params = *params;
 
     /* Configure chip-select */
-    spi_init_cs(dev->params.spi, dev->params.cs);
+    //spi_init_cs(dev->params.spi, dev->params.cs);
+    gpio_init(dev->params.cs, GPIO_OUT);
+    gpio_set(dev->params.cs);
+    spi_init(dev->params.spi);
 
     /* Configure GDO1 */
     gpio_init(dev->params.gdo1, GPIO_IN);
@@ -100,7 +103,7 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, CC110X_RF_CFG_RSSI_OFFSET);
     cc110x_write_reg(dev, CC110X_TXFIRST, 0);
     cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
-    //cc1x0x_write_reg(dev, CC1X0X_PKT_CFG2, 0x02);
+    cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x02);
 #else
     /* Write PATABLE (power settings) */
     cc1x0x_writeburst_reg(dev, CC1X0X_PATABLE, CC1X0X_DEFAULT_PATABLE, 8);
@@ -184,6 +187,7 @@ void cc110x_setup_rx_mode(cc110x_t *dev)
     cc110x_write_reg(dev, CC110X_MCSM2, 0x07);
 #else
     uint8_t stat = cc110x_read_reg(dev, CC110X_RFEND_CFG1);
+    DEBUG("%s:%s:%u CC110X_RFEND_CFG1: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, stat);
     stat |= 0xE;
     cc110x_write_reg(dev, CC110X_RFEND_CFG1, 0xE);
 #endif
@@ -270,7 +274,7 @@ static void _reset(cc110x_t *dev)
     cc110x_strobe(dev, CC110X_SRES);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     //xtimer_usleep(100);
-    xtimer_spin(xtimer_ticks_from_usec(100));
+    xtimer_spin(xtimer_ticks_from_usec(RESET_WAIT_TIME));
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 

@@ -25,9 +25,12 @@
 #include "cpu.h"
 #include "periph/gpio.h"
 
+
 #define GPIO_MASK           (0xfffff000)
-#define PORTNUM_MASK        (0x00007000)
-#define PORTNUM_SHIFT       (12U)
+//#define PORTNUM_MASK        (0x00007000)
+#define PORTNUM_MASK        (0x000038)
+//#define PORTNUM_SHIFT       (12U)
+#define PORTNUM_SHIFT       (3U)
 #define PIN_MASK            (0x00000007)
 #define MODE_NOTSUP         (0xff)
 
@@ -38,7 +41,8 @@ static inline cc2538_gpio_t *gpio(gpio_t pin)
 
 static inline int port_num(gpio_t pin)
 {
-    return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
+    //return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
+    return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT);
 }
 
 static inline int pin_num(gpio_t pin)
@@ -88,6 +92,7 @@ int gpio_init(gpio_t pin, gpio_mode_t mode)
 int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
                   gpio_cb_t cb, void *arg)
 {
+
     if (gpio_init(pin, mode) != 0) {
         return -1;
     }

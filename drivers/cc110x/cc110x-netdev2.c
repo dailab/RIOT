@@ -166,6 +166,7 @@ static int _set(netdev2_t *dev, netopt_t opt, void *value, size_t value_len)
 
 static void _netdev2_cc110x_isr(void *arg)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     netdev2_t *netdev2 = (netdev2_t*) arg;
     netdev2->event_callback(netdev2, NETDEV2_EVENT_ISR);
 }
@@ -180,6 +181,7 @@ static void _netdev2_cc110x_rx_callback(void *arg)
 
 static void _isr(netdev2_t *dev)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     cc110x_t *cc110x = &((netdev2_cc110x_t*) dev)->cc110x;
     cc110x_isr_handler(cc110x, _netdev2_cc110x_rx_callback, (void*)dev);
 }
@@ -190,9 +192,6 @@ static int _init(netdev2_t *dev)
 
     cc110x_t *cc110x = &((netdev2_cc110x_t*) dev)->cc110x;
 
-    unsigned int pinNum = (unsigned int)(cc110x->params.gdo2);
-    DEBUG("%s:%u pin num: %u\n", __func__, __LINE__, pinNum);
-    return 0;
     gpio_init_int(cc110x->params.gdo2, GPIO_IN, GPIO_BOTH,
             &_netdev2_cc110x_isr, (void*)dev);
 

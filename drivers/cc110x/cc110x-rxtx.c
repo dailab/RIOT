@@ -250,6 +250,7 @@ int cc110x_send(cc110x_t *dev, cc110x_pkt_t *packet)
             (unsigned)packet->address, (unsigned)packet->length-3);
     uint8_t size;
 
+    cc110x_writeburst_reg(dev, 0x00, cc110x_default_conf, cc110x_default_conf_size);
     switch (dev->radio_state) {
         case RADIO_RX_BUSY:
         case RADIO_TX_BUSY:
@@ -257,6 +258,7 @@ int cc110x_send(cc110x_t *dev, cc110x_pkt_t *packet)
             DEBUG("cc110x: invalid state for sending: %s\n",
                     cc110x_state_to_text(dev->radio_state));
                     */
+            DEBUG("%s:%u\n", __func__, __LINE__);
             return -EAGAIN;
     }
 
@@ -294,6 +296,7 @@ int cc110x_send(cc110x_t *dev, cc110x_pkt_t *packet)
     memcpy((char*)&dev->pkt_buf.packet, packet, size);
     dev->pkt_buf.pos = 0;
 
+    DEBUG("%s:%u\n", __func__, __LINE__);
     _tx_continue(dev);
 
     return size;

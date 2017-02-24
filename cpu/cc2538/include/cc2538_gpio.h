@@ -45,7 +45,9 @@ enum {
 /** @} */
 
 #define GPIO_PORT_SHIFT 3                              /**< Right-shift amount to obtain the port number from a GPIO number */
-#define GPIO_BITS_PER_PORT ( 1 << GPIO_PORT_SHIFT )    /**< Number of bits per GPIO port (8) */
+//#define GPIO_PORT_SHIFT 12                              /**< Right-shift amount to obtain the port number from a GPIO number */
+//#define GPIO_BITS_PER_PORT ( 1 << GPIO_PORT_SHIFT )    /**< Number of bits per GPIO port (8) */
+#define GPIO_BITS_PER_PORT (8)                          /**< Number of bits per GPIO port (8) */
 #define GPIO_BIT_MASK      ( GPIO_BITS_PER_PORT - 1 )  /**< Mask to obtain the bit number from a GPIO number */
 
 /**

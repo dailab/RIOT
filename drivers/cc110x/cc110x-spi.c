@@ -35,6 +35,9 @@
 #include "xtimer.h"
 #include "irq.h"
 
+#define ENABLE_DEBUG 1
+#include "debug.h"
+
 #define SPI_CLK         SPI_CLK_5MHZ
 #define SPI_MODE        SPI_MODE_0
 
@@ -81,6 +84,7 @@ void cc110x_cs(cc110x_t *dev)
     }
     /* Switch MISO/GDO1 to spi mode */
 #ifndef GPIO_READS_SPI_PINS
+    DEBUG("%s:%u\n", __func__, __LINE__);
     spi_init_pins(dev->params.spi);
 #endif
 }
@@ -188,6 +192,7 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
 
 uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
 #ifdef CC110X_DONT_RESET
     if (c == CC110X_SRES) {
         return 0;
