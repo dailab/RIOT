@@ -317,6 +317,7 @@ int cmd_bench(int argc, char **argv)
     printf(" 7 - read %i times %i byte:", BENCH_REDOS, BENCH_SMALL);
     printf("\t\t\t%i\n", (int)(stop - start));
     sum += (stop - start);
+    printf("#1\n");
 
     /* 8 - read 1000 times 100 byte */
     start = xtimer_now_usec();
@@ -330,7 +331,7 @@ int cmd_bench(int argc, char **argv)
     sum += (stop - start);
 
     /* 9 - read 1000 times 2 byte from register */
-    start = xtimer_now_usec();
+    //start = xtimer_now_usec();
     for (int i = 0; i < BENCH_REDOS; i++) {
         spi_transfer_regs(spiconf.dev, spiconf.cs, BENCH_REGADDR,
                           NULL, bench_rbuf, BENCH_SMALL);
