@@ -31,7 +31,8 @@ extern "C" {
 const cc110x_params_t cc110x_params[] = {
     {
         .spi  = 0,
-        .cs   = CC1200_CSN_GPIO,
+        //.cs   = CC1200_CSN_GPIO,
+        .cs   = GPIO_PA6,
         .gdo0 = CC1200_GPD0_GPIO,
         .gdo1 = CC1200_MISO_GPIO,
         .gdo2 = CC1200_GPD2_GPIO

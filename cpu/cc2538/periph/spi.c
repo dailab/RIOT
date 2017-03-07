@@ -25,6 +25,8 @@
 #include "assert.h"
 #include "periph/spi.h"
 
+#define ENABLE_DEBUG    (1)
+#include "debug.h"
 /**
  * @brief   Array holding one pre-initialized mutex for each SPI device
  */
@@ -64,6 +66,8 @@ void spi_init(spi_t bus)
 
     /* trigger SPI pin configuration */
     spi_init_pins(bus);
+    gpio_init(GPIO_PIN(3,0), GPIO_OUT);
+    gpio_set(GPIO_PIN(3,0));
 }
 
 void spi_init_pins(spi_t bus)
@@ -131,6 +135,7 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
     assert(out_buf || in_buf);
 
     if (cs != SPI_CS_UNDEF) {
+        gpio_clear(GPIO_PIN(3,0));
         gpio_clear((gpio_t)cs);
     }
 
@@ -170,6 +175,7 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
     }
 
     if ((!cont) && (cs != SPI_CS_UNDEF)) {
+        gpio_set(GPIO_PIN(3,0));
         gpio_set((gpio_t)cs);
     }
 }

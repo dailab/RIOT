@@ -95,7 +95,7 @@ static const spi_conf_t spi_config[] = {
         .mosi_pin = GPIO_PB1,
         .miso_pin = GPIO_PB3,
         .sck_pin  = GPIO_PB2,
-        .cs_pin   = GPIO_PB5
+        //.cs_pin   = GPIO_PB5
     },
     {
         .dev      = SSI1,
