@@ -27,10 +27,11 @@
 
 
 #define GPIO_MASK           (0xfffff000)
-//#define PORTNUM_MASK        (0x00007000)
-#define PORTNUM_MASK        (0x000038)
-//#define PORTNUM_SHIFT       (12U)
-#define PORTNUM_SHIFT       (3U)
+//#define GPIO_MASK           (0xffffff38)
+#define PORTNUM_MASK        (0x00003000)
+//#define PORTNUM_MASK        (0x000038)
+#define PORTNUM_SHIFT       (12U)
+//#define PORTNUM_SHIFT       (3U)
 #define PIN_MASK            (0x00000007)
 #define MODE_NOTSUP         (0xff)
 
@@ -42,7 +43,7 @@ static inline cc2538_gpio_t *gpio(gpio_t pin)
 static inline int port_num(gpio_t pin)
 {
     //return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
-    return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT);
+    return (int)(((pin - (uint32_t)GPIO_A) & PORTNUM_MASK) >> PORTNUM_SHIFT);
 }
 
 static inline int pin_num(gpio_t pin)
@@ -148,30 +149,36 @@ void gpio_irq_disable(gpio_t pin)
 int gpio_read(gpio_t pin)
 {
     return (int)(gpio(pin)->DATA & pin_mask(pin));
+    //return cc2538_gpio_read(pin);
 }
 
 void gpio_set(gpio_t pin)
 {
     gpio(pin)->DATA |= pin_mask(pin);
+    //cc2538_gpio_set(pin);
 }
 
 void gpio_clear(gpio_t pin)
 {
     gpio(pin)->DATA &= ~pin_mask(pin);
+    //cc2538_gpio_clear(pin);
 }
 
 void gpio_toggle(gpio_t pin)
 {
     gpio(pin)->DATA ^= pin_mask(pin);
+    //cc2538_gpio_toggle(pin);
 }
 
 void gpio_write(gpio_t pin, int value)
 {
     if (value) {
-        gpio(pin)->DATA |= pin_mask(pin);
+        //gpio(pin)->DATA |= pin_mask(pin);
+        gpio_set(pin);
     }
     else {
-        gpio(pin)->DATA &= ~pin_mask(pin);
+        //gpio(pin)->DATA &= ~pin_mask(pin);
+        gpio_clear(pin);
     }
 }
 

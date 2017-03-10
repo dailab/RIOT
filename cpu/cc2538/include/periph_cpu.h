@@ -47,6 +47,47 @@ typedef uint32_t gpio_t;
  * actual pin number.
  */
 #define GPIO_PIN(port, pin) (gpio_t)(((uint32_t)GPIO_A + (port << 12)) | pin)
+//#define GPIO_PIN(port, pin) (gpio_t)(((uint32_t)GPIO_A + (port << 3)) | pin)
+
+/** @name Unique names for each GPIO port/pin combination
+ * @{
+ */
+//enum {
+//    GPIO_PA0 = GPIO_PIN(PORT_A, 0),          /**< PA0 */
+//    GPIO_PA1 = GPIO_PIN(PORT_A, 1),          /**< PA1 */
+//    GPIO_PA2 = GPIO_PIN(PORT_A, 2),          /**< PA2 */
+//    GPIO_PA3 = GPIO_PIN(PORT_A, 3),          /**< PA3 */
+//    GPIO_PA4 = GPIO_PIN(PORT_A, 4),          /**< PA4 */
+//    GPIO_PA5 = GPIO_PIN(PORT_A, 5),          /**< PA5 */
+//    GPIO_PA6 = GPIO_PIN(PORT_A, 6),          /**< PA6 */
+//    GPIO_PA7 = GPIO_PIN(PORT_A, 7),          /**< PA7 */
+//    GPIO_PB0 = GPIO_PIN(PORT_B, 0),          /**< PB0 */
+//    GPIO_PB1 = GPIO_PIN(PORT_B, 1),          /**< PB1 */
+//    GPIO_PB2 = GPIO_PIN(PORT_B, 2),          /**< PB2 */
+//    GPIO_PB3 = GPIO_PIN(PORT_B, 3),          /**< PB3 */
+//    GPIO_PB4 = GPIO_PIN(PORT_B, 4),          /**< PB4 */
+//    GPIO_PB5 = GPIO_PIN(PORT_B, 5),          /**< PB5 */
+//    GPIO_PB6 = GPIO_PIN(PORT_B, 6),          /**< PB6 */
+//    GPIO_PB7 = GPIO_PIN(PORT_B, 7),          /**< PB7 */
+//    GPIO_PC0 = GPIO_PIN(PORT_C, 0),          /**< PC0 */
+//    GPIO_PC1 = GPIO_PIN(PORT_C, 1),          /**< PC1 */
+//    GPIO_PC2 = GPIO_PIN(PORT_C, 2),          /**< PC2 */
+//    GPIO_PC3 = GPIO_PIN(PORT_C, 3),          /**< PC3 */
+//    GPIO_PC4 = GPIO_PIN(PORT_C, 4),          /**< PC4 */
+//    GPIO_PC5 = GPIO_PIN(PORT_C, 5),          /**< PC5 */
+//    GPIO_PC6 = GPIO_PIN(PORT_C, 6),          /**< PC6 */
+//    GPIO_PC7 = GPIO_PIN(PORT_C, 7),          /**< PC7 */
+//    GPIO_PD0 = GPIO_PIN(PORT_D, 0),          /**< PD0 */
+//    GPIO_PD1 = GPIO_PIN(PORT_D, 1),          /**< PD1 */
+//    GPIO_PD2 = GPIO_PIN(PORT_D, 2),          /**< PD2 */
+//    GPIO_PD3 = GPIO_PIN(PORT_D, 3),          /**< PD3 */
+//    GPIO_PD4 = GPIO_PIN(PORT_D, 4),          /**< PD4 */
+//    GPIO_PD5 = GPIO_PIN(PORT_D, 5),          /**< PD5 */
+//    GPIO_PD6 = GPIO_PIN(PORT_D, 6),          /**< PD6 */
+//    GPIO_PD7 = GPIO_PIN(PORT_D, 7),          /**< PD7 */
+//};
+    /** @} */
+
 
 /**
  * @brief   Define a custom GPIO_UNDEF value

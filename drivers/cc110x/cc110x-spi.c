@@ -53,7 +53,7 @@ static inline void lock(cc110x_t *dev)
 void cc110x_cs(cc110x_t *dev)
 {
 #ifdef MODULE_CC1200
-    //gpio_clear(dev->params.cs);
+    gpio_clear(dev->params.cs);
     return;
 #endif 
     volatile int retry_count = 0;
@@ -227,7 +227,7 @@ uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
     cc110x_cs(dev);
     //result = spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF, false,  c);
     result = spi_transfer_byte(dev->params.spi, dev->params.cs, false,  c);
-    //gpio_set(dev->params.cs);
+    gpio_set(dev->params.cs);
     irq_restore(cpsr);
     spi_release(dev->params.spi);
     return result;

@@ -52,6 +52,7 @@ static inline void leds_init(void)
 
     /* Shoot rainbows */
     LED_RAINBOW();
+
 }
 
 /**

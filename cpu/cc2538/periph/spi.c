@@ -129,17 +129,20 @@ void spi_release(spi_t bus)
 void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
                         const void *out, void *in, size_t len)
 {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     uint8_t *out_buf = (uint8_t *)out;
     uint8_t *in_buf = (uint8_t *)in;
 
     assert(out_buf || in_buf);
 
     if (cs != SPI_CS_UNDEF) {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         gpio_clear(GPIO_PIN(3,0));
         gpio_clear((gpio_t)cs);
     }
 
     if (!in_buf) {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         for (size_t i = 0; i < len; i++) {
             while (!(dev(bus)->SR & SSI_SR_TNF)) {}
             dev(bus)->DR = out_buf[i];
@@ -148,8 +151,10 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
         while ((dev(bus)->SR & SSI_SR_BSY)) {
             dev(bus)->DR;
         }
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
     else if (!out_buf) { /*TODO this case is currently untested */
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         size_t in_cnt = 0;
         for (size_t i = 0; i < len; i++) {
             while (!(dev(bus)->SR & SSI_SR_TNF)) {}
@@ -162,8 +167,10 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
         while (dev(bus)->SR & SSI_SR_RNE) {
             in_buf[in_cnt++] = dev(bus)->DR;
         }
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
     else {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         for (size_t i = 0; i < len; i++) {
             while (!(dev(bus)->SR & SSI_SR_TNF)) {}
             dev(bus)->DR = out_buf[i];
@@ -172,10 +179,13 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
         }
     /* wait until no more busy */
     while ((dev(bus)->SR & SSI_SR_BSY)) {}
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
 
     if ((!cont) && (cs != SPI_CS_UNDEF)) {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         gpio_set(GPIO_PIN(3,0));
         gpio_set((gpio_t)cs);
     }
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }

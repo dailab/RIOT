@@ -57,19 +57,38 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     DEBUG("%s:%s:%u cs pin: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, (unsigned int)dev->params.cs);
     /* Configure chip-select */
     spi_init(dev->params.spi);
+    gpio_t test_pin = GPIO_PIN(3, 0);
+    DEBUG("%s:%s:%u test pin: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, (unsigned int)test_pin);
     /*
     int spi_return = spi_init_cs(dev->params.spi, dev->params.cs);
     if(spi_return != SPI_OK){
         DEBUG("%s:%s:%u spi not ok\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }*/
     gpio_init(dev->params.cs, GPIO_OUT);
+    gpio_init(test_pin, GPIO_OUT);
     gpio_set(dev->params.cs);
+    gpio_set(test_pin);
 
     /*testing*/
     DEBUG("%s:%s:%u WAITING...\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
     DEBUG("%s:%s:%u FINISHED\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    spi_transfer_byte(dev->params.spi, dev->params.cs, false, 0x30);
+
+    /*switching gpio on and off*/    
+    for(int j=0; j<50; j++){
+        DEBUG("%s:%s:%u OFF\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+        gpio_clear(dev->params.cs);
+        gpio_clear(test_pin);
+        for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
+        DEBUG("%s:%s:%u ON\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+        gpio_set(dev->params.cs);
+        gpio_set(test_pin);
+        for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
+    }
+    //spi_transfer_byte(dev->params.spi, dev->params.cs, false, 0x30);
+    //cc110x_strobe(dev, CC110X_SRES);
+    DEBUG("%s:%s:%u spi byte sent\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
     core_panic(PANIC_DEBUG_MON, "halting");
 
     /* Configure GDO1 */
