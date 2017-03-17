@@ -33,7 +33,6 @@
 #include "periph/pm.h"
 #include "log.h"
 
-#define DEVELHELP
 
 #if defined(DEVELHELP) && defined(MODULE_PS)
 #include "ps.h"

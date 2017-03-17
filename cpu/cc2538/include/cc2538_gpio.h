@@ -44,12 +44,8 @@ enum {
 };
 /** @} */
 
-//#define GPIO_PORT_MASK 0x38                              /**< Right-shift amount to obtain the port number from a GPIO number */
-#define GPIO_PORT_MASK 0x3000                              /**< Right-shift amount to obtain the port number from a GPIO number */
-//#define GPIO_DEV_MASK  0xffffff38
-#define GPIO_DEV_MASK  0xfffff000
-//#define GPIO_PORT_SHIFT 3                              /**< Right-shift amount to obtain the port number from a GPIO number */
-#define GPIO_PORT_SHIFT 12                              /**< Right-shift amount to obtain the port number from a GPIO number */
+#define GPIO_PORT_SHIFT 3                              /**< Right-shift amount to obtain the port number from a GPIO number */
+//#define GPIO_PORT_SHIFT 12                              /**< Right-shift amount to obtain the port number from a GPIO number */
 //#define GPIO_BITS_PER_PORT ( 1 << GPIO_PORT_SHIFT )    /**< Number of bits per GPIO port (8) */
 #define GPIO_BITS_PER_PORT (8)                          /**< Number of bits per GPIO port (8) */
 #define GPIO_BIT_MASK      ( GPIO_BITS_PER_PORT - 1 )  /**< Mask to obtain the bit number from a GPIO number */
@@ -62,7 +58,6 @@ enum {
  * @return A bit mask in which bit n is high.
 */
 #define GPIO_PIN_MASK(n) ( 1 << (n) )
-//#define GPIO_PIN_MASK(n) ( 1 << (n & GPIO_BIT_MASK) )
 
 /**
  * @brief Extract the GPIO port number (0-3) from a GPIO number (0-31)
@@ -71,8 +66,7 @@ enum {
  *
  * @return Corresponding GPIO port number (0-3)
 */
-//#define GPIO_NUM_TO_PORT_NUM(gpio_num) ( (gpio_num) >> GPIO_PORT_SHIFT )
-#define GPIO_NUM_TO_PORT_NUM(gpio_num) ( ((gpio_num - (uint32_t)GPIO_A) & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT )
+#define GPIO_NUM_TO_PORT_NUM(gpio_num) ( (gpio_num) >> GPIO_PORT_SHIFT )
 
 /**
  * @brief Extract the GPIO port bit number (0-7) from a GPIO number (0-31)
@@ -91,8 +85,7 @@ enum {
  *
  * @return Corresponding GPIO number (0-31)
 */
-//#define GPIO_PXX_TO_NUM(port_num, bit_num) (((uint32_t) GPIO_A)+(((port_num) << GPIO_PORT_SHIFT) | (bit_num)))
-#define GPIO_PXX_TO_NUM(port_num, bit_num) (((port_num) << GPIO_PORT_SHIFT) | (bit_num))
+#define GPIO_PXX_TO_NUM(port_num, bit_num) ( ((port_num) << GPIO_PORT_SHIFT) | (bit_num) )
 
 /**
  * @brief Obtain the GPIO port instance given a GPIO number (0-31)
@@ -102,7 +95,6 @@ enum {
  * @return Corresponding GPIO port instance
 */
 #define GPIO_NUM_TO_DEV(gpio_num) ( GPIO_A + GPIO_NUM_TO_PORT_NUM(gpio_num) )
-//#define GPIO_NUM_TO_DEV(gpio_num) ((cc2538_gpio_t *)(gpio_num & GPIO_DEV_MASK))
 
 /**
  * @brief Enable hardware (peripheral) control for a given GPIO pin number
@@ -160,40 +152,51 @@ enum {
 */
 #define cc2538_gpio_toggle(gpio_num) ( GPIO_NUM_TO_DEV(gpio_num)->DATA ^= GPIO_PIN_MASK(GPIO_BIT_NUM(gpio_num)) )
 
-
+/** @name Unique names for each GPIO port/pin combination
+ * @{
+ */
+enum {
+    GPIO_PA0 = GPIO_PXX_TO_NUM(PORT_A, 0),          /**< PA0 */
+    GPIO_PA1 = GPIO_PXX_TO_NUM(PORT_A, 1),          /**< PA1 */
+    GPIO_PA2 = GPIO_PXX_TO_NUM(PORT_A, 2),          /**< PA2 */
+    GPIO_PA3 = GPIO_PXX_TO_NUM(PORT_A, 3),          /**< PA3 */
+    GPIO_PA4 = GPIO_PXX_TO_NUM(PORT_A, 4),          /**< PA4 */
+    GPIO_PA5 = GPIO_PXX_TO_NUM(PORT_A, 5),          /**< PA5 */
+    GPIO_PA6 = GPIO_PXX_TO_NUM(PORT_A, 6),          /**< PA6 */
+    GPIO_PA7 = GPIO_PXX_TO_NUM(PORT_A, 7),          /**< PA7 */
+    GPIO_PB0 = GPIO_PXX_TO_NUM(PORT_B, 0),          /**< PB0 */
+    GPIO_PB1 = GPIO_PXX_TO_NUM(PORT_B, 1),          /**< PB1 */
+    GPIO_PB2 = GPIO_PXX_TO_NUM(PORT_B, 2),          /**< PB2 */
+    GPIO_PB3 = GPIO_PXX_TO_NUM(PORT_B, 3),          /**< PB3 */
+    GPIO_PB4 = GPIO_PXX_TO_NUM(PORT_B, 4),          /**< PB4 */
+    GPIO_PB5 = GPIO_PXX_TO_NUM(PORT_B, 5),          /**< PB5 */
+    GPIO_PB6 = GPIO_PXX_TO_NUM(PORT_B, 6),          /**< PB6 */
+    GPIO_PB7 = GPIO_PXX_TO_NUM(PORT_B, 7),          /**< PB7 */
+    GPIO_PC0 = GPIO_PXX_TO_NUM(PORT_C, 0),          /**< PC0 */
+    GPIO_PC1 = GPIO_PXX_TO_NUM(PORT_C, 1),          /**< PC1 */
+    GPIO_PC2 = GPIO_PXX_TO_NUM(PORT_C, 2),          /**< PC2 */
+    GPIO_PC3 = GPIO_PXX_TO_NUM(PORT_C, 3),          /**< PC3 */
+    GPIO_PC4 = GPIO_PXX_TO_NUM(PORT_C, 4),          /**< PC4 */
+    GPIO_PC5 = GPIO_PXX_TO_NUM(PORT_C, 5),          /**< PC5 */
+    GPIO_PC6 = GPIO_PXX_TO_NUM(PORT_C, 6),          /**< PC6 */
+    GPIO_PC7 = GPIO_PXX_TO_NUM(PORT_C, 7),          /**< PC7 */
+    GPIO_PD0 = GPIO_PXX_TO_NUM(PORT_D, 0),          /**< PD0 */
+    GPIO_PD1 = GPIO_PXX_TO_NUM(PORT_D, 1),          /**< PD1 */
+    GPIO_PD2 = GPIO_PXX_TO_NUM(PORT_D, 2),          /**< PD2 */
+    GPIO_PD3 = GPIO_PXX_TO_NUM(PORT_D, 3),          /**< PD3 */
+    GPIO_PD4 = GPIO_PXX_TO_NUM(PORT_D, 4),          /**< PD4 */
+    GPIO_PD5 = GPIO_PXX_TO_NUM(PORT_D, 5),          /**< PD5 */
+    GPIO_PD6 = GPIO_PXX_TO_NUM(PORT_D, 6),          /**< PD6 */
+    GPIO_PD7 = GPIO_PXX_TO_NUM(PORT_D, 7),          /**< PD7 */
+};
+/** @} */
 
 /**
  * @brief GPIO port component registers
  */
-//typedef struct {
-//    cc2538_reg_t RESERVED1[255];                    /**< Reserved addresses */
-//    cc2538_reg_t DATA;                              /**< GPIO_A Data Register */
-//    cc2538_reg_t DIR;                               /**< GPIO_A data direction register */
-//    cc2538_reg_t IS;                                /**< GPIO_A Interrupt Sense register */
-//    cc2538_reg_t IBE;                               /**< GPIO_A Interrupt Both-Edges register */
-//    cc2538_reg_t IEV;                               /**< GPIO_A Interrupt Event Register */
-//    cc2538_reg_t IE;                                /**< GPIO_A Interrupt mask register */
-//    cc2538_reg_t RIS;                               /**< GPIO_A Raw Interrupt Status register */
-//    cc2538_reg_t MIS;                               /**< GPIO_A Masked Interrupt Status register */
-//    cc2538_reg_t IC;                                /**< GPIO_A Interrupt Clear register */
-//    cc2538_reg_t AFSEL;                             /**< GPIO_A Alternate Function / mode control select register */
-//    cc2538_reg_t RESERVED2[63];                     /**< Reserved addresses */
-//    cc2538_reg_t GPIOLOCK;                          /**< GPIO_A Lock register */
-//    cc2538_reg_t GPIOCR;                            /**< GPIO_A Commit Register */
-//    cc2538_reg_t RESERVED3[118];                    /**< Reserved addresses */
-//    cc2538_reg_t PMUX;                              /**< GPIO_A The PMUX register */
-//    cc2538_reg_t P_EDGE_CTRL;                       /**< GPIO_A The Port Edge Control register */
-//    cc2538_reg_t RESERVED4[2];                      /**< Reserved addresses */
-//    cc2538_reg_t PI_IEN;                            /**< GPIO_A The Power-up Interrupt Enable register */
-//    cc2538_reg_t RESERVED5[1];                      /**< Reserved addresses */
-//    cc2538_reg_t IRQ_DETECT_ACK;                    /**< GPIO_A IRQ Detect ACK register */
-//    cc2538_reg_t USB_IRQ_ACK;                       /**< GPIO_A IRQ Detect ACK for USB */
-//    cc2538_reg_t IRQ_DETECT_UNMASK;                 /**< GPIO_A IRQ Detect ACK for masked interrupts */
-//    cc2538_reg_t RESERVED6[567];                    /**< Reserved addresses */
-//} cc2538_gpio_t;
 typedef struct {
-    cc2538_reg_t DATA;                              /**< GPIO_A Data Register */
     cc2538_reg_t RESERVED1[255];                    /**< Reserved addresses */
+    cc2538_reg_t DATA;                              /**< GPIO_A Data Register */
     cc2538_reg_t DIR;                               /**< GPIO_A data direction register */
     cc2538_reg_t IS;                                /**< GPIO_A Interrupt Sense register */
     cc2538_reg_t IBE;                               /**< GPIO_A Interrupt Both-Edges register */
@@ -217,7 +220,6 @@ typedef struct {
     cc2538_reg_t IRQ_DETECT_UNMASK;                 /**< GPIO_A IRQ Detect ACK for masked interrupts */
     cc2538_reg_t RESERVED6[567];                    /**< Reserved addresses */
 } cc2538_gpio_t;
-
 
 /**
  * @brief IOC port component registers
@@ -280,45 +282,6 @@ typedef struct {
  * @{
  */
 #define IOC    ((cc2538_ioc_t *)0x400d4000)     /**< IOC instance */
-/** @} */
-
-/** @name Unique names for each GPIO port/pin combination
- * @{
- */
-enum {
-    GPIO_PA0 = GPIO_PXX_TO_NUM(PORT_A, 0),          /**< PA0 */
-    GPIO_PA1 = GPIO_PXX_TO_NUM(PORT_A, 1),          /**< PA1 */
-    GPIO_PA2 = GPIO_PXX_TO_NUM(PORT_A, 2),          /**< PA2 */
-    GPIO_PA3 = GPIO_PXX_TO_NUM(PORT_A, 3),          /**< PA3 */
-    GPIO_PA4 = GPIO_PXX_TO_NUM(PORT_A, 4),          /**< PA4 */
-    GPIO_PA5 = GPIO_PXX_TO_NUM(PORT_A, 5),          /**< PA5 */
-    GPIO_PA6 = GPIO_PXX_TO_NUM(PORT_A, 6),          /**< PA6 */
-    GPIO_PA7 = GPIO_PXX_TO_NUM(PORT_A, 7),          /**< PA7 */
-    GPIO_PB0 = GPIO_PXX_TO_NUM(PORT_B, 0),          /**< PB0 */
-    GPIO_PB1 = GPIO_PXX_TO_NUM(PORT_B, 1),          /**< PB1 */
-    GPIO_PB2 = GPIO_PXX_TO_NUM(PORT_B, 2),          /**< PB2 */
-    GPIO_PB3 = GPIO_PXX_TO_NUM(PORT_B, 3),          /**< PB3 */
-    GPIO_PB4 = GPIO_PXX_TO_NUM(PORT_B, 4),          /**< PB4 */
-    GPIO_PB5 = GPIO_PXX_TO_NUM(PORT_B, 5),          /**< PB5 */
-    GPIO_PB6 = GPIO_PXX_TO_NUM(PORT_B, 6),          /**< PB6 */
-    GPIO_PB7 = GPIO_PXX_TO_NUM(PORT_B, 7),          /**< PB7 */
-    GPIO_PC0 = GPIO_PXX_TO_NUM(PORT_C, 0),          /**< PC0 */
-    GPIO_PC1 = GPIO_PXX_TO_NUM(PORT_C, 1),          /**< PC1 */
-    GPIO_PC2 = GPIO_PXX_TO_NUM(PORT_C, 2),          /**< PC2 */
-    GPIO_PC3 = GPIO_PXX_TO_NUM(PORT_C, 3),          /**< PC3 */
-    GPIO_PC4 = GPIO_PXX_TO_NUM(PORT_C, 4),          /**< PC4 */
-    GPIO_PC5 = GPIO_PXX_TO_NUM(PORT_C, 5),          /**< PC5 */
-    GPIO_PC6 = GPIO_PXX_TO_NUM(PORT_C, 6),          /**< PC6 */
-    GPIO_PC7 = GPIO_PXX_TO_NUM(PORT_C, 7),          /**< PC7 */
-    GPIO_PD0 = GPIO_PXX_TO_NUM(PORT_D, 0),          /**< PD0 */
-    GPIO_PD1 = GPIO_PXX_TO_NUM(PORT_D, 1),          /**< PD1 */
-    GPIO_PD2 = GPIO_PXX_TO_NUM(PORT_D, 2),          /**< PD2 */
-    GPIO_PD3 = GPIO_PXX_TO_NUM(PORT_D, 3),          /**< PD3 */
-    GPIO_PD4 = GPIO_PXX_TO_NUM(PORT_D, 4),          /**< PD4 */
-    GPIO_PD5 = GPIO_PXX_TO_NUM(PORT_D, 5),          /**< PD5 */
-    GPIO_PD6 = GPIO_PXX_TO_NUM(PORT_D, 6),          /**< PD6 */
-    GPIO_PD7 = GPIO_PXX_TO_NUM(PORT_D, 7),          /**< PD7 */
-};
 /** @} */
 
 #ifdef __cplusplus

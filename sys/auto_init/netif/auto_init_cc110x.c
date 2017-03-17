@@ -49,19 +49,24 @@ static gnrc_netdev2_t _gnrc_netdev2_devs[CC110X_NUM];
 
 void auto_init_cc110x(void)
 {
+    DEBUG("auto_init_cc110x debug stack size: %u\n", DEBUG_EXTRA_STACKSIZE);
     for (unsigned i = 0; i < CC110X_NUM; i++) {
         const cc110x_params_t *p = &cc110x_params[i];
 
         LOG_DEBUG("[auto_init_netif] initializing cc110x #%u\n", i);
+        DEBUG("[auto_init_netif] initializing cc110x #%u\n", i);
 
         int res = netdev2_cc110x_setup(&cc110x_devs[i], p);
+        DEBUG("[auto_init_netif] finished: res=%i\n", res);
         if (res < 0) {
             LOG_ERROR("[auto_init_netif] error initializing cc110x #%u\n", i);
         }
         else {
+            DEBUG("[auto_init_netif] initializing cc110x_netdev #%u\n", i);
             gnrc_netdev2_cc110x_init(&_gnrc_netdev2_devs[i], &cc110x_devs[i]);
             res = gnrc_netdev2_init(_stacks[i], CC110X_MAC_STACKSIZE,
                     CC110X_MAC_PRIO, "cc110x", &_gnrc_netdev2_devs[i]);
+            DEBUG("[auto_init_netif] finished: res=%i\n", res);
             if (res < 0) {
                 LOG_ERROR("[auto_init_netif] error starting gnrc_cc110x thread\n");
             }

@@ -25,7 +25,7 @@
 #include "assert.h"
 #include "periph/spi.h"
 
-#define ENABLE_DEBUG    (1)
+#define ENABLE_DEBUG    (0)
 #include "debug.h"
 /**
  * @brief   Array holding one pre-initialized mutex for each SPI device

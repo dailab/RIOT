@@ -53,7 +53,7 @@ static inline void lock(cc110x_t *dev)
 void cc110x_cs(cc110x_t *dev)
 {
 #ifdef MODULE_CC1200
-    gpio_clear(dev->params.cs);
+    //gpio_clear(dev->params.cs);
     return;
 #endif 
     volatile int retry_count = 0;
@@ -213,7 +213,7 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
 
 uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
 {
-    DEBUG("%s:%u\n", __func__, __LINE__);
+    DEBUG("%s:%u strobe: %u\n", __func__, __LINE__, (unsigned int)c);
 #ifdef CC110X_DONT_RESET
     if (c == CC110X_SRES) {
         return 0;
@@ -225,9 +225,15 @@ uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    //result = spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF, false,  c);
     result = spi_transfer_byte(dev->params.spi, dev->params.cs, false,  c);
-    gpio_set(dev->params.cs);
+    if(c == CC110X_SRES){
+        gpio_clear(dev->params.cs);
+        result = spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF, false,  c);
+        xtimer_spin(xtimer_ticks_from_usec(RESET_WAIT_TIME));
+        gpio_set(dev->params.cs);
+    }else{
+        result = spi_transfer_byte(dev->params.spi, dev->params.cs, false,  c);
+    }
     irq_restore(cpsr);
     spi_release(dev->params.spi);
     return result;

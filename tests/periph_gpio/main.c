@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include "shell.h"
+#include "cc2538_gpio.h"
 #include "periph/gpio.h"
 
 static void cb(void *arg)
@@ -45,6 +46,8 @@ static int init_pin(int argc, char **argv, gpio_mode_t mode)
         printf("Error to initialize GPIO_PIN(%i, %02i)\n", po, pi);
         return 1;
     }
+    unsigned int pin = (unsigned int) GPIO_PIN(po, pi);
+    printf("Initialized gpio pin: %u\n", pin);
 
     return 0;
 }
@@ -228,7 +231,14 @@ int main(void)
          "      behavior for not existing ports/pins is not defined!");
 
     /* start the shell */
+    gpio_init(GPIO_PA5, GPIO_OUT);
+    gpio_set(GPIO_PA5);
+    gpio_t pin_test = GPIO_PIN(0, 5);
     char line_buf[SHELL_DEFAULT_BUFSIZE];
+    uint32_t port = (GPIO_PA5 & 0x18)>>3;
+    uint32_t gpio_addr_1 = (((uint32_t)GPIO_A)+(port << 12));
+    uint32_t gpio_addr_2 = (pin_test & 0xfffff000);
+    printf("gpio_addr_1=%u gpio_addr_2=%u\n", (unsigned int) gpio_addr_1, (unsigned int) gpio_addr_2);
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
     return 0;

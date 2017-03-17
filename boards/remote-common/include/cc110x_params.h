@@ -11,7 +11,7 @@
  * @{
  *
  * @file
- * @brief     cc1x0x board specific configuration
+ * @brief     cc110x board specific configuration
  *
  * @author    Kaspar Schleiser <kaspar@schleiser.de>
  */
@@ -26,13 +26,13 @@ extern "C" {
 #include "board.h"
 
 /**
- * @name CC1X0X configuration
+ * @name CC110X configuration
  */
 const cc110x_params_t cc110x_params[] = {
     {
         .spi  = 0,
-        //.cs   = CC1200_CSN_GPIO,
-        .cs   = GPIO_PA5,
+        .cs   = CC1200_CSN_GPIO,
+        //.cs   = GPIO_PA5,
         .gdo0 = CC1200_GPD0_GPIO,
         .gdo1 = CC1200_MISO_GPIO,
         .gdo2 = CC1200_GPD2_GPIO

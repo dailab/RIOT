@@ -37,13 +37,19 @@
 
 static inline cc2538_gpio_t *gpio(gpio_t pin)
 {
-    return (cc2538_gpio_t *)(pin & GPIO_MASK);
+    if((uint32_t)pin < (uint32_t)GPIO_A){
+        uint32_t port = (pin & 0x18) >> 3;
+        return (cc2538_gpio_t*)(((uint32_t)GPIO_A)+(port << PORTNUM_SHIFT));
+    }else{
+        return (cc2538_gpio_t *)(pin & GPIO_MASK);
+    }
+        //return (cc2538_gpio_t *)(pin & GPIO_MASK);
 }
 
 static inline int port_num(gpio_t pin)
 {
-    //return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
-    return (int)(((pin - (uint32_t)GPIO_A) & PORTNUM_MASK) >> PORTNUM_SHIFT);
+    return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
+    //return (int)(((pin - (uint32_t)GPIO_A) & PORTNUM_MASK) >> PORTNUM_SHIFT);
 }
 
 static inline int pin_num(gpio_t pin)
@@ -116,7 +122,7 @@ int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
         case GPIO_RISING:
             gpio(pin)->IBE &= ~pin_mask(pin);
             gpio(pin)->IEV |=  pin_mask(pin);
-            gpio(pin)->P_EDGE_CTRL &= (1 << pp_num(pin));
+            gpio(pin)->P_EDGE_CTRL &= ~(1 << pp_num(pin));
             break;
         case GPIO_BOTH:
             gpio(pin)->IBE |= pin_mask(pin);
