@@ -138,7 +138,7 @@ int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
     gpio(pin)->IC = pin_mask(pin);
     gpio(pin)->PI_IEN |= (1 << pp_num(pin));
     /* enable global interrupt for the selected GPIO port */
-    printf("gp/io_init_int port: 0x%x\n", (unsigned int)(port_num(pin)&0x1FUL));
+    //printf("gp/io_init_int port: 0x%x\n", (unsigned int)(port_num(pin)&0x1FUL));
     NVIC_EnableIRQ(GPIO_PORT_A_IRQn + port_num(pin));
     //core_panic(PANIC_DEBUG_MON, message);
     /* unmask pin interrupt */
