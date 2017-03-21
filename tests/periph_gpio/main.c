@@ -139,6 +139,7 @@ static int init_int(int argc, char **argv)
         }
     }
 
+    printf("Trying to initialize GPIO_PIN(%i, %i) = 0x%x\n", po, pi, (unsigned int)(GPIO_PIN(po,pi)));
     if (gpio_init_int(GPIO_PIN(po, pi), mode, flank, cb, (void *)pi) < 0) {
         printf("error: init_int of GPIO_PIN(%i, %i) failed\n", po, pi);
         return 1;
@@ -231,14 +232,17 @@ int main(void)
          "      behavior for not existing ports/pins is not defined!");
 
     /* start the shell */
-    gpio_init(GPIO_PA5, GPIO_OUT);
-    gpio_set(GPIO_PA5);
-    gpio_t pin_test = GPIO_PIN(0, 5);
+    gpio_init(GPIO_PD2, GPIO_OUT);
+    gpio_set(GPIO_PD2);
+    //gpio_t pin_test = GPIO_PIN(3, 2);
     char line_buf[SHELL_DEFAULT_BUFSIZE];
-    uint32_t port = (GPIO_PA5 & 0x18)>>3;
+    /*
+    uint32_t port = (GPIO_PD2 & 0x18) >> 3;
     uint32_t gpio_addr_1 = (((uint32_t)GPIO_A)+(port << 12));
     uint32_t gpio_addr_2 = (pin_test & 0xfffff000);
     printf("gpio_addr_1=%u gpio_addr_2=%u\n", (unsigned int) gpio_addr_1, (unsigned int) gpio_addr_2);
+    printf("Port: %u\n", (unsigned int)port);
+    */
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
     return 0;
