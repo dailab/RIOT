@@ -25,13 +25,9 @@
 #include "cpu.h"
 #include "periph/gpio.h"
 
-
 #define GPIO_MASK           (0xfffff000)
-//#define GPIO_MASK           (0xffffff38)
 #define PORTNUM_MASK        (0x00003000)
-//#define PORTNUM_MASK        (0x000038)
 #define PORTNUM_SHIFT       (12U)
-//#define PORTNUM_SHIFT       (3U)
 #define PIN_MASK            (0x00000007)
 #define MODE_NOTSUP         (0xff)
 
@@ -43,12 +39,10 @@ static inline cc2538_gpio_t *gpio(gpio_t pin)
     }else{
         return (cc2538_gpio_t *)(pin & GPIO_MASK);
     }
-        //return (cc2538_gpio_t *)(pin & GPIO_MASK);
 }
 
 static inline int port_num(gpio_t pin)
 {
-    //return (int)((pin & PORTNUM_MASK) >> PORTNUM_SHIFT) - 1;
     if(((uint32_t)pin &GPIO_MASK) == 0){
         return ((pin & 0x18) >> 3);
     }
@@ -102,7 +96,6 @@ int gpio_init(gpio_t pin, gpio_mode_t mode)
 int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
                   gpio_cb_t cb, void *arg)
 {
-
     if (gpio_init(pin, mode) != 0) {
         return -1;
     }
@@ -113,7 +106,6 @@ int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
 
     /* enable power-up interrupts for this GPIO port: */
     SYS_CTRL->IWE |= (1 << port_num(pin));
-    //SYS_CTRL->IWE |= port_num(pin);
 
     /* configure the active flank(s) */
     gpio(pin)->IS &= ~pin_mask(pin);
@@ -134,13 +126,12 @@ int gpio_init_int(gpio_t pin, gpio_mode_t mode, gpio_flank_t flank,
         default:
             return -1;
     }
+
     /* reset interrupt status */
     gpio(pin)->IC = pin_mask(pin);
     gpio(pin)->PI_IEN |= (1 << pp_num(pin));
     /* enable global interrupt for the selected GPIO port */
-    //printf("gp/io_init_int port: 0x%x\n", (unsigned int)(port_num(pin)&0x1FUL));
     NVIC_EnableIRQ(GPIO_PORT_A_IRQn + port_num(pin));
-    //core_panic(PANIC_DEBUG_MON, message);
     /* unmask pin interrupt */
     gpio(pin)->IE |= pin_mask(pin);
 
@@ -180,12 +171,10 @@ void gpio_toggle(gpio_t pin)
 void gpio_write(gpio_t pin, int value)
 {
     if (value) {
-        //gpio(pin)->DATA |= pin_mask(pin);
-        gpio_set(pin);
+        gpio(pin)->DATA |= pin_mask(pin);
     }
     else {
-        //gpio(pin)->DATA &= ~pin_mask(pin);
-        gpio_clear(pin);
+        gpio(pin)->DATA &= ~pin_mask(pin);
     }
 }
 
