@@ -18,8 +18,8 @@
  * @author      Peter Kietzmann <peter.kietzmann@haw-hamburg.de>
  */
 
-#ifndef PERIPH_CONF_H_
-#define PERIPH_CONF_H_
+#ifndef PERIPH_CONF_H
+#define PERIPH_CONF_H
 
 #include "periph_cpu.h"
 
@@ -51,7 +51,7 @@ extern "C" {
 /** @} */
 
 /**
- * @brief   Timer configuration
+ * @name   Timer configuration
  * @{
  */
 static const timer_conf_t timer_config[] = {
@@ -78,40 +78,41 @@ static const timer_conf_t timer_config[] = {
 /** @} */
 
 /**
- * @name UART configuration
+ * @name   UART configuration
  * @{
  */
 static const uart_conf_t uart_config[] = {
     {
         .dev        = USART6,
         .rcc_mask   = RCC_APB2ENR_USART6EN,
-        .rx_pin     = GPIO_PIN(PORT_C,7),
-        .tx_pin     = GPIO_PIN(PORT_C,6),
-        .af         = GPIO_AF8,
+        .rx_pin     = GPIO_PIN(PORT_C, 7),
+        .tx_pin     = GPIO_PIN(PORT_C, 6),
+        .rx_af      = GPIO_AF8,
+        .tx_af      = GPIO_AF8,
         .bus        = APB2,
-        .irqn       = USART6_IRQn,
+        .irqn       = USART6_IRQn
+#ifdef UART_USE_DMA
         .dma_stream = 14,
         .dma_chan   = 5
-    },
+#endif
+    }
 };
 
-/* assign ISR vector names */
-#define UART_0_ISR          isr_usart6
-#define UART_0_DMA_ISR      isr_dma2_stream6
+#define UART_0_ISR          (isr_usart6)
+#define UART_0_DMA_ISR      (isr_dma2_stream6)
 
-/* deduct number of defined UART interfaces */
 #define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
 /** @} */
 
 /**
- * @brief   ADC configuration
+ * @name   ADC configuration
  * @{
  */
 #define ADC_NUMOF           (0)
 /** @} */
 
 /**
- * @brief   DAC configuration
+ * @name   DAC configuration
  * @{
  */
 #define DAC_NUMOF           (0)
@@ -121,5 +122,5 @@ static const uart_conf_t uart_config[] = {
 }
 #endif
 
-#endif /* PERIPH_CONF_H_ */
+#endif /* PERIPH_CONF_H */
 /** @} */

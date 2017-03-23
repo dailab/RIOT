@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include "timex.h"
 #include "msg.h"
+#include "mutex.h"
 
 #include "board.h"
 #include "periph_conf.h"
@@ -46,7 +47,7 @@ extern "C" {
  * @note This is a struct in order to make the xtimer API type strict
  */
 typedef struct {
-    uint64_t ticks64;
+    uint64_t ticks64;       /**< Tick count */
 } xtimer_ticks64_t;
 
 /**
@@ -55,7 +56,7 @@ typedef struct {
  * @note This is a struct in order to make the xtimer API type strict
  */
 typedef struct {
-    uint32_t ticks32;
+    uint32_t ticks32;       /**< Tick count */
 } xtimer_ticks32_t;
 
 /**
@@ -67,12 +68,12 @@ typedef void (*xtimer_callback_t)(void*);
  * @brief xtimer timer structure
  */
 typedef struct xtimer {
-    struct xtimer *next;        /**< reference to next timer in timer lists */
-    uint32_t target;            /**< lower 32bit absolute target time */
-    uint32_t long_target;       /**< upper 32bit absolute target time */
+    struct xtimer *next;         /**< reference to next timer in timer lists */
+    uint32_t target;             /**< lower 32bit absolute target time */
+    uint32_t long_target;        /**< upper 32bit absolute target time */
     xtimer_callback_t callback;  /**< callback function to call when timer
                                      expires */
-    void *arg;                  /**< argument to pass to callback function */
+    void *arg;                   /**< argument to pass to callback function */
 } xtimer_t;
 
 /**
@@ -424,6 +425,19 @@ static inline bool xtimer_less(xtimer_ticks32_t a, xtimer_ticks32_t b);
  * @return @p a < @p b
  */
 static inline bool xtimer_less64(xtimer_ticks64_t a, xtimer_ticks64_t b);
+
+/**
+ * @brief lock a mutex but with timeout
+ *
+ * @note this requires core_thread_flags to be enabled
+ *
+ * @param[in]    mutex  mutex to lock
+ * @param[in]    us     timeout in microseconds relative
+ *
+ * @return       0, when returned after mutex was locked
+ * @return       -1, when the timeout occcured
+ */
+int xtimer_mutex_lock_timeout(mutex_t *mutex, uint64_t us);
 
 /**
  * @brief xtimer backoff value

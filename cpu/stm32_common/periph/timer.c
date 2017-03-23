@@ -23,6 +23,28 @@
 #include "periph/timer.h"
 
 /**
+ * @brief   Timer specific additional bus clock presacler
+ *
+ * This prescale factor is dependent on the actual APBx bus clock divider, if
+ * the APBx presacler is != 1, it is set to 2, if the APBx prescaler is == 1, it
+ * is set to 1.
+ *
+ * See reference manuals section 'reset and clock control'.
+ */
+static const uint8_t apbmul[] = {
+#if (CLOCK_APB1 < CLOCK_CORECLOCK)
+    [APB1] = 2,
+#else
+    [APB1] = 1,
+#endif
+#if (CLOCK_APB2 < CLOCK_CORECLOCK)
+    [APB2] = 2
+#else
+    [APB2] = 1
+#endif
+};
+
+/**
  * @brief   Interrupt context for each configured timer
  */
 static timer_isr_ctx_t isr_ctx[TIMER_NUMOF];
@@ -53,13 +75,15 @@ int timer_init(tim_t tim, unsigned long freq, timer_cb_t cb, void *arg)
     dev(tim)->CR1  = 0;
     dev(tim)->CR2  = 0;
     dev(tim)->ARR  = timer_config[tim].max;
+
     /* set prescaler */
-    dev(tim)->PSC = ((periph_apb_clk(timer_config[tim].bus) / freq) - 1);
+    dev(tim)->PSC = (((periph_apb_clk(timer_config[tim].bus) *
+                       apbmul[timer_config[tim].bus]) / freq) - 1);
     /* generate an update event to apply our configuration */
     dev(tim)->EGR = TIM_EGR_UG;
 
     /* enable the timer's interrupt */
-    timer_irq_enable(tim);
+    NVIC_EnableIRQ(timer_config[tim].irqn);
     /* reset the counter and start the timer */
     timer_start(tim);
 
@@ -110,21 +134,11 @@ void timer_stop(tim_t tim)
     dev(tim)->CR1 &= ~(TIM_CR1_CEN);
 }
 
-void timer_irq_enable(tim_t tim)
-{
-    NVIC_EnableIRQ(timer_config[tim].irqn);
-}
-
-void timer_irq_disable(tim_t tim)
-{
-    NVIC_DisableIRQ(timer_config[tim].irqn);
-}
-
 static inline void irq_handler(tim_t tim)
 {
     uint32_t status = (dev(tim)->SR & dev(tim)->DIER);
 
-    for (uint8_t i = 0; i < TIMER_CHAN; i++) {
+    for (unsigned int i = 0; i < TIMER_CHAN; i++) {
         if (status & (TIM_SR_CC1IF << i)) {
             dev(tim)->DIER &= ~(TIM_DIER_CC1IE << i);
             isr_ctx[tim].cb(isr_ctx[tim].arg, i);

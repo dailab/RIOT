@@ -28,31 +28,6 @@ extern "C" {
 #endif
 
 /**
- * @brief   Generate GPIO mode bitfields
- *
- * We use 5 bit to encode the mode:
- * - bit 0+1: pin mode (input / output)
- * - bit 2+3: pull resistor configuration
- * - bit   4: output type (0: push-pull, 1: open-drain)
- */
-#define GPIO_MODE(io, pr, ot)   ((io << 0) | (pr << 2) | (ot << 4))
-
-/**
- * @brief   Override GPIO mode options
- * @{
- */
-#define HAVE_GPIO_MODE_T
-typedef enum {
-    GPIO_IN    = GPIO_MODE(0, 0, 0),    /**< input w/o pull R */
-    GPIO_IN_PD = GPIO_MODE(0, 2, 0),    /**< input with pull-down */
-    GPIO_IN_PU = GPIO_MODE(0, 1, 0),    /**< input with pull-up */
-    GPIO_OUT   = GPIO_MODE(1, 0, 0),    /**< push-pull output */
-    GPIO_OD    = GPIO_MODE(1, 0, 1),    /**< open-drain w/o pull R */
-    GPIO_OD_PU = GPIO_MODE(1, 1, 1)     /**< open-drain with pull-up */
-} gpio_mode_t;
-/** @} */
-
-/**
  * @brief   Available ports on the STM32F2 family
  */
 enum {
@@ -66,29 +41,6 @@ enum {
     PORT_H = 7,             /**< port H */
     PORT_I = 8              /**< port I */
 };
-
-/**
- * @brief   Structure for UART configuration data
- * @{
- */
-typedef struct {
-    USART_TypeDef *dev;     /**< UART device base register address */
-    uint32_t rcc_mask;      /**< bit in clock enable register */
-    gpio_t rx_pin;          /**< RX pin */
-    gpio_t tx_pin;          /**< TX pin */
-    gpio_mode_t rx_mode;    /**< RX pin mode */
-    gpio_mode_t tx_mode;    /**< TX pin mode */
-    gpio_t rts_pin;         /**< RTS pin */
-    gpio_t cts_pin;         /**< CTS pin */
-    gpio_mode_t rts_mode;   /**< RTS pin mode */
-    gpio_mode_t cts_mode;   /**< CTS pin mode */
-    gpio_af_t af;           /**< alternate pin function to use */
-    uint8_t irqn;           /**< IRQ channel */
-    uint8_t dma_stream;     /**< DMA stream used for TX */
-    uint8_t dma_chan;       /**< DMA channel used for TX */
-    uint8_t hw_flow_ctrl;   /**< Support for hardware flow control */
-} uart_conf_t;
-/** @} */
 
 /**
  * @brief   Available number of ADC devices
@@ -126,23 +78,6 @@ typedef struct {
     gpio_t pin;             /**< pin connected to the line */
     uint8_t chan;           /**< DAC device used for this line */
 } dac_conf_t;
-
-/**
- * @brief   Configure the alternate function for the given pin
- *
- * @note    This is meant for internal use in STM32F2 peripheral drivers only
- *
- * @param[in] pin       pin to configure
- * @param[in] af        alternate function to use
- */
-void gpio_init_af(gpio_t pin, gpio_af_t af);
-
-/**
- * @brief   Configure the given pin to be used as ADC input
- *
- * @param[in] pin       pin to configure
- */
-void gpio_init_analog(gpio_t pin);
 
 /**
  * @brief   Power on the DMA device the given stream belongs to
@@ -218,6 +153,11 @@ static inline uint32_t dma_ifc(int stream)
     }
 }
 
+/**
+ * @brief   Enable DMA interrupts
+ *
+ * @param[in] stream    logical DMA stream
+ */
 static inline void dma_isr_enable(int stream)
 {
     if (stream < 7) {
