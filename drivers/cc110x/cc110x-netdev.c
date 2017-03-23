@@ -169,8 +169,11 @@ static void _netdev_cc110x_isr(void *arg)
     DEBUG("%s:%u\n", __func__, __LINE__);
     netdev_t *netdev = (netdev_t*) arg;
     unsigned state = irq_disable();
+    DEBUG("%s:%u\n", __func__, __LINE__);
     netdev->event_callback(netdev, NETDEV_EVENT_ISR);
+    DEBUG("%s:%u\n", __func__, __LINE__);
     irq_restore(state);
+    DEBUG("%s:%u\n", __func__, __LINE__);
 }
 
 static void _netdev_cc110x_rx_callback(void *arg)
