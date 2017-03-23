@@ -28,7 +28,7 @@
 #include "cc2538_rf_netdev.h"
 #include "cc2538_rf_internal.h"
 
-#define ENABLE_DEBUG        (0)
+#define ENABLE_DEBUG        (1)
 #include "debug.h"
 
 #define _MAX_MHR_OVERHEAD   (25)
@@ -366,7 +366,9 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
 
 static void _isr(netdev2_t *netdev)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     netdev->event_callback(netdev, NETDEV2_EVENT_RX_COMPLETE);
+    DEBUG("%s:%u\n", __func__, __LINE__);
 }
 
 static int _init(netdev2_t *netdev)

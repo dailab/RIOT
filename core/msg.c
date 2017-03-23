@@ -30,7 +30,7 @@
 #include "irq.h"
 #include "cib.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 #include "thread.h"
 
@@ -56,11 +56,14 @@ static int queue_msg(thread_t *target, const msg_t *m)
 int msg_send(msg_t *m, kernel_pid_t target_pid)
 {
     if (irq_is_in()) {
+    DEBUG("%s:%u\n", __func__, __LINE__);
         return msg_send_int(m, target_pid);
     }
     if (sched_active_pid == target_pid) {
+    DEBUG("%s:%u\n", __func__, __LINE__);
         return msg_send_to_self(m);
     }
+    DEBUG("%s:%u\n", __func__, __LINE__);
     return _msg_send(m, target_pid, true, irq_disable());
 }
 
@@ -175,6 +178,7 @@ int msg_send_to_self(msg_t *m)
 
 int msg_send_int(msg_t *m, kernel_pid_t target_pid)
 {
+    DEBUG("%s:%u MASK: %x on pid:%i\n", __func__, __LINE__, (unsigned int)__get_PRIMASK(), (int) target_pid);
 #ifdef DEVELHELP
     if (!pid_is_valid(target_pid)) {
         DEBUG("msg_send(): target_pid is invalid, continuing anyways\n");
@@ -280,6 +284,7 @@ int msg_receive(msg_t *m)
 static int _msg_receive(msg_t *m, int block)
 {
     unsigned state = irq_disable();
+    DEBUG("%s:%s:%u irq_state=%x\n", RIOT_FILE_RELATIVE, __func__, __LINE__, state);
     DEBUG("_msg_receive: %" PRIkernel_pid ": _msg_receive.\n",
           sched_active_thread->pid);
 
@@ -317,8 +322,9 @@ static int _msg_receive(msg_t *m, int block)
                   sched_active_thread->pid);
             sched_set_status(me, STATUS_RECEIVE_BLOCKED);
 
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    DEBUG("%s:%s:%u irq_state=%x\n", RIOT_FILE_RELATIVE, __func__, __LINE__, state);
             irq_restore(state);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
             thread_yield_higher();
 
             /* sender copied message */

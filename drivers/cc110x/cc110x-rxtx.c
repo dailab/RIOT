@@ -217,6 +217,7 @@ static void _tx_continue(cc110x_t *dev)
 
 void cc110x_isr_handler(cc110x_t *dev, void(*callback)(void*), void*arg)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     switch (dev->radio_state) {
         case RADIO_RX:
             if (gpio_read(dev->params.gdo2)) {

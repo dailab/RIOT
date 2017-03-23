@@ -168,7 +168,9 @@ static void _netdev2_cc110x_isr(void *arg)
 {
     DEBUG("%s:%u\n", __func__, __LINE__);
     netdev2_t *netdev2 = (netdev2_t*) arg;
+    unsigned state = irq_disable();
     netdev2->event_callback(netdev2, NETDEV2_EVENT_ISR);
+    irq_restore(state);
 }
 
 static void _netdev2_cc110x_rx_callback(void *arg)
@@ -189,7 +191,6 @@ static void _isr(netdev2_t *dev)
 static int _init(netdev2_t *dev)
 {
     DEBUG("%s:%u\n", __func__, __LINE__);
-
     cc110x_t *cc110x = &((netdev2_cc110x_t*) dev)->cc110x;
 
     gpio_init_int(cc110x->params.gdo2, GPIO_IN, GPIO_BOTH,

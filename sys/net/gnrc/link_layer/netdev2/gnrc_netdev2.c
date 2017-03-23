@@ -30,7 +30,7 @@
 #include "net/gnrc/netdev2.h"
 #include "net/ethernet/hdr.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 #if defined(MODULE_OD) && ENABLE_DEBUG
@@ -48,9 +48,11 @@ static void _pass_on_packet(gnrc_pktsnip_t *pkt);
  */
 static void _event_cb(netdev2_t *dev, netdev2_event_t event)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     gnrc_netdev2_t *gnrc_netdev2 = (gnrc_netdev2_t*) dev->context;
 
     if (event == NETDEV2_EVENT_ISR) {
+        DEBUG("%s:%u\n", __func__, __LINE__);
         msg_t msg;
 
         msg.type = NETDEV2_MSG_TYPE_EVENT;
