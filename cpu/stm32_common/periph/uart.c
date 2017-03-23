@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016 Freie Universität Berlin
+ * Copyright (C) 2014-2017 Freie Universität Berlin
  * Copyright (C) 2016 OTA keys
  *
  * This file is subject to the terms and conditions of the GNU Lesser
@@ -8,7 +8,7 @@
  */
 
 /**
- * @ingroup     cpu_stm32f2
+ * @ingroup     cpu_stm32_common
  * @{
  *
  * @file
@@ -56,8 +56,7 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
     isr_ctx[uart].rx_cb = rx_cb;
     isr_ctx[uart].arg   = arg;
 
-    /* configure RX and TX pin */
-    gpio_init(uart_config[uart].rx_pin, GPIO_IN);
+    /* configure TX pin */
     gpio_init(uart_config[uart].tx_pin, GPIO_OUT);
     /* set TX pin high to avoid garbage during further initialization */
     gpio_set(uart_config[uart].tx_pin);
@@ -65,8 +64,14 @@ int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg)
     gpio_init_af(uart_config[uart].tx_pin, GPIO_AF_OUT_PP);
 #else
     gpio_init_af(uart_config[uart].tx_pin, uart_config[uart].tx_af);
-    gpio_init_af(uart_config[uart].rx_pin, uart_config[uart].rx_af);
 #endif
+    /* configure RX pin */
+    if (rx_cb) {
+        gpio_init(uart_config[uart].rx_pin, GPIO_IN);
+#ifndef CPU_FAM_STM32F1
+        gpio_init_af(uart_config[uart].rx_pin, uart_config[uart].rx_af);
+#endif
+    }
 
     /* enable the clock */
     periph_clk_en(uart_config[uart].bus, uart_config[uart].rcc_mask);
@@ -99,7 +104,7 @@ void uart_write(uart_t uart, const uint8_t *data, size_t len)
     assert(uart < UART_NUMOF);
 
     for (size_t i = 0; i < len; i++) {
-#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32F3)
+#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32L0) || defined(CPU_FAM_STM32F3)
         while (!(dev(uart)->ISR & USART_ISR_TXE)) {}
         dev(uart)->TDR = data[i];
 #else
@@ -110,7 +115,7 @@ void uart_write(uart_t uart, const uint8_t *data, size_t len)
 
     /* make sure the function is synchronous by waiting for the transfer to
      * finish */
-#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32F3)
+#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32L0) || defined(CPU_FAM_STM32F3)
     while (!(dev(uart)->ISR & USART_ISR_TC)) {}
 #else
     while (!(dev(uart)->SR & USART_SR_TC)) {}
@@ -131,7 +136,7 @@ void uart_poweroff(uart_t uart)
 
 static inline void irq_handler(uart_t uart)
 {
-#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32F3)
+#if defined(CPU_FAM_STM32F0) || defined(CPU_FAM_STM32L0) || defined(CPU_FAM_STM32F3)
 
     uint32_t status = dev(uart)->ISR;
 

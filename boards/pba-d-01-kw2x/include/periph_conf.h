@@ -141,7 +141,7 @@ static const adc_conf_t adc_config[] = {
 /** @} */
 
 /**
- * @brief   PWM configuration
+ * @name    PWM configuration
  * @{
  */
 static const pwm_conf_t pwm_config[] = {
@@ -218,8 +218,8 @@ static const spi_conf_t spi_config[] = {
             GPIO_UNDEF,
             GPIO_UNDEF
         },
-        .simmask  = SIM_SCGC6_SPI0_MASK,
-        .pcr      = GPIO_AF_2
+        .pcr      = GPIO_AF_2,
+        .simmask  = SIM_SCGC6_SPI0_MASK
     },
     {
         .dev      = SPI1,
@@ -233,8 +233,8 @@ static const spi_conf_t spi_config[] = {
             GPIO_UNDEF,
             GPIO_UNDEF
         },
-        .simmask  = SIM_SCGC6_SPI1_MASK,
-        .pcr      = GPIO_AF_2
+        .pcr      = GPIO_AF_2,
+        .simmask  = SIM_SCGC6_SPI1_MASK
     }
 };
 

@@ -28,14 +28,6 @@
 #include "sht11.h"
 #endif
 
-#ifdef MODULE_GPIOINT
-#include "gpioint.h"
-#endif
-
-#ifdef MODULE_LTC4150
-#include "ltc4150.h"
-#endif
-
 #ifdef MODULE_MCI
 #include "diskio.h"
 #endif
@@ -120,14 +112,6 @@ void auto_init(void)
     DEBUG("Auto init SHT11 module.\n");
     sht11_init();
 #endif
-#ifdef MODULE_GPIOINT
-    DEBUG("Auto init gpioint module.\n");
-    gpioint_init();
-#endif
-#ifdef MODULE_LTC4150
-    DEBUG("Auto init ltc4150 module.\n");
-    ltc4150_init();
-#endif
 #ifdef MODULE_MCI
     DEBUG("Auto init mci module.\n");
     mci_initialize();
@@ -167,6 +151,11 @@ void auto_init(void)
 #ifdef MODULE_GCOAP
     DEBUG("Auto init gcoap module.\n");
     gcoap_init();
+#endif
+#ifdef MODULE_DEVFS
+    DEBUG("Mounting /dev\n");
+    extern void auto_init_devfs(void);
+    auto_init_devfs();
 #endif
 
 /* initialize network devices */
@@ -227,9 +216,9 @@ void auto_init(void)
     auto_init_kw2xrf();
 #endif
 
-#ifdef MODULE_NETDEV2_TAP
-    extern void auto_init_netdev2_tap(void);
-    auto_init_netdev2_tap();
+#ifdef MODULE_NETDEV_TAP
+    extern void auto_init_netdev_tap(void);
+    auto_init_netdev_tap();
 #endif
 
 #ifdef MODULE_NORDIC_SOFTDEVICE_BLE
@@ -310,6 +299,10 @@ void auto_init(void)
     extern void auto_init_jc42(void);
     auto_init_jc42();
 #endif
+#ifdef MODULE_TSL2561
+    extern void auto_init_tsl2561(void);
+    auto_init_tsl2561();
+#endif
 #ifdef MODULE_HDC1000
     extern void auto_init_hdc1000(void);
     auto_init_hdc1000();
@@ -317,6 +310,18 @@ void auto_init(void)
 #ifdef MODULE_DHT
     extern void auto_init_dht(void);
     auto_init_dht();
+#endif
+#ifdef MODULE_TCS37727
+    extern void auto_init_tcs37727(void);
+    auto_init_tcs37727();
+#endif
+#ifdef MODULE_VEML6070
+    extern void auto_init_veml6070(void);
+    auto_init_veml6070();
+#endif
+#ifdef MODULE_ADXL345
+    extern void auto_init_adxl345(void);
+    auto_init_adxl345();
 #endif
 
 #endif /* MODULE_AUTO_INIT_SAUL */

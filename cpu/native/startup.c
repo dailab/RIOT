@@ -59,13 +59,22 @@ unsigned _native_rng_seed = 0;
 int _native_rng_mode = 0;
 const char *_native_unix_socket_path = NULL;
 
-#ifdef MODULE_NETDEV2_TAP
-#include "netdev2_tap_params.h"
+#ifdef MODULE_NETDEV_TAP
+#include "netdev_tap_params.h"
 
-netdev2_tap_params_t netdev2_tap_params[NETDEV2_TAP_MAX];
+netdev_tap_params_t netdev_tap_params[NETDEV_TAP_MAX];
 #endif
 
-static const char short_opts[] = ":hi:s:deEoc:";
+#ifdef MODULE_MTD_NATIVE
+#include "board.h"
+#include "mtd_native.h"
+#endif
+
+static const char short_opts[] = ":hi:s:deEoc:"
+#ifdef MODULE_MTD_NATIVE
+    "m:"
+#endif
+    "";
 static const struct option long_opts[] = {
     { "help", no_argument, NULL, 'h' },
     { "id", required_argument, NULL, 'i' },
@@ -75,6 +84,9 @@ static const struct option long_opts[] = {
     { "stderr-noredirect", no_argument, NULL, 'E' },
     { "stdout-pipe", no_argument, NULL, 'o' },
     { "uart-tty", required_argument, NULL, 'c' },
+#ifdef MODULE_MTD_NATIVE
+    { "mtd", required_argument, NULL, 'm' },
+#endif
     { NULL, 0, NULL, '\0' },
 };
 
@@ -199,8 +211,8 @@ void usage_exit(int status)
 {
     real_printf("usage: %s", _progname);
 
-#if defined(MODULE_NETDEV2_TAP)
-    for (int i = 0; i < NETDEV2_TAP_MAX; i++) {
+#if defined(MODULE_NETDEV_TAP)
+    for (int i = 0; i < NETDEV_TAP_MAX; i++) {
         real_printf(" <tap interface %d>", i + 1);
     }
 #endif
@@ -230,6 +242,11 @@ void usage_exit(int status)
 "    -c <tty>, --uart-tty=<tty>\n"
 "        specify TTY device for UART. This argument can be used multiple\n"
 "        times (up to UART_NUMOF)\n");
+#ifdef MODULE_MTD_NATIVE
+    real_printf(
+"    -m <mtd>, --mtd=<mtd>\n"
+"       specify the file name of mtd emulated device\n");
+#endif
     real_exit(status);
 }
 
@@ -285,12 +302,17 @@ __attribute__((constructor)) static void startup(int argc, char **argv)
             case 'c':
                 tty_uart_setup(uart++, optarg);
                 break;
+#ifdef MODULE_MTD_NATIVE
+            case 'm':
+                mtd0.fname = strndup(optarg, PATH_MAX - 1);
+                break;
+#endif
             default:
                 usage_exit(EXIT_FAILURE);
         }
     }
-#ifdef MODULE_NETDEV2_TAP
-    for (int i = 0; i < NETDEV2_TAP_MAX; i++) {
+#ifdef MODULE_NETDEV_TAP
+    for (int i = 0; i < NETDEV_TAP_MAX; i++) {
         if (argv[optind + i] == NULL) {
             /* no tap parameter left */
             usage_exit(EXIT_FAILURE);
@@ -321,9 +343,9 @@ __attribute__((constructor)) static void startup(int argc, char **argv)
 
     native_cpu_init();
     native_interrupt_init();
-#ifdef MODULE_NETDEV2_TAP
-    for (int i = 0; i < NETDEV2_TAP_MAX; i++) {
-        netdev2_tap_params[i].tap_name = &argv[optind + i];
+#ifdef MODULE_NETDEV_TAP
+    for (int i = 0; i < NETDEV_TAP_MAX; i++) {
+        netdev_tap_params[i].tap_name = &argv[optind + i];
     }
 #endif
 
