@@ -44,7 +44,11 @@ void cc110x_setup_rx_mode(cc110x_t *dev);
 void cc110x_switch_to_pwd(cc110x_t *dev);
 void cc110x_switch_to_rx(cc110x_t *dev);
 void cc110x_wakeup_from_rx(cc110x_t *dev);
+#ifndef MODULE_CC1200
 void cc110x_write_register(cc110x_t *dev, uint8_t r, uint8_t value);
+#else
+void cc110x_write_register(cc110x_t *dev, uint16_t r, uint8_t value);
+#endif
 
 extern const char cc110x_default_conf[];
 extern const uint8_t cc110x_default_conf_size;

@@ -18,7 +18,7 @@ USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps
 USEMODULE += xtimer
-CFLAGS += -DDEVELHELP
+#CFLAGS += -DDEVELHELP
 
 include $(RIOTBASE)/Makefile.include
 

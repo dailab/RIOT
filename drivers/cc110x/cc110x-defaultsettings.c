@@ -113,7 +113,8 @@ const char cc110x_default_conf[] = {
     0x4E, /* SYNC2 */
     0x90, /* SYNC1 */
     0x4E, /* SYNC0 */
-    0xE5, /* SYNC CFG1 */
+    //0xE5, /* SYNC CFG1 */
+    0xAA, /* SYNC CFG1 */
     0x23, /* SYNC CFG0 */
     0x47, /* DEVIATION M */
     0x0B, /* MODCFG DEV E */
@@ -134,7 +135,8 @@ const char cc110x_default_conf[] = {
     0x00, /* AGC CFG2 */
     0x11, /* AGC CFG1 */
     0x90, /* AGC CFG0 */
-    0x00, /* FIFO CFG */
+    //0x00, /* FIFO CFG */
+    0x80, /* FIFO CFG */
     0x00, /* DEV ADDR */
     0x0B, /* SETTLING CFG */
     0x12, /* FS CFG */
@@ -143,11 +145,14 @@ const char cc110x_default_conf[] = {
     0x00, /* WOR EVENT0 MSB */
     0x00, /* WOR EVENT0 LSB */
     0x00, /* RXDCM TIME */
+    //0x24, /* PKT CFG2 */
     0x24, /* PKT CFG2 */
-    0x03, /* PKT CFG1 */
+    //0x03, /* PKT CFG1 */
+    0x05, /* PKT CFG1 */
     0x20, /* PKT CFG0 */
-    0x0F, /* RFEND CFG1 */
-    0x00, /* RFEND CFG0 */
+    //0x0F, /* RFEND CFG1 */
+    0x0E, /* RFEND CFG1 */
+    0x30, /* RFEND CFG0 */
     0x7F, /* PA CFG1 */
     0x56, /* PA CFG0 */
     0x0F, /* ASK CFG */

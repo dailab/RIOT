@@ -25,6 +25,10 @@
 #include "cpu.h"
 #include "periph/spi.h"
 
+
+#define ENABLE_DEBUG (1)
+#include "debug.h"
+
 #ifdef SPI_NUMOF
 
 #ifdef PERIPH_SPI_NEEDS_INIT_CS

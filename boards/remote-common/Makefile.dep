@@ -3,9 +3,7 @@ ifneq (,$(filter gnrc_netdev_default,$(USEMODULE)))
     USEMODULE += cc2538_rf
     USEMODULE += cc1200
     USEMODULE += xtimer
-    #USEMODULE += gnrc_netdev2
     USEMODULE += gnrc_netdev
-    #USEMODULE += netdev2_ieee802154
     USEMODULE += netdev_ieee802154
 endif
 ifneq (,$(filter saul_default,$(USEMODULE)))

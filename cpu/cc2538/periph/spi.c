@@ -136,9 +136,12 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
     assert(out_buf || in_buf);
 
     if (cs != SPI_CS_UNDEF) {
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-        gpio_clear(GPIO_PIN(3,0));
         gpio_clear((gpio_t)cs);
+    }
+
+    // flushing RX buffer before doing anything else
+    while ((dev(bus)->SR & SSI_SR_RNE)) {
+        dev(bus)->DR;
     }
 
     if (!in_buf) {
@@ -183,8 +186,6 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
     }
 
     if ((!cont) && (cs != SPI_CS_UNDEF)) {
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-        gpio_set(GPIO_PIN(3,0));
         gpio_set((gpio_t)cs);
     }
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);

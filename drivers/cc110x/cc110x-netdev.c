@@ -32,6 +32,7 @@
 #include "periph/gpio.h"
 #include "net/netdev.h"
 #include "net/gnrc/nettype.h"
+#include "led.h"
 
 #define ENABLE_DEBUG    (1)
 #include "debug.h"
@@ -39,11 +40,13 @@
 static int _send(netdev_t *dev, const struct iovec *vector, unsigned count)
 {
     DEBUG("%s:%u\n", __func__, __LINE__);
-
+    LED_ON(0);
     netdev_cc110x_t *netdev_cc110x = (netdev_cc110x_t*) dev;
     cc110x_pkt_t *cc110x_pkt = vector[0].iov_base;
+    int result = cc110x_send(&netdev_cc110x->cc110x, cc110x_pkt);
+    LED_OFF(0);
 
-    return cc110x_send(&netdev_cc110x->cc110x, cc110x_pkt);
+    return result;
 }
 
 static int _recv(netdev_t *dev, void *buf, size_t len, void *info)
@@ -169,9 +172,7 @@ static void _netdev_cc110x_isr(void *arg)
     DEBUG("%s:%u\n", __func__, __LINE__);
     netdev_t *netdev = (netdev_t*) arg;
     unsigned state = irq_disable();
-    DEBUG("%s:%u\n", __func__, __LINE__);
     netdev->event_callback(netdev, NETDEV_EVENT_ISR);
-    DEBUG("%s:%u\n", __func__, __LINE__);
     irq_restore(state);
     DEBUG("%s:%u\n", __func__, __LINE__);
 }
@@ -188,7 +189,9 @@ static void _isr(netdev_t *dev)
 {
     DEBUG("%s:%u\n", __func__, __LINE__);
     cc110x_t *cc110x = &((netdev_cc110x_t*) dev)->cc110x;
+    unsigned state = irq_disable();
     cc110x_isr_handler(cc110x, _netdev_cc110x_rx_callback, (void*)dev);
+    irq_restore(state);
 }
 
 static int _init(netdev_t *dev)
@@ -196,13 +199,14 @@ static int _init(netdev_t *dev)
     DEBUG("%s:%u\n", __func__, __LINE__);
     cc110x_t *cc110x = &((netdev_cc110x_t*) dev)->cc110x;
 
-    gpio_init_int(cc110x->params.gdo2, GPIO_IN, GPIO_BOTH,
+    gpio_init_int(cc110x->params.gdo2, GPIO_IN_PD, GPIO_BOTH,
             &_netdev_cc110x_isr, (void*)dev);
 
     gpio_set(cc110x->params.gdo2);
     gpio_irq_disable(cc110x->params.gdo2);
 
     /* Switch to RX mode */
+    cc110x_rd_set_mode(cc110x, RADIO_MODE_OFF);
     cc110x_rd_set_mode(cc110x, RADIO_MODE_ON);
     DEBUG("%s:%u\n", __func__, __LINE__);
 

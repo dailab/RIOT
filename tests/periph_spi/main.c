@@ -183,7 +183,7 @@ int cmd_init(int argc, char **argv)
 
 int cmd_transfer(int argc, char **argv)
 {
-    size_t len;
+    //size_t len;
 
     if (argc < 2) {
         printf("usage: %s <data>\n", argv[0]);
@@ -203,16 +203,21 @@ int cmd_transfer(int argc, char **argv)
     }
 
     /* transfer data */
-    len = strlen(argv[1]);
+    //len = strlen(argv[1]);
     memset(buf, 0, sizeof(buf));
-    spi_transfer_bytes(spiconf.dev, spiconf.cs, false, argv[1], buf, len);
+    //spi_transfer_bytes(spiconf.dev, spiconf.cs, false, argv[1], buf, len);
+    uint8_t result = spi_transfer_reg(spiconf.dev, spiconf.cs,
+                              (0x01 | 0x80), 0xff);
+
+    printf("result=%u", result);
+    
 
     /* release the bus */
     spi_release(spiconf.dev);
 
     /* print results */
-    print_bytes("Sent bytes", (uint8_t *)argv[1], len);
-    print_bytes("Received bytes", buf, len);
+    //print_bytes("Sent bytes", (uint8_t *)argv[1], len);
+    //print_bytes("Received bytes", buf, len);
 
     return 0;
 }

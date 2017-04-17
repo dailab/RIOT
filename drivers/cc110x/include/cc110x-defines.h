@@ -284,7 +284,6 @@ extern "C" {
 #define CC110X_IQIE_Q0                 (0x2F70) /**< IQ Imbalance Value Q LSB */
 #define CC110X_RSSI1                   (0x2F71) /**< Received Signal Strength Indicator Reg. 1 */
 #define CC110X_RSSI0                   (0x2F72) /**< Received Signal Strength Indicator Reg.0 */
-#define CC110X_MARCSTATE               (0x2F73) /**< MARC State */
 #define CC110X_LQI_VAL                 (0x2F74) /**< Link Quality Indicator Value */
 #define CC110X_PQT_SYNC_ERR            (0x2F75) /**< Preamble and Sync Word Error */
 #define CC110X_DEM_STATUS              (0x2F76) /**< Demodulator Status */
@@ -416,13 +415,25 @@ extern "C" {
 #define CC110X_RSSI         (0x34)      /**< Received signal strength indication. */
 #ifndef MODULE_CC1200
 #define CC110X_MARCSTATE    (0x35)      /**< Control state machine state. */
+#else
+#define CC110X_MARCSTATE    (0x2F73) /**< MARC State */
 #endif
 #define CC110X_WORTIME1     (0x36)      /**< High byte of WOR timer. */
 #define CC110X_WORTIME0     (0x37)      /**< Low byte of WOR timer. */
 #define CC110X_PKTSTATUS    (0x38)      /**< Current GDOx status and packet status. */
 #define CC110X_VCO_VC_DAC   (0x39)      /**< Current setting from PLL calibration module. */
+
+#ifndef MODULE_CC1200
+
 #define CC110X_TXBYTES      (0x3A)      /**< Underflow and number of bytes in the TX FIFO. */
 #define CC110X_RXBYTES      (0x3B)      /**< Overflow and number of bytes in the RX FIFO. */
+
+#else
+
+#define CC110X_TXBYTES      CC110X_NUM_TXBYTES      /**< Underflow and number of bytes in the TX FIFO. */
+#define CC110X_RXBYTES      CC110X_NUM_RXBYTES      /**< Overflow and number of bytes in the RX FIFO. */
+
+#endif
 /** @} */
 
 /**

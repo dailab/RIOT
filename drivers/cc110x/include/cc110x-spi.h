@@ -51,7 +51,11 @@ void cc110x_writeburst_reg(cc110x_t *dev, uint8_t addr, const char *buffer, uint
  * @param buffer    Buffer to store read data
  * @param count     Size of data to be read
  */
+#ifdef MODULE_CC1200
+void cc110x_readburst_reg(cc110x_t *dev, uint16_t addr, char *buffer, uint8_t count);
+#else
 void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t count);
+#endif
 
 /**
  * @brief Write one byte to a register
@@ -74,7 +78,11 @@ void cc110x_write_reg(cc110x_t *dev, uint8_t addr, uint8_t value);
  *
  * @return Read state and value of register
  */
+#ifdef MODULE_CC1200
+uint8_t cc110x_read_reg(cc110x_t *dev, uint16_t addr);
+#else
 uint8_t cc110x_read_reg(cc110x_t *dev, uint8_t addr);
+#endif
 
 /**
  * @brief Read a byte from register, robust version
@@ -87,7 +95,11 @@ uint8_t cc110x_read_reg(cc110x_t *dev, uint8_t addr);
  *
  * @return Read state and value of register
  */
+#ifdef MODULE_CC1200
+uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint16_t addr);
+#else
 uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr);
+#endif
 
 /**
  * @brief Read state of a register
@@ -97,7 +109,11 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr);
  *
  * @return State of register
  */
+#ifdef MODULE_CC1200
+uint8_t cc110x_read_status(cc110x_t *dev, uint16_t addr);
+#else
 uint8_t cc110x_read_status(cc110x_t *dev, uint8_t addr);
+#endif
 
 /**
  * @brief Sends a command strobe

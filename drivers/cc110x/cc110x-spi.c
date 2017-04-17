@@ -98,35 +98,53 @@ void cc110x_writeburst_reg(cc110x_t *dev, uint8_t addr, const char *src, uint8_t
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    //spi_transfer_bytes(dev->params.spi, dev->params.cs, false, "hallo", NULL, 5);
-    //spi_transfer_regs(dev->params.spi, SPI_CS_UNDEF,
-    //                  (addr | CC110X_WRITE_BURST), src, NULL, count);
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_WRITE_BURST);
+    }
+#ifndef MODULE_CC1200
+    spi_transfer_regs(dev->params.spi, SPI_CS_UNDEF,
+                      (addr | CC110X_WRITE_BURST), src, NULL, count);
+    gpio_set(dev->params.cs);
+#else
     spi_transfer_regs(dev->params.spi, dev->params.cs,
                       (addr | CC110X_WRITE_BURST), src, NULL, count);
-    //gpio_set(dev->params.cs);
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
 }
 
+#ifdef MODULE_CC1200
+void cc110x_readburst_reg(cc110x_t *dev, uint16_t addr, char *buffer, uint8_t count)
+#else
 void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t count)
+#endif
 {
     int i = 0;
     unsigned int cpsr;
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    /*
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
+    }
+#ifndef MODULE_CC1200
     spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF, false,
-                      (addr | CC110X_READ_BURST));
-    */
-    spi_transfer_byte(dev->params.spi, dev->params.cs, false,
                       (addr | CC110X_READ_BURST));
     while (i < count) {
         buffer[i] = (char)spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF,
                                             false, CC110X_NOBYTE);
         i++;
     }
-    //gpio_set(dev->params.cs);
+    gpio_set(dev->params.cs);
+#else
+    spi_transfer_byte(dev->params.spi, dev->params.cs, false,
+                      (addr | CC110X_READ_BURST));
+    while (i < count) {
+        buffer[i] = (char)spi_transfer_byte(dev->params.spi, dev->params.cs,
+                                            false, CC110X_NOBYTE);
+        i++;
+    }
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
 }
@@ -141,71 +159,103 @@ void cc110x_write_reg(cc110x_t *dev, uint8_t addr, uint8_t value)
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F);
+    }
+#ifndef MODULE_CC1200
+    spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF, addr, value);
+    gpio_set(dev->params.cs);
+#else
     spi_transfer_reg(dev->params.spi, dev->params.cs, addr, value);
-    //spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF, addr, value);
-    //gpio_set(dev->params.cs);
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
 }
 
+#ifdef MODULE_CC1200
+uint8_t cc110x_read_reg(cc110x_t *dev, uint16_t addr)
+#else
 uint8_t cc110x_read_reg(cc110x_t *dev, uint8_t addr)
+#endif
 {
     uint8_t result;
     unsigned int cpsr;
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    /*
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_SINGLE);
+    }
+#ifndef MODULE_CC1200
     result = spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF,
                               (addr | CC110X_READ_SINGLE), CC110X_NOBYTE);
-    */
+    gpio_set(dev->params.cs);
+#else
     result = spi_transfer_reg(dev->params.spi, dev->params.cs,
                               (addr | CC110X_READ_SINGLE), CC110X_NOBYTE);
-    //gpio_set(dev->params.cs);
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
     return result;
 }
 
+#ifdef MODULE_CC1200
+uint8_t cc110x_read_status(cc110x_t *dev, uint16_t addr)
+#else
 uint8_t cc110x_read_status(cc110x_t *dev, uint8_t addr)
+#endif
 {
     uint8_t result;
     unsigned int cpsr;
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    /*
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
+    }
+#ifndef MODULE_CC1200
     result = spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF,
                               (addr | CC110X_READ_BURST), CC110X_NOBYTE);
-    */
+    gpio_set(dev->params.cs);
+#else
     result = spi_transfer_reg(dev->params.spi, dev->params.cs,
                               (addr | CC110X_READ_BURST), CC110X_NOBYTE);
-    //gpio_set(dev->params.cs);
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
     return (uint8_t) result;
 }
 
+#ifdef MODULE_CC1200
+uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint16_t addr)
+#else
 uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
+#endif
 {
     uint8_t res1, res2;
     unsigned int cpsr;
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
+    if((addr >> 8) == 0x2F){
+        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
+    }
+#ifndef MODULE_CC1200
     do {
-        /*
         res1 = spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
         res2 = spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
-        */
+    } while (res1 != res2);
+    gpio_set(dev->params.cs);
+#else
+    do {
         res1 = spi_transfer_reg(dev->params.spi, dev->params.cs,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
         res2 = spi_transfer_reg(dev->params.spi, dev->params.cs,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
     } while (res1 != res2);
-    //gpio_set(dev->params.cs);
+#endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
     return res1;
@@ -213,7 +263,7 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
 
 uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
 {
-    DEBUG("%s:%u strobe: %u\n", __func__, __LINE__, (unsigned int)c);
+    DEBUG("%s:%u strobe: 0x%x\n", __func__, __LINE__, (unsigned int)c);
 #ifdef CC110X_DONT_RESET
     if (c == CC110X_SRES) {
         return 0;

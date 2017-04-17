@@ -66,5 +66,6 @@ static void rf_switch_init(void)
 {
     /* Set RF 2.4GHz as default */
     gpio_init(RF_SWITCH_GPIO, GPIO_OUT);
-    RF_SWITCH_2_4_GHZ;
+    //RF_SWITCH_2_4_GHZ;
+    RF_SWITCH_SUB_GHZ;
 }

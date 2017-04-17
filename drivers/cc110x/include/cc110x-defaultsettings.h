@@ -38,6 +38,7 @@ extern const char cc110x_default_pa_table[8];
 extern const char cc110x_default_base_freq[3];
 #endif
 
+
 #ifdef __cplusplus
 }
 #endif

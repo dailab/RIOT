@@ -60,8 +60,10 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     if(spi_return != SPI_OK){
         DEBUG("%s:%s:%u spi not ok\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
+    /*
     gpio_init(dev->params.cs, GPIO_OUT);
     gpio_set(dev->params.cs);
+    */
 
 /* Testing */
 #if 0 
@@ -95,8 +97,10 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     core_panic(PANIC_DEBUG_MON, "ANON DEBUG HALT");
 #endif
 
+#ifndef MODULE_CC1200
     /* Configure GDO1 */
     gpio_init(dev->params.gdo1, GPIO_IN);
+#endif
 
 #ifndef CC110X_DONT_RESET
     /* reset device*/
@@ -136,9 +140,10 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_XOSC5, 0x0E);
     cc110x_write_reg(dev, CC110X_XOSC1, 0x03);
     cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, CC110X_RF_CFG_RSSI_OFFSET);
-    cc110x_write_reg(dev, CC110X_TXFIRST, 0);
-    cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
-    cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x02);
+    //cc110x_write_reg(dev, CC110X_TXFIRST, 0);
+    //cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
+    //cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x02);
+    cc110x_set_channel(dev, 26);
 #else
     /* Write PATABLE (power settings) */
     cc110x_writeburst_reg(dev, CC110X_PATABLE, CC110X_DEFAULT_PATABLE, 8);
@@ -249,6 +254,10 @@ void cc110x_switch_to_rx(cc110x_t *dev)
     cc110x_strobe(dev, CC110X_SRX);
 
     gpio_irq_enable(dev->params.gdo2);
+    uint8_t bytes = cc110x_read_reg(dev, CC110X_MARCSTATE);
+    DEBUG("%s:%u MarcSt: %u\n", __func__, __LINE__, bytes);
+    DEBUG("%s:%u SPISt: %u\n", __func__, __LINE__, cc110x_strobe(dev, CC110X_SNOP));
+    DEBUG("%s:%u iocfg2: %u\n", __func__, __LINE__, cc110x_read_reg(dev, CC110X_IOCFG2));
 }
 
 void cc110x_wakeup_from_rx(cc110x_t *dev)
@@ -295,6 +304,7 @@ int16_t cc110x_set_channel(cc110x_t *dev, uint8_t channr)
     cc110x_write_reg(dev, CC110X_FREQ0, ((uint8_t *)&freq)[0]);
 #endif
     dev->radio_channel = channr;
+    cc110x_switch_to_rx(dev);
 
     return channr;
 }
@@ -308,8 +318,7 @@ static void _reset(cc110x_t *dev)
     cc110x_cs(dev);
     cc110x_strobe(dev, CC110X_SRES);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    //xtimer_usleep(100);
-    xtimer_spin(xtimer_ticks_from_usec(RESET_WAIT_TIME));
+    xtimer_usleep(RESET_WAIT_TIME);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 
@@ -320,15 +329,18 @@ static void _power_up_reset(cc110x_t *dev)
     gpio_clear(dev->params.cs);
     gpio_set(dev->params.cs);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    //xtimer_usleep(RESET_WAIT_TIME);
-    xtimer_spin(xtimer_ticks_from_usec(RESET_WAIT_TIME));
+    xtimer_usleep(RESET_WAIT_TIME);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     _reset(dev);
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 #endif
 
+#ifdef MODULE_CC1200
+void cc110x_write_register(cc110x_t *dev, uint16_t r, uint8_t value)
+#else
 void cc110x_write_register(cc110x_t *dev, uint8_t r, uint8_t value)
+#endif
 {
     /* Save old radio state */
     uint8_t old_state = dev->radio_state;

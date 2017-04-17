@@ -26,6 +26,9 @@
 
 #include "msg.h"
 #include "shell.h"
+#include "shell_commands.h"
+#include "periph/gpio.h"
+#include "board.h"
 
 extern int ip_cmd(int argc, char **argv);
 
@@ -34,8 +37,16 @@ static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
 };
 
+static void button(void* argument)
+{
+    char* arg[] = {"ip_cmd", "send", "ff02::1%5", "hi"};
+    ip_cmd(4, arg);
+}
+
 int main(void)
 {
+    gpio_init_int(BTN0_PIN, GPIO_IN_PD, GPIO_BOTH,
+            &button, NULL);
     puts("RIOT socket example application");
     /* start shell */
     puts("All up, running the shell now");

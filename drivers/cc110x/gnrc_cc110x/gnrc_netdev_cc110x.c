@@ -22,6 +22,7 @@
 
 static int _send(gnrc_netdev_t *gnrc_netdev, gnrc_pktsnip_t *pkt)
 {
+    DEBUG("%s:%u\n", __func__, __LINE__);
     cc110x_pkt_t cc110x_pkt;
     netdev_t *dev = gnrc_netdev->dev;
     netdev_cc110x_t *netdev_cc110x = (netdev_cc110x_t *) dev;
