@@ -137,13 +137,14 @@ void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t cou
     }
     gpio_set(dev->params.cs);
 #else
-    spi_transfer_byte(dev->params.spi, dev->params.cs, false,
+    spi_transfer_byte(dev->params.spi, dev->params.cs, true,
                       (addr | CC110X_READ_BURST));
-    while (i < count) {
+    while (i < count-1) {
         buffer[i] = (char)spi_transfer_byte(dev->params.spi, dev->params.cs,
-                                            false, CC110X_NOBYTE);
+                                            true, CC110X_NOBYTE);
         i++;
     }
+    gpio_set(dev->params.cs);
 #endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);

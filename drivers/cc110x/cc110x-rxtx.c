@@ -226,11 +226,9 @@ static void _tx_continue(cc110x_t *dev)
 
     /* Write packet into TX FIFO */
     uint8_t bytes = cc110x_read_reg(dev, CC110X_NUM_TXBYTES);
-    DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, bytes);
     cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)pkt)+dev->pkt_buf.pos, to_send);
     dev->pkt_buf.pos += to_send;
     bytes = cc110x_read_reg(dev, CC110X_NUM_TXBYTES);
-    DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, bytes);
 
     if (left == size) {
         /* Switch to TX mode */
