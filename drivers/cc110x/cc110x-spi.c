@@ -35,7 +35,7 @@
 #include "xtimer.h"
 #include "irq.h"
 
-#define ENABLE_DEBUG 1
+#define ENABLE_DEBUG 0
 #include "debug.h"
 
 #define SPI_CLK         SPI_CLK_5MHZ
@@ -119,7 +119,6 @@ void cc110x_readburst_reg(cc110x_t *dev, uint16_t addr, char *buffer, uint8_t co
 void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t count)
 #endif
 {
-    int i = 0;
     unsigned int cpsr;
     lock(dev);
     cpsr = irq_disable();
@@ -128,6 +127,7 @@ void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t cou
         spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
     }
 #ifndef MODULE_CC1200
+    int i = 0;
     spi_transfer_byte(dev->params.spi, SPI_CS_UNDEF, false,
                       (addr | CC110X_READ_BURST));
     while (i < count) {
@@ -137,14 +137,16 @@ void cc110x_readburst_reg(cc110x_t *dev, uint8_t addr, char *buffer, uint8_t cou
     }
     gpio_set(dev->params.cs);
 #else
+    int i = 0;
     spi_transfer_byte(dev->params.spi, dev->params.cs, true,
                       (addr | CC110X_READ_BURST));
-    while (i < count-1) {
+    while (i < count) {
         buffer[i] = (char)spi_transfer_byte(dev->params.spi, dev->params.cs,
                                             true, CC110X_NOBYTE);
         i++;
     }
     gpio_set(dev->params.cs);
+    //spi_transfer_regs(dev->params.spi, dev->params.cs, (addr|CC110X_READ_BURST), NULL, buffer, count);
 #endif
     irq_restore(cpsr);
     spi_release(dev->params.spi);
@@ -264,7 +266,6 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
 
 uint8_t cc110x_strobe(cc110x_t *dev, uint8_t c)
 {
-    DEBUG("%s:%u strobe: 0x%x\n", __func__, __LINE__, (unsigned int)c);
 #ifdef CC110X_DONT_RESET
     if (c == CC110X_SRES) {
         return 0;

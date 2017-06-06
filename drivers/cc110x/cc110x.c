@@ -52,6 +52,10 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_hooks_init();
 #endif
 
+#if CC1200_802154G
+    DEBUG("%s:%s:%u 802.15.4G activated\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+#endif
+
     dev->params = *params;
 
     /* Configure chip-select */
@@ -142,8 +146,9 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, CC110X_RF_CFG_RSSI_OFFSET);
     //cc110x_write_reg(dev, CC110X_TXFIRST, 0);
     //cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
-    //cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x02);
+    //cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x24);
     cc110x_set_channel(dev, 26);
+    DEBUG("READING CC110X_PKT_CFG2: 0x%x\n", cc110x_read_reg(dev, CC110X_PKT_CFG2));
 #else
     /* Write PATABLE (power settings) */
     cc110x_writeburst_reg(dev, CC110X_PATABLE, CC110X_DEFAULT_PATABLE, 8);
@@ -254,10 +259,12 @@ void cc110x_switch_to_rx(cc110x_t *dev)
     cc110x_strobe(dev, CC110X_SRX);
 
     gpio_irq_enable(dev->params.gdo2);
+#if ENABLE_DEBUG
     uint8_t bytes = cc110x_read_reg(dev, CC110X_MARCSTATE);
     DEBUG("%s:%u MarcSt: %u\n", __func__, __LINE__, bytes);
     DEBUG("%s:%u SPISt: %u\n", __func__, __LINE__, cc110x_strobe(dev, CC110X_SNOP));
     DEBUG("%s:%u iocfg2: %u\n", __func__, __LINE__, cc110x_read_reg(dev, CC110X_IOCFG2));
+#endif
 }
 
 void cc110x_wakeup_from_rx(cc110x_t *dev)

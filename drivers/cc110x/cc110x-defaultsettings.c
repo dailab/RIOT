@@ -145,9 +145,8 @@ const char cc110x_default_conf[] = {
     0x00, /* WOR EVENT0 MSB */
     0x00, /* WOR EVENT0 LSB */
     0x00, /* RXDCM TIME */
-    //0x24, /* PKT CFG2 */
     0x24, /* PKT CFG2 */
-    //0x03, /* PKT CFG1 */
+    //0x04, /* PKT CFG2 */
     0x05, /* PKT CFG1 */
     0x20, /* PKT CFG0 */
     //0x0F, /* RFEND CFG1 */

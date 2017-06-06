@@ -145,7 +145,6 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
     }
 
     if (!in_buf) {
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         for (size_t i = 0; i < len; i++) {
             while (!(dev(bus)->SR & SSI_SR_TNF)) {}
             dev(bus)->DR = out_buf[i];
@@ -154,7 +153,6 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
         while ((dev(bus)->SR & SSI_SR_BSY)) {
             dev(bus)->DR;
         }
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
     else if (!out_buf) { /*TODO this case is currently untested */
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
@@ -170,7 +168,6 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont,
         while (dev(bus)->SR & SSI_SR_RNE) {
             in_buf[in_cnt++] = dev(bus)->DR;
         }
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
     else {
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
