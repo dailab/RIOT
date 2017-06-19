@@ -101,6 +101,78 @@ const char cc110x_default_conf[] = {
 
 const char cc110x_default_base_freq[3] = { 0xCC, 0xCC, 0x56 };
 
+#if 0
+/**
+ * @brief cc1200 default settings
+ */
+const char cc110x_default_conf[] = {
+    0x30, /* IOCFG3 */
+    0x06, /* IOCFG2 */
+    //0x01, /* IOCFG2 */
+    0x30, /* IOCFG1 */
+    //0x11, /* IOCFG0 */
+    //0x07, /* IOCFG0 */
+    0x01, /* IOCFG0 */
+    0x6E, /* SYNC3 */
+    0x4E, /* SYNC2 */
+    0x90, /* SYNC1 */
+    0x4E, /* SYNC0 */
+    0xE5, /* SYNC CFG1 */
+    //0xAA, /* SYNC CFG1 */
+    //0x23, /* SYNC CFG0 */
+    0x2B, /* SYNC CFG0 */
+    0x47, /* DEVIATION M */
+    0x0B, /* MODCFG DEV E */
+    0x56, /* DCFILT CFG */
+    0x19, /* PREAMBLE CFG1 */
+    //0xBA, /* PREAMBLE CFG0 */
+    0xBB, /* PREAMBLE CFG0 */
+    0xC8, /* IQIC */
+    0x84, /* CHAN BW */
+    0x42, /* MDMCFG1 */
+    0x05, /* MDMCFG0 */
+    0x94, /* SYMBOL RATE2 */
+    0x7A, /* SYMBOL RATE1 */
+    0xE1, /* SYMBOL RATE0 */
+    0x27, /* AGC REF */
+    0xF1, /* AGC CS THR */
+    0x00, /* AGC GAIN ADJUST */
+    0x00, /* AGC CFG3 */
+    0x00, /* AGC CFG2 */
+    0x11, /* AGC CFG1 */
+    0x90, /* AGC CFG0 */
+    //0x00, /* FIFO CFG */
+    //0x80, /* FIFO CFG */
+    //0xBF, /* FIFO CFG */
+    0x83, /* FIFO CFG */
+    0x00, /* DEV ADDR */
+    0x0B, /* SETTLING CFG */
+    0x12, /* FS CFG */
+    0x04, /* WOR CFG1 */
+    0x21, /* WOR CFG0 */
+    0x00, /* WOR EVENT0 MSB */
+    0x00, /* WOR EVENT0 LSB */
+    0x00, /* RXDCM TIME */
+    0x24, /* PKT CFG2 */
+    //0x04, /* PKT CFG2 */
+    //0x05, /* PKT CFG1 */
+    0x7F, /* PKT CFG1 */
+    //0x20, /* PKT CFG0 */
+    //0x56, /* PKT CFG0 */
+    0x20, /* PKT CFG0 */
+    //0x0F, /* RFEND CFG1 */
+    0x0F, /* RFEND CFG1 */
+    //0x0E, /* RFEND CFG1 */
+    0x30, /* RFEND CFG0 */
+    0x7F, /* PA CFG1 */
+    0x56, /* PA CFG0 */
+    0x0F, /* ASK CFG */
+    //0xFF /* PKT LEN */
+    0x00 /* PKT LEN */
+    };
+
+#endif
+
 /**
  * @brief cc1200 default settings
  */
@@ -108,13 +180,12 @@ const char cc110x_default_conf[] = {
     0x30, /* IOCFG3 */
     0x06, /* IOCFG2 */
     0x30, /* IOCFG1 */
-    0x11, /* IOCFG0 */
+    0x01, /* IOCFG0 */
     0x6E, /* SYNC3 */
     0x4E, /* SYNC2 */
     0x90, /* SYNC1 */
     0x4E, /* SYNC0 */
-    //0xE5, /* SYNC CFG1 */
-    0xAA, /* SYNC CFG1 */
+    0xE5, /* SYNC CFG1 */
     0x23, /* SYNC CFG0 */
     0x47, /* DEVIATION M */
     0x0B, /* MODCFG DEV E */
@@ -131,32 +202,35 @@ const char cc110x_default_conf[] = {
     0x27, /* AGC REF */
     0xF1, /* AGC CS THR */
     0x00, /* AGC GAIN ADJUST */
-    0x00, /* AGC CFG3 */
-    0x00, /* AGC CFG2 */
+    0xB1, /* AGC CFG3 */
+    0x20, /* AGC CFG2 */
     0x11, /* AGC CFG1 */
     0x90, /* AGC CFG0 */
-    //0x00, /* FIFO CFG */
-    0x80, /* FIFO CFG */
+    //0x80, /* FIFO CFG */
+    0x20, /* FIFO CFG */
     0x00, /* DEV ADDR */
     0x0B, /* SETTLING CFG */
     0x12, /* FS CFG */
-    0x04, /* WOR CFG1 */
+    0x08, /* WOR CFG1 */
     0x21, /* WOR CFG0 */
     0x00, /* WOR EVENT0 MSB */
     0x00, /* WOR EVENT0 LSB */
     0x00, /* RXDCM TIME */
-    0x24, /* PKT CFG2 */
-    //0x04, /* PKT CFG2 */
+    //0x24, /* PKT CFG2 */
+    //0x00, /* PKT CFG2 */
+    0x04, /* PKT CFG2 */
     0x05, /* PKT CFG1 */
     0x20, /* PKT CFG0 */
-    //0x0F, /* RFEND CFG1 */
-    0x0E, /* RFEND CFG1 */
+    0x0F, /* RFEND CFG1 */
+    //0x3F, /* RFEND CFG1 */
     0x30, /* RFEND CFG0 */
-    0x7F, /* PA CFG1 */
+    //0x7F, /* PA CFG1 */
+    0x3F, /* PA CFG1 */
     0x56, /* PA CFG0 */
     0x0F, /* ASK CFG */
     0xFF /* PKT LEN */
     };
+
 #endif
 
 /**

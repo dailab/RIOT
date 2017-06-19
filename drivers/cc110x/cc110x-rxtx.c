@@ -34,6 +34,7 @@
 
 #include "kernel_types.h"
 #include "msg.h"
+#include "xtimer.h"
 
 #include "cpu_conf.h"
 #include "cpu.h"
@@ -60,16 +61,25 @@ static void _rx_read_data(cc110x_t *dev, void(*callback)(void*), void*arg)
 {
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     //int fifo = cc110x_get_reg_robust(dev, 0xfb);
-    uint8_t fifo = cc110x_read_reg(dev, CC110X_RXBYTES);
+    uint8_t fifo = cc110x_read_reg(dev, CC110X_NUM_RXBYTES);
+    DEBUG("%s:%s:%u FIFO: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, fifo);
 
 #ifdef MODULE_CC1200
-    /*
     int m_state = cc110x_read_reg(dev, CC110X_MODEM_STATUS1);
-    DEBUG("%s:%u ModemSt1: %u RX_BYTES:%u\n", __func__, __LINE__, m_state, fifo);
+    DEBUG("%s:%u ModemSt1: %u\n", __func__, __LINE__, m_state);
+    /*
     int bytes = cc110x_read_reg(dev, CC110X_MARC_STATUS1);
     DEBUG("%s:%u MarcSt1: %u\n", __func__, __LINE__, bytes);
-    */
     //if (m_state & 0x08) {
+    uint8_t overflow = cc110x_strobe(dev, CC110X_SNOP);
+    DEBUG("%s:%s:%u STATE: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, overflow);
+    if((overflow & 0x70) == 0x60){
+        DEBUG("%s:%s:%u rx overflow\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+        _rx_abort(dev);
+        return;
+    }
+    */
+
 #else
     if (fifo & 0x80) {
         DEBUG("%s:%s:%u rx overflow\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
@@ -79,50 +89,22 @@ static void _rx_read_data(cc110x_t *dev, void(*callback)(void*), void*arg)
 #endif
 
     if (!fifo) {
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         gpio_irq_enable(dev->params.gdo2);
         return;
     }
 
     cc110x_pkt_buf_t *pkt_buf = &dev->pkt_buf;
+    DEBUG("%s:%s:%u pkt_buf->pos: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->pos);
     if (!pkt_buf->pos) {
         pkt_buf->pos = 1;
 
-#if 0
-#ifdef MODULE_CC1200
-#if CC1200_802154G
-        struct {
-            uint8_t phra;
-            uint8_t phrb;
-        }phr;
-
-        cc110x_readburst_reg(dev, CC110X_RXFIFO, (char*)&phr, 2);
-        uint16_t packet_length = phr.phra & 0x07;
-        packet_length <<= 8;
-        packet_length += phr.phrb;
-        DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, packet_length);
-        if (phr.phra & (1 << 4))
-        {
-            /* CRC16, payload_len += 2 */
-            packet_length -= 2;
-        }
-        else
-        {
-            /* CRC32, payload_len += 4 */
-            packet_length -= 4;
-        }
-        pkt_buf->packet.length = packet_length & 0xFF;
-#endif /* CC1200_802154G */
-#else
         pkt_buf->packet.length = cc110x_read_reg(dev, CC110X_RXFIFO);
-        DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->packet.length);
-#endif /* MODULE_CC1200 */
-#endif
-        pkt_buf->packet.length = cc110x_read_reg(dev, CC110X_RXFIFO);
-        DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->packet.length);
 
         /* Possible packet received, RX -> IDLE (0.1 us) */
         dev->cc110x_statistic.packets_in++;
     }
+    DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->packet.length);
 
     int left = pkt_buf->packet.length+1 - pkt_buf->pos;
 
@@ -132,22 +114,19 @@ static void _rx_read_data(cc110x_t *dev, void(*callback)(void*), void*arg)
     if (to_read > left) {
         to_read = left;
     }
+    //to_read = fifo;
 
+    DEBUG("%s:%s:%u to_read: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, to_read);
     if (to_read) {
         DEBUG("%s:%u to read:%u\n", __func__, __LINE__, to_read);
         uint8_t buffer[to_read];
         memset(buffer, 0xff, to_read);
-        /*
-        cc110x_readburst_reg(dev, CC110X_RXFIFO,
-                ((char *)&pkt_buf->packet)+pkt_buf->pos, to_read);
-                */
+
         cc110x_readburst_reg(dev, CC110X_RXFIFO,
                 (char*)buffer, to_read);
-        //pkt_buf->pos += to_read;
+
         DEBUG("%s:%u Received:\n", __func__, __LINE__);
-        //for(int i = 0; i < (pkt_buf->packet.length)+1; i++){
         for(int i = 0; i < to_read; i++){
-            //DEBUG("0x%x ", *(((char*)&pkt_buf->packet)+i));
             DEBUG("0x%x ", buffer[i]);
         }
         DEBUG("\n");
@@ -155,8 +134,8 @@ static void _rx_read_data(cc110x_t *dev, void(*callback)(void*), void*arg)
         pkt_buf->pos += to_read;
     }
 
+    DEBUG("%s:%s:%u to_read: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, to_read);
     if (to_read == left) {
-        pkt_buf->packet.length--;
         uint8_t status[2];
         /* full packet received. */
         /* Read the 2 appended status bytes (status[0] = RSSI, status[1] = LQI) */
@@ -196,6 +175,7 @@ static void _rx_read_data(cc110x_t *dev, void(*callback)(void*), void*arg)
             _rx_abort(dev);
         }
     }
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 
 static void _rx_continue(cc110x_t *dev, void(*callback)(void*), void*arg)
@@ -211,7 +191,7 @@ static void _rx_continue(cc110x_t *dev, void(*callback)(void*), void*arg)
     }
 
     gpio_irq_disable(dev->params.gdo2);
-
+    cc110x_write_reg(dev, CC110X_IOCFG2, 0x01);
     do {
         _rx_read_data(dev, callback, arg);
     }
@@ -227,10 +207,10 @@ static void _rx_start(cc110x_t *dev)
 
     gpio_irq_disable(dev->params.gdo2);
     cc110x_write_reg(dev, CC110X_IOCFG2, 0x01);
-    gpio_irq_enable(dev->params.gdo2);
     if(gpio_read(dev->params.gdo2)){
         _rx_continue(dev, dev->isr_cb, dev->isr_cb_arg);
     }
+    gpio_irq_enable(dev->params.gdo2);
 }
 
 static void _tx_abort(cc110x_t *dev)
@@ -243,6 +223,32 @@ static void _tx_continue(cc110x_t *dev)
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     gpio_irq_disable(dev->params.gdo2);
 
+
+
+#if 0 
+    //Testing own code 
+    uint8_t state = cc110x_strobe(dev, CC110X_SNOP);
+    if((state & 0x70) == 0x70){
+        cc110x_strobe(dev, CC110X_SFTX);
+        _tx_abort(dev);
+        gpio_irq_enable(dev->params.gdo2);
+        return;
+    }
+
+
+    cc110x_strobe(dev, CC110X_SFTX);
+    cc110x_strobe(dev, CC110X_SFSTXON);
+
+    uint8_t message[] = {0x12, 0x34, 0x56, 0x78, 0x99, 0x87, 0x65, 0x43, 0x21};
+    cc110x_write_reg(dev, CC110X_TXFIFO, 0x9);
+    cc110x_writeburst_reg(dev, CC110X_TXFIFO, (char *)message, 0x9);
+    cc110x_strobe(dev, CC110X_STX);
+    xtimer_usleep(RESET_WAIT_TIME);
+
+    cc110x_write_reg(dev, CC110X_IOCFG2, 0x06);
+    cc110x_switch_to_rx(dev);
+    #endif
+
     cc110x_pkt_t *pkt = &dev->pkt_buf.packet;
     DEBUG("%s:%s:%u pkt->pos=%u, pkt->length=%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, dev->pkt_buf.pos, pkt->length);
     DEBUG("%s:%s:%u printing package:\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
@@ -251,23 +257,7 @@ static void _tx_continue(cc110x_t *dev)
     }
     DEBUG("\n");
     
-    #if 0
-#ifdef MODULE_CC1200
-#if CC1200_802154G
-  /* Prepare PHR for 802.15.4g frames */
-  struct {
-    uint8_t phra;
-    uint8_t phrb;
-  } phr;
 
-    int size = pkt->length + 2; //CRC16
-    phr.phrb = (uint8_t) (size & 0x00FF);
-    phr.phra = (uint8_t) ((size) >> 8) & 0x0007;
-    phr.phra |= (1 << 3); // CRC16
-#endif /* CC1200_802154G */
-#else
-#endif /* MODULE_CC1200 */
-#endif
     int size = pkt->length + 1;
 
     int left = size - dev->pkt_buf.pos;
@@ -300,25 +290,14 @@ static void _tx_continue(cc110x_t *dev)
 
     /* Write packet into TX FIFO */
     DEBUG("%s:%s:%u pkt->pos=%u to_send=%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, dev->pkt_buf.pos, to_send);
-#if 0
-#ifdef MODULE_CC1200
-#if CC1200_802154G
-    DEBUG("%s:%s:%u pkt->pos=%u to_send=%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, dev->pkt_buf.pos, to_send);
-    /* put phr in fifo first */
-    cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)&phr), 2);
-    dev->pkt_buf.pos++;
-    to_send--;
-    DEBUG("%s:%s:%u pkt->pos=%u to_send=%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, dev->pkt_buf.pos, to_send);
-#endif /* CC1200_802154G */
-#endif /* MODULE_CC1200 */
-#endif 
+
     /* Flush TX */
     cc110x_strobe(dev, CC110X_SFTX);
     cc110x_strobe(dev, CC110X_SFSTXON);
-    cc110x_write_reg(dev, CC110X_TXFIFO, pkt->length+1);
-    cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)pkt)+dev->pkt_buf.pos+1, to_send-1);
-    //cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)pkt)+dev->pkt_buf.pos, to_send);
-    cc110x_write_reg(dev, CC110X_TXFIFO, 0x00);
+    //cc110x_write_reg(dev, CC110X_TXFIFO, pkt->length+1);
+    //cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)pkt)+dev->pkt_buf.pos+1, to_send-1);
+    cc110x_writeburst_reg(dev, CC110X_TXFIFO, ((char *)pkt)+dev->pkt_buf.pos, to_send);
+    //cc110x_write_reg(dev, CC110X_TXFIFO, 0x00);
     dev->pkt_buf.pos += to_send;
     DEBUG("%s:%s:%u pkt->pos=%u to_send=%u, left=%u "
         "size=%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, dev->pkt_buf.pos, to_send, left, size);
@@ -335,7 +314,11 @@ static void _tx_continue(cc110x_t *dev)
     }
     else {
         /* set GDO2 to 0x6 -> will deassert at packet end */
+        #ifdef MODULE_CC1200
         cc110x_write_reg(dev, CC110X_IOCFG2, 0x06);
+        #else
+        cc110x_write_reg(dev, CC110X_IOCFG2, 0x06);
+        #endif
         gpio_irq_enable(dev->params.gdo2);
     }
 }
@@ -343,23 +326,31 @@ static void _tx_continue(cc110x_t *dev)
 void cc110x_isr_handler(cc110x_t *dev, void(*callback)(void*), void*arg)
 {
 //DEBUG("%s:%u\n", __func__, __LINE__);
-uint8_t bytes = cc110x_read_reg(dev, CC110X_NUM_RXBYTES);
-DEBUG("%s:%u RX_BYTES: %u\n", __func__, __LINE__, bytes);
-bytes = cc110x_read_reg(dev, CC110X_NUM_TXBYTES);
-DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, bytes);
+uint8_t rxbytes = cc110x_read_reg(dev, CC110X_NUM_RXBYTES);
+DEBUG("%s:%u RX_BYTES: %u\n", __func__, __LINE__, rxbytes);
+uint8_t txbytes = cc110x_read_reg(dev, CC110X_NUM_TXBYTES);
+DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, txbytes);
+if(gpio_read(dev->params.gdo0)) DEBUG("gd0 on\n");
 
     switch (dev->radio_state) {
         case RADIO_RX:
+            #ifndef MODULE_CC1200
             if (gpio_read(dev->params.gdo2)) {
-                DEBUG("cc110x_isr_handler((): starting RX\n");
+            #else
+            if (gpio_read(dev->params.gdo0) | gpio_read(dev->params.gdo2) | (rxbytes > 0)) {
+            //if (gpio_read(dev->params.gdo0) | gpio_read(dev->params.gdo2)) {
+            #endif
+                //DEBUG("cc110x_isr_handler((): starting RX\n");
                 dev->isr_cb = callback;
                 dev->isr_cb_arg = arg; 
                 _rx_start(dev);
             }
+            #ifndef MODULE_CC1200
             else {
                 DEBUG("cc110x_isr_handler((): isr handled too slow?\n");
                 _rx_abort(dev);
             }
+            #endif
             break;
         case RADIO_RX_BUSY:
             _rx_continue(dev, callback, arg);
@@ -369,7 +360,7 @@ DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, bytes);
                 _tx_continue(dev);
             }
             else {
-//DEBUG("cc110x_isr_handler() RADIO_TX_BUSY + GDO2\n");
+                DEBUG("cc110x_isr_handler() RADIO_TX_BUSY + GDO2\n");
             }
             break;
         default:
@@ -433,22 +424,7 @@ int cc110x_send(cc110x_t *dev, cc110x_pkt_t *packet)
     dev->pkt_buf.pos = 0;
 
     _tx_continue(dev);
-    #if 0
-    bytes = cc110x_read_reg(dev, CC110X_NUM_TXBYTES);
-    DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_SERIAL_STATUS);
-    DEBUG("%s:%u Serial Status: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_MODEM_STATUS1);
-    DEBUG("%s:%u ModemSt1: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_MODEM_STATUS0);
-    DEBUG("%s:%u ModemSt0: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_MARC_STATUS1);
-    DEBUG("%s:%u MarcSt1: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_MARC_STATUS0);
-    DEBUG("%s:%u MarcSt0: %u\n", __func__, __LINE__, bytes);
-    bytes = cc110x_read_reg(dev, CC110X_MARCSTATE);
-    DEBUG("%s:%u MarcSt: %u\n", __func__, __LINE__, bytes);
-    #endif
+
 
     return size;
 }

@@ -373,6 +373,7 @@ extern "C" {
 #define CC110X_AES_BUFFER1             (0x2FFE) /**< Advanced Encryption Standard Buffer [15:8] */
 #define CC110X_AES_BUFFER0             (0x2FFF) /**< Advanced Encryption Standard Buffer [7:0] */
 /** @} */
+
 #endif //MODULE_CC1200
 
 /**

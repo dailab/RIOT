@@ -69,37 +69,6 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     gpio_set(dev->params.cs);
     */
 
-/* Testing */
-#if 0 
-    gpio_t test_pin = GPIO_PIN(0, 5);
-    DEBUG("%s:%s:%u cs pin: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, (unsigned int)dev->params.cs);
-    DEBUG("%s:%s:%u test pin: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, (unsigned int)test_pin);
-    //gpio_init(test_pin, GPIO_OUT);
-    //gpio_set(test_pin);
-
-    /*testing*/
-    DEBUG("%s:%s:%u WAITING...\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
-    DEBUG("%s:%s:%u FINISHED\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-
-    /*switching gpio on and off*/    
-    /*
-    for(int j=0; j<50; j++){
-        DEBUG("%s:%s:%u OFF\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-        gpio_clear(dev->params.cs);
-        gpio_clear(test_pin);
-        for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
-        DEBUG("%s:%s:%u ON\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-        gpio_set(dev->params.cs);
-        gpio_set(test_pin);
-        for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
-    }*/
-    //spi_transfer_byte(dev->params.spi, dev->params.cs, false, 0x30);
-    cc110x_strobe(dev, CC110X_SRES);
-    DEBUG("%s:%s:%u spi byte sent\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    for(int i=0; i < 9999; i++)xtimer_spin(xtimer_ticks_from_usec(99999999));
-    core_panic(PANIC_DEBUG_MON, "ANON DEBUG HALT");
-#endif
 
 #ifndef MODULE_CC1200
     /* Configure GDO1 */
@@ -127,9 +96,9 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_FREQ0, 0xCC);
     cc110x_write_reg(dev, CC110X_IF_ADC1, 0xEE);
     cc110x_write_reg(dev, CC110X_IF_ADC0, 0x10);
-    cc110x_write_reg(dev, CC110X_FS_DIG1, 0x18);
+    cc110x_write_reg(dev, CC110X_FS_DIG1, 0x04);
     cc110x_write_reg(dev, CC110X_FS_DIG0, 0x50);
-    cc110x_write_reg(dev, CC110X_FS_CAL1, 0x04);
+    cc110x_write_reg(dev, CC110X_FS_CAL1, 0x40);
     cc110x_write_reg(dev, CC110X_FS_CAL0, 0x0E);
     cc110x_write_reg(dev, CC110X_FS_DIVTWO, 0x03);
     cc110x_write_reg(dev, CC110X_FS_DSM0, 0x33);
@@ -143,12 +112,11 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_IFAMP, 0x05);
     cc110x_write_reg(dev, CC110X_XOSC5, 0x0E);
     cc110x_write_reg(dev, CC110X_XOSC1, 0x03);
-    cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, CC110X_RF_CFG_RSSI_OFFSET);
-    //cc110x_write_reg(dev, CC110X_TXFIRST, 0);
-    //cc110x_write_reg(dev, CC110X_TXLAST, 0xFF);
-    //cc110x_write_reg(dev, CC110X_PKT_CFG2, 0x24);
+    cc110x_write_reg(dev, CC110X_AGC_CS_THR, (uint8_t) -91);
+    cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, (int8_t)CC110X_RF_CFG_RSSI_OFFSET);
     cc110x_set_channel(dev, 26);
     DEBUG("READING CC110X_PKT_CFG2: 0x%x\n", cc110x_read_reg(dev, CC110X_PKT_CFG2));
+    DEBUG("READING CC110X_PKT_CFG2: 0x%x\n", cc110x_read_reg(dev, CC110X_MDMCFG1));
 #else
     /* Write PATABLE (power settings) */
     cc110x_writeburst_reg(dev, CC110X_PATABLE, CC110X_DEFAULT_PATABLE, 8);
@@ -255,16 +223,14 @@ void cc110x_switch_to_rx(cc110x_t *dev)
 
     dev->radio_state = RADIO_RX;
 
+#ifdef MODULE_CC1200
     cc110x_write_reg(dev, CC110X_IOCFG2, 0x6);
+#else
+    cc110x_write_reg(dev, CC110X_IOCFG2, 0x6);
+#endif
     cc110x_strobe(dev, CC110X_SRX);
 
     gpio_irq_enable(dev->params.gdo2);
-#if ENABLE_DEBUG
-    uint8_t bytes = cc110x_read_reg(dev, CC110X_MARCSTATE);
-    DEBUG("%s:%u MarcSt: %u\n", __func__, __LINE__, bytes);
-    DEBUG("%s:%u SPISt: %u\n", __func__, __LINE__, cc110x_strobe(dev, CC110X_SNOP));
-    DEBUG("%s:%u iocfg2: %u\n", __func__, __LINE__, cc110x_read_reg(dev, CC110X_IOCFG2));
-#endif
 }
 
 void cc110x_wakeup_from_rx(cc110x_t *dev)

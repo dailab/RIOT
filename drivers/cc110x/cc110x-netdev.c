@@ -34,16 +34,19 @@
 #include "net/gnrc/nettype.h"
 #include "led.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 static int _send(netdev_t *dev, const struct iovec *vector, unsigned count)
 {
     DEBUG("%s:%u\n", __func__, __LINE__);
     LED_ON(0);
+    int result = 0;
     netdev_cc110x_t *netdev_cc110x = (netdev_cc110x_t*) dev;
-    cc110x_pkt_t *cc110x_pkt = vector[0].iov_base;
-    int result = cc110x_send(&netdev_cc110x->cc110x, cc110x_pkt);
+    for(int i = 0; i< count; i++){
+        cc110x_pkt_t *cc110x_pkt = vector[i].iov_base;
+        result += cc110x_send(&netdev_cc110x->cc110x, cc110x_pkt);
+    }
     LED_OFF(0);
 
     return result;
@@ -201,6 +204,7 @@ static int _init(netdev_t *dev)
 
     gpio_init_int(cc110x->params.gdo2, GPIO_IN_PD, GPIO_BOTH,
             &_netdev_cc110x_isr, (void*)dev);
+    gpio_init(cc110x->params.gdo0, GPIO_IN_PD);
 
     gpio_set(cc110x->params.gdo2);
     gpio_irq_disable(cc110x->params.gdo2);
