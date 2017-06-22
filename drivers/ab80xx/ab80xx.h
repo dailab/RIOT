@@ -54,8 +54,8 @@
  * \name Callback function to handle the RTCC alarm interrupt and macro
  * @{
  */
-#define RTCC_REGISTER_INT1(ptr) rtcc_int1_callback = ptr;
-extern void (*rtcc_int1_callback)(uint8_t value);
+//#define RTCC_REGISTER_INT1(ptr) rtcc_int1_callback = ptr;
+//extern void (*rtcc_int1_callback)(uint8_t value);
 /** @} */
 /* -------------------------------------------------------------------------- */
 /** \name AB08XX Address registers
@@ -318,7 +318,7 @@ typedef struct ab0805_struct_simple_td_reg {
  * \           AB08_SUCCESS date/time set
  * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
  */
-int8_t rtcc_set_time_date(simple_td_map *data);
+//int8_t rtcc_set_time_date(simple_td_map *data);
 
 /**
  * \brief Get the current time and date
@@ -327,7 +327,7 @@ int8_t rtcc_set_time_date(simple_td_map *data);
  * \           AB08_SUCCESS date/time set
  * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
  */
-int8_t rtcc_get_time_date(simple_td_map *data);
+//int8_t rtcc_get_time_date(simple_td_map *data);
 
 /**
  * \brief Print data from the RTCC module, either from the memory
@@ -360,7 +360,7 @@ int8_t rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state,
  * \           AB08_SUCCESS updated date values
  * \           AB08_ERROR failed to return the values
  */
-int8_t rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds);
+//int8_t rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds);
 
 /**
  * \brief Manually calibrate the RTCC
