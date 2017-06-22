@@ -239,3 +239,9 @@ ifneq (,$(filter lsm6dsl,$(USEMODULE)))
   FEATURES_REQUIRED += periph_i2c
   USEMODULE += xtimer
 endif
+
+ifneq (,$(filter ab80xx,$(USEMODULE)))
+  FEATURES_REQUIRED += periph_rtc
+  #USEMODULE += thread
+  USEMODULE += xtimer
+endif

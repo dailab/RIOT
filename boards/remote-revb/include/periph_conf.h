@@ -109,6 +109,16 @@ static const spi_conf_t spi_config[] = {
 #define SPI_NUMOF           (sizeof(spi_config) / sizeof(spi_config[0]))
 /** @} */
 
+/**
+ * @name RTC configuration
+ * @{
+ */
+#define RTC_NUMOF 1
+#define RTC_I2C_DEV I2C_0_DEV
+#define RTC_IRQ_PIN GPIO_PD3
+/** @} */
+
+
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif
