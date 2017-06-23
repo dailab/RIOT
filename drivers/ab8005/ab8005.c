@@ -52,8 +52,8 @@
 #include "periph/i2c.h"
 #include "periph/rtc.h"
 #include "thread.h"
-#include "ab80xx.h"
-#include "ab80xx-config.h"
+#include "ab8005.h"
+#include "ab8005-config.h"
 //#include "dev/leds.h"
 #include "xtimer.h"
 
@@ -73,8 +73,8 @@
 rtc_alarm_cb_t rtcc_int1_callback;
 
 /*---------------------------------------------------------------------------*/
-kernel_pid_t ab80xx_pid;
-char ab80xx_stack[THREAD_STACKSIZE_DEFAULT];
+kernel_pid_t ab8005_pid;
+char ab8005_stack[THREAD_STACKSIZE_DEFAULT];
 /* -------------------------------------------------------------------------- */
 #if 1
 static const char *ab080x_td_register_name[] =
@@ -238,168 +238,6 @@ ab08_ctrl1_config(uint8_t cmd)
 }
 /*---------------------------------------------------------------------------*/
 #if 0
-static int8_t
-ab08_check_td_format(simple_td_map *data, uint8_t alarm_state)
-{
-  /* Using fixed values as these are self-indicative of the variable */
-  if((data->seconds > 59) || (data->minutes > 59) || (data->hours > 23)) {
-    return AB08_ERROR;
-  }
-
-  if((data->months > 12) || (data->weekdays > 7) || (data->day > 31)) {
-    return AB08_ERROR;
-  }
-
-  /* Fixed condition for February (month 2) */
-  if(data->months == 2) {
-    if(check_leap_year(data->years)) {
-      if(data->day > 29) {
-        return AB08_ERROR;
-      }
-    } else {
-      if(data->day > 28) {
-        return AB08_ERROR;
-      }
-    }
-  }
-
-  /* Alarm doesn't care about year */
-  if(!alarm_state) {
-    /* AB08X5 Real-Time Clock Family, page 55 (year up to 2199) */
-    if(data->years > 199) {
-      return AB08_ERROR;
-    }
-  }
-
-  return AB08_SUCCESS;
-}
-#endif
-/*---------------------------------------------------------------------------*/
-#if 0
-int8_t
-rtcc_set_time_date(simple_td_map *data)
-{
-  uint8_t aux = 0;
-  uint8_t rtc_buffer[RTCC_TD_MAP_SIZE];
-
-  if(ab08_check_td_format(data, 0) == AB08_ERROR) {
-    PRINTF("RTC: Invalid time/date values\n");
-    return AB08_ERROR;
-  }
-
-  if(ab08xx_read_reg((CTRL_1_ADDR + CONFIG_MAP_OFFSET),
-                   &aux, 1) == AB08_ERROR) {
-    PRINTF("RTC: failed to retrieve CONTROL1 register\n");
-    return AB08_ERROR;
-  }
-
-  rtc_buffer[WEEKDAYLS_ADDR] = dec_to_bcd(data->weekdays);
-  rtc_buffer[YEAR_ADDR] = dec_to_bcd(data->years);
-  rtc_buffer[MONTHS_ADDR] = dec_to_bcd(data->months);
-  rtc_buffer[DAY_ADDR] = dec_to_bcd(data->day);
-  rtc_buffer[HOUR_ADDR] = dec_to_bcd(data->hours);
-  rtc_buffer[MIN_ADDR] = dec_to_bcd(data->minutes);
-  rtc_buffer[SEC_ADDR] = dec_to_bcd(data->seconds);
-  rtc_buffer[CENTHS_ADDR] = dec_to_bcd(data->miliseconds);
-
-  /* Check if we are to set the time in 12h/24h format */
-  if(data->mode == RTCC_24H_MODE) {
-    aux &= ~CTRL1_1224;
-  } else {
-    if((data->hours == 0) || (data->hours > 12)) {
-      PRINTF("RTC: Invalid hour configuration (12h mode selected)\n");
-      return AB08_ERROR;
-    }
-    aux |= CTRL1_1224;
-    if(data->mode == RTCC_12H_MODE_PM) {
-      /* Toggle bit for PM */
-      rtc_buffer[HOUR_ADDR] |= RTCC_TOGGLE_PM_BIT;
-    } else {
-      PRINTF("RTC: Invalid time mode selected\n");
-      return AB08_ERROR;
-    }
-  }
-
-  /* Write the 12h/24h config */
-  if(ab08xx_write_reg((CTRL_1_ADDR + CONFIG_MAP_OFFSET),
-                    &aux, 1) == AB08_ERROR) {
-    PRINTF("RTC: failed to write 12h/24h configuration\n");
-    return AB08_ERROR;
-  }
-
-  /* Reading the STATUS register with the CONTROL1.ARST set will clear the
-   * interrupt flags, we write directly to the register without caring its
-   * actual status and let the interrupt handler take care of any pending flag
-   */
-
-  if(ab08xx_read_reg((STATUS_ADDR + CONFIG_MAP_OFFSET), &aux, 1) == AB08_ERROR) {
-    PRINTF("RTC: failed to retrieve STATUS register\n");
-    return AB08_ERROR;
-  }
-
-  if(data->century == RTCC_CENTURY_20XX) {
-    aux |= STATUS_CB;
-  } else if(data->century == RTCC_CENTURY_19XX_21XX) {
-    aux |= ~STATUS_CB;
-  } else {
-    PRINTF("RTC: invalid century value\n");
-    return AB08_ERROR;
-  }
-
-  PRINTF("RTC: current STATUS value 0x%02X\n", aux);
-
-  if(ab08xx_write_reg((STATUS_ADDR + CONFIG_MAP_OFFSET), &aux, 1) == AB08_ERROR) {
-    PRINTF("RTC: failed to write century to STATUS register\n");
-    return AB08_ERROR;
-  }
-
-  /* Set the WRTC bit to enable writting to the counters */
-  if(ab08_ctrl1_config(RTCC_CMD_UNLOCK) == AB08_ERROR) {
-    return AB08_ERROR;
-  }
-
-  /* Write the buffers but the mode and century fields (used only for config) */
-  if(ab08xx_write_reg(CENTHS_ADDR, rtc_buffer,
-                    RTCC_TD_MAP_SIZE) == AB08_ERROR) {
-    PRINTF("RTC: failed to write date configuration\n");
-    return AB08_ERROR;
-  }
-
-  /* Lock the RTCC and return */
-  if(ab08_ctrl1_config(RTCC_CMD_LOCK) == AB08_ERROR) {
-    return AB08_ERROR;
-  }
-
-  return AB08_SUCCESS;
-}
-#endif
-/*---------------------------------------------------------------------------*/
-#if 0
-int8_t
-rtcc_get_time_date(simple_td_map *data)
-{
-  uint8_t rtc_buffer[RTCC_TD_MAP_SIZE];
-
-  if(ab08xx_read_reg(CENTHS_ADDR, rtc_buffer,
-                   RTCC_TD_MAP_SIZE) == AB08_ERROR) {
-    PRINTF("RTC: failed to retrieve date and time values\n");
-    return AB08_ERROR;
-  }
-
-  data->weekdays = bcd_to_dec(rtc_buffer[WEEKDAYLS_ADDR]);
-  data->years = bcd_to_dec(rtc_buffer[YEAR_ADDR]);
-  data->months = bcd_to_dec(rtc_buffer[MONTHS_ADDR]);
-  data->day = bcd_to_dec(rtc_buffer[DAY_ADDR]);
-  data->hours = bcd_to_dec(rtc_buffer[HOUR_ADDR]);
-  data->minutes = bcd_to_dec(rtc_buffer[MIN_ADDR]);
-  data->seconds = bcd_to_dec(rtc_buffer[SEC_ADDR]);
-  data->miliseconds = bcd_to_dec(rtc_buffer[CENTHS_ADDR]);
-
-  return AB08_SUCCESS;
-}
-#endif
-/*---------------------------------------------------------------------------*/
-#if 0
 int8_t
 rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
                          uint8_t trigger)
@@ -442,12 +280,12 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
   /* Stop the RTCC */
   ab08_ctrl1_config(RTCC_CMD_STOP);
 
-  buf[WEEKDAYS_ALARM_ADDR] = dec_to_bcd(data->weekdays);
-  buf[MONTHS_ALARM_ADDR] = dec_to_bcd(data->months);
-  buf[DAY_ALARMS_ADDR] = dec_to_bcd(data->day);
-  buf[HOURS_ALARM_ADDR] = dec_to_bcd(data->hours);
-  buf[MINUTES_ALARM_ADDR] = dec_to_bcd(data->minutes);
-  buf[SECONDS_ALARM_ADDR] = dec_to_bcd(data->seconds);
+  buf[WEEKDAY_ALARM_ADDR] = dec_to_bcd(data->weekdays);
+  buf[MONTH_ALARM_ADDR] = dec_to_bcd(data->months);
+  buf[DAY_ALARM_ADDR] = dec_to_bcd(data->day);
+  buf[HOUR_ALARM_ADDR] = dec_to_bcd(data->hours);
+  buf[MIN_ALARM_ADDR] = dec_to_bcd(data->minutes);
+  buf[SEC_ALARM_ADDR] = dec_to_bcd(data->seconds);
   buf[HUNDREDTHS_ALARM_ADDR] = dec_to_bcd(data->miliseconds);
 
   /* Check if the 12h/24h match the current configuration */
@@ -472,7 +310,7 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
 
     /* Toggle the PM bit */
     if(data->mode == RTCC_12H_MODE_PM) {
-      buf[HOURS_ALARM_ADDR] |= RTCC_TOGGLE_PM_BIT;
+      buf[HOUR_ALARM_ADDR] |= RTCC_TOGGLE_PM_BIT;
     }
   }
 
@@ -579,82 +417,8 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
 }
 #endif
 /*---------------------------------------------------------------------------*/
-#if 0
-int8_t
-rtcc_date_increment_seconds(simple_td_map *data, uint16_t seconds)
-{
-  uint16_t aux;
-
-  if(data == NULL) {
-    PRINTF("RTC: invalid argument\n");
-    return AB08_ERROR;
-  }
-
-  if(rtcc_get_time_date(data) == AB08_ERROR) {
-    return AB08_ERROR;
-  }
-
-  /* Nothing to do here but congratulate the user */
-  if(!seconds) {
-    return AB08_SUCCESS;
-  }
-
-  aux = data->seconds + seconds;
-  data->seconds = (uint8_t)(aux % 60);
-
-  /* Add the remainder seconds to the minutes counter */
-  if(aux > 59) {
-    aux /= 60;
-    aux += data->minutes;
-    data->minutes = (uint8_t)(aux % 60);
-  }
-
-  /* Add the remainder minutes to the hours counter */
-  if(aux > 59) {
-    aux /= 60;
-    aux += data->hours;
-    data->hours = (uint8_t)(aux % 24);
-  }
-
-  if(aux > 23) {
-    aux /= 24;
-    aux += data->day;
-
-    if(data->months == 2) {
-      if(check_leap_year(data->years)) {
-        if(aux > 29) {
-          data->day = (uint8_t)(aux % 29);
-          data->months++;
-        }
-      } else if(aux > 28) {
-        data->day = (uint8_t)(aux % 28);
-        data->months++;
-      }
-    } else if((data->months == 4) || (data->months == 6) ||
-             (data->months == 9) || (data->months == 11)) {
-      if(aux > 30) {
-        data->day = (uint8_t)(aux % 30);
-        data->months++;
-      }
-    } else if(aux > 31) {
-      data->day = (uint8_t)(aux % 31);
-      data->months++;
-    }
-  }
-
-  if(data->months > 12) {
-    data->months = data->months % 12;
-    data->years++;
-  }
-  return AB08_SUCCESS;
-}
-#endif
-/*---------------------------------------------------------------------------*/
-//PROCESS(rtcc_int_process, "RTCC interruption process handler");
-/*---------------------------------------------------------------------------*/
-//PROCESS_THREAD(rtcc_int_process, ev, data)
 void*
-ab80xx_thread(void* arg)
+ab8005_thread(void* arg)
 {
   static uint8_t buf;
   //PROCESS_EXITHANDLER();
@@ -695,7 +459,7 @@ ab80xx_thread(void* arg)
 /*---------------------------------------------------------------------------*/
 #if 1
 int8_t
-ab80xx_print(uint8_t value)
+ab8005_print(uint8_t value)
 {
   uint8_t i, len, reg;
   char **name;
@@ -720,7 +484,7 @@ ab80xx_print(uint8_t value)
   case RTCC_PRINT_DATE:
   case RTCC_PRINT_DATE_DEC:
     len = RTCC_TD_MAP_SIZE;
-    reg = CENTHS_ADDR;
+    reg = HUNDREDTHS_ADDR;
     name = (char **)ab080x_td_register_name;
     break;
   default:
@@ -734,12 +498,12 @@ ab80xx_print(uint8_t value)
 
   if(value == RTCC_PRINT_ALARM_DEC) {
     printf("%02u/%02u (%02u) %02u:%02u:%02u/%02u\n",
-           bcd_to_dec(rtc_buffer[MONTHS_ALARM_ADDR]),
-           bcd_to_dec(rtc_buffer[DAY_ALARMS_ADDR]),
-           bcd_to_dec(rtc_buffer[WEEKDAYS_ALARM_ADDR]),
-           bcd_to_dec(rtc_buffer[HOURS_ALARM_ADDR]),
-           bcd_to_dec(rtc_buffer[MINUTES_ALARM_ADDR]),
-           bcd_to_dec(rtc_buffer[SECONDS_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[MONTH_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[DAY_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[WEEKDAY_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[HOUR_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[MIN_ALARM_ADDR]),
+           bcd_to_dec(rtc_buffer[SEC_ALARM_ADDR]),
            bcd_to_dec(rtc_buffer[HUNDREDTHS_ALARM_ADDR]));
     return AB08_SUCCESS;
   }
@@ -747,13 +511,13 @@ ab80xx_print(uint8_t value)
   if(value == RTCC_PRINT_DATE_DEC) {
     printf("%02u/%02u/%02u (%02u) %02u:%02u:%02u/%02u\n",
            bcd_to_dec(rtc_buffer[YEAR_ADDR]),
-           bcd_to_dec(rtc_buffer[MONTHS_ADDR]),
+           bcd_to_dec(rtc_buffer[MONTH_ADDR]),
            bcd_to_dec(rtc_buffer[DAY_ADDR]),
-           bcd_to_dec(rtc_buffer[WEEKDAYLS_ADDR]),
+           bcd_to_dec(rtc_buffer[WEEKDAY_ADDR]),
            bcd_to_dec(rtc_buffer[HOUR_ADDR]),
            bcd_to_dec(rtc_buffer[MIN_ADDR]),
            bcd_to_dec(rtc_buffer[SEC_ADDR]),
-           bcd_to_dec(rtc_buffer[CENTHS_ADDR]));
+           bcd_to_dec(rtc_buffer[HUNDREDTHS_ADDR]));
     return AB08_SUCCESS;
   }
 
@@ -766,10 +530,10 @@ ab80xx_print(uint8_t value)
 #endif
 /*---------------------------------------------------------------------------*/
 static void
-ab80xx_isr(void* arg)
+ab8005_isr(void* arg)
 {
   printf("%s: TODO...\n", __func__);
-  thread_wakeup(ab80xx_pid);
+  thread_wakeup(ab8005_pid);
 }
 #if 0
 static void
@@ -959,7 +723,7 @@ rtcc_init(void)
 void
 rtc_init(void)
 {
-  //printf("starting ab80xx initialization...\n");
+  //printf("starting ab8005 initialization...\n");
   /*
   i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
            I2C_SCL_NORMAL_BUS_SPEED);
@@ -979,7 +743,7 @@ rtc_init(void)
 
   /* Configure the interrupts pins */
   //gpio_init(RTC_IRQ_PIN, GPIO_IN_PU);
-  if( gpio_init_int(RTC_IRQ_PIN, GPIO_IN_PU, GPIO_FALLING, ab80xx_isr, NULL) ==
+  if( gpio_init_int(RTC_IRQ_PIN, GPIO_IN_PU, GPIO_FALLING, ab8005_isr, NULL) ==
       -1){
       printf("failed to initialize RTC GPIO Pin\n");
   }
@@ -996,17 +760,17 @@ rtc_init(void)
   //gpio_register_callback(rtcc_interrupt_handler, RTC_INT1_PORT, RTC_INT1_PIN);
 
   /* Spin process until an interrupt is received */
-  ab80xx_pid = thread_create(
-      ab80xx_stack,
-      sizeof(ab80xx_stack),
+  ab8005_pid = thread_create(
+      ab8005_stack,
+      sizeof(ab8005_stack),
       AB80XX_PRIO,
       THREAD_CREATE_STACKTEST,
-      ab80xx_thread,
+      ab8005_thread,
       NULL,
-      "ab80xx RTC"
+      "ab8005 RTC"
       );
 
-  //printf("ab80xx initialization done.\n");
+  //printf("ab8005 initialization done.\n");
   //return AB08_SUCCESS;
 }
 
@@ -1029,22 +793,22 @@ int rtc_set_time(struct tm *time)
     return -1;
   }
 
-  rtc_buffer[WEEKDAYLS_ADDR] = dec_to_bcd(time->tm_wday);
+  rtc_buffer[WEEKDAY_ADDR] = dec_to_bcd(time->tm_wday);
   rtc_buffer[YEAR_ADDR] = dec_to_bcd(time->tm_year % 100);
-  rtc_buffer[MONTHS_ADDR] = dec_to_bcd(time->tm_mon);
+  rtc_buffer[MONTH_ADDR] = dec_to_bcd(time->tm_mon);
   rtc_buffer[DAY_ADDR] = dec_to_bcd(time->tm_mday);
   rtc_buffer[HOUR_ADDR] = dec_to_bcd(time->tm_hour);
   rtc_buffer[MIN_ADDR] = dec_to_bcd(time->tm_min);
   rtc_buffer[SEC_ADDR] = dec_to_bcd(time->tm_sec);
-  rtc_buffer[CENTHS_ADDR] = dec_to_bcd(0);
+  rtc_buffer[HUNDREDTHS_ADDR] = dec_to_bcd(0);
 
 #if 0
   printf("%s: tm_wday=%d -> 0x%02x\n", __func__,
-	 time->tm_wday, rtc_buffer[WEEKDAYLS_ADDR]);
+	 time->tm_wday, rtc_buffer[WEEKDAY_ADDR]);
   printf("%s: tm_year=%d -> 0x%02x\n", __func__,
 	 time->tm_year, rtc_buffer[YEAR_ADDR]);
   printf("%s: tm_mon=%d -> 0x%02x\n", __func__,
-	 time->tm_mon, rtc_buffer[MONTHS_ADDR]);
+	 time->tm_mon, rtc_buffer[MONTH_ADDR]);
   printf("%s: tm_mday=%d -> 0x%02x\n", __func__,
 	 time->tm_mday, rtc_buffer[DAY_ADDR]);
   printf("%s: tm_hour=%d -> 0x%02x\n", __func__,
@@ -1120,7 +884,7 @@ int rtc_set_time(struct tm *time)
   }
 
   /* Write the buffers but the mode and century fields (used only for config) */
-  if(ab08xx_write_reg(CENTHS_ADDR, rtc_buffer,
+  if(ab08xx_write_reg(HUNDREDTHS_ADDR, rtc_buffer,
                     RTCC_TD_MAP_SIZE) == AB08_ERROR) {
     printf("RTC: failed to write date configuration\n");
     return -1;
@@ -1145,11 +909,11 @@ int rtc_get_time(struct tm *time)
 
   /*
   printf("%s: TODO\n", __func__);
-  ab80xx_print(RTCC_PRINT_DATE);
+  ab8005_print(RTCC_PRINT_DATE);
   */
 
   len = RTCC_TD_MAP_SIZE;
-  reg = CENTHS_ADDR;
+  reg = HUNDREDTHS_ADDR;
   //name = (char **)ab080x_td_register_name;
 
   if(ab08xx_read_reg(reg, rtc_buffer, len) == AB08_ERROR) {
@@ -1171,9 +935,9 @@ int rtc_get_time(struct tm *time)
       // century flag is set
       time->tm_year += 100;
   }
-  time->tm_mon = bcd_to_dec(rtc_buffer[MONTHS_ADDR]);
+  time->tm_mon = bcd_to_dec(rtc_buffer[MONTH_ADDR]);
   time->tm_mday = bcd_to_dec(rtc_buffer[DAY_ADDR]);
-  time->tm_wday = bcd_to_dec(rtc_buffer[WEEKDAYLS_ADDR]);
+  time->tm_wday = bcd_to_dec(rtc_buffer[WEEKDAY_ADDR]);
   time->tm_hour = bcd_to_dec(rtc_buffer[HOUR_ADDR]);
   time->tm_min = bcd_to_dec(rtc_buffer[MIN_ADDR]);
   time->tm_sec = bcd_to_dec(rtc_buffer[SEC_ADDR]);
@@ -1240,13 +1004,13 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
   buf[SECONDS_ALARM_ADDR] = dec_to_bcd(data->seconds);
   buf[HUNDREDTHS_ALARM_ADDR] = dec_to_bcd(data->miliseconds);
   */
-  buf[WEEKDAYS_ALARM_ADDR] = dec_to_bcd(time->tm_wday);
+  buf[WEEKDAY_ALARM_ADDR] = dec_to_bcd(time->tm_wday);
   //buf[YEAR_ADDR] = dec_to_bcd(time->tm_year % 100);
-  buf[MONTHS_ALARM_ADDR] = dec_to_bcd(time->tm_mon);
-  buf[DAY_ALARMS_ADDR] = dec_to_bcd(time->tm_mday);
-  buf[HOURS_ALARM_ADDR] = dec_to_bcd(time->tm_hour);
-  buf[MINUTES_ALARM_ADDR] = dec_to_bcd(time->tm_min);
-  buf[SECONDS_ALARM_ADDR] = dec_to_bcd(time->tm_sec);
+  buf[MONTH_ALARM_ADDR] = dec_to_bcd(time->tm_mon);
+  buf[DAY_ALARM_ADDR] = dec_to_bcd(time->tm_mday);
+  buf[HOUR_ALARM_ADDR] = dec_to_bcd(time->tm_hour);
+  buf[MIN_ALARM_ADDR] = dec_to_bcd(time->tm_min);
+  buf[SEC_ALARM_ADDR] = dec_to_bcd(time->tm_sec);
   buf[HUNDREDTHS_ALARM_ADDR] = dec_to_bcd(0);
 
   /* Check if the 12h/24h match the current configuration */
@@ -1274,7 +1038,7 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
 
     /* Toggle the PM bit */
     if(data->mode == RTCC_12H_MODE_PM) {
-      buf[HOURS_ALARM_ADDR] |= RTCC_TOGGLE_PM_BIT;
+      buf[HOUR_ALARM_ADDR] |= RTCC_TOGGLE_PM_BIT;
     }
   }
 #endif
@@ -1419,12 +1183,12 @@ int rtc_get_alarm(struct tm *time)
 
   memset(time, 0, sizeof(struct tm));
 
-  time->tm_mon = bcd_to_dec(buf[MONTHS_ALARM_ADDR]);
-  time->tm_mday = bcd_to_dec(buf[DAY_ALARMS_ADDR]);
-  time->tm_wday = bcd_to_dec(buf[WEEKDAYS_ALARM_ADDR]);
-  time->tm_hour = bcd_to_dec(buf[HOURS_ALARM_ADDR]);
-  time->tm_min = bcd_to_dec(buf[MINUTES_ALARM_ADDR]);
-  time->tm_sec = bcd_to_dec(buf[SECONDS_ALARM_ADDR]);
+  time->tm_mon = bcd_to_dec(buf[MONTH_ALARM_ADDR]);
+  time->tm_mday = bcd_to_dec(buf[DAY_ALARM_ADDR]);
+  time->tm_wday = bcd_to_dec(buf[WEEKDAY_ALARM_ADDR]);
+  time->tm_hour = bcd_to_dec(buf[HOUR_ALARM_ADDR]);
+  time->tm_min = bcd_to_dec(buf[MIN_ALARM_ADDR]);
+  time->tm_sec = bcd_to_dec(buf[SEC_ALARM_ADDR]);
 
   return 0;
 }

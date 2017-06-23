@@ -63,24 +63,24 @@
  */
 /* -------------------------------------------------------------------------- */
 /* Time/date registers (no offset) */
-#define CENTHS_ADDR            0x00
+#define HUNDREDTHS_ADDR        0x00
 #define SEC_ADDR               0x01
 #define MIN_ADDR               0x02
 #define HOUR_ADDR              0x03
 #define DAY_ADDR               0x04
-#define MONTHS_ADDR            0x05
+#define MONTH_ADDR             0x05
 #define YEAR_ADDR              0x06
-#define WEEKDAYLS_ADDR         0x07
+#define WEEKDAY_ADDR           0x07
 
 /* Alarm registers */
 #define ALARM_MAP_OFFSET       0x08
 #define HUNDREDTHS_ALARM_ADDR  0x00
-#define SECONDS_ALARM_ADDR     0x01
-#define MINUTES_ALARM_ADDR     0x02
-#define HOURS_ALARM_ADDR       0x03
-#define DAY_ALARMS_ADDR        0x04
-#define MONTHS_ALARM_ADDR      0x05
-#define WEEKDAYS_ALARM_ADDR    0x06
+#define SEC_ALARM_ADDR         0x01
+#define MIN_ALARM_ADDR         0x02
+#define HOUR_ALARM_ADDR        0x03
+#define DAY_ALARM_ADDR         0x04
+#define MONTH_ALARM_ADDR       0x05
+#define WEEKDAY_ALARM_ADDR     0x06
 
 /* Configuration registers */
 #define CONFIG_MAP_OFFSET      0x0F
@@ -196,8 +196,8 @@
 #define RTCC_TOGGLE_PM_BIT         0x20
 #define RTCC_FIX_10THS_HUNDRETHS   0xF0
 #define RTCC_FIX_100THS_HUNDRETHS  0xFF
-#define RTCC_TD_MAP_SIZE           (WEEKDAYLS_ADDR + 1)
-#define RTCC_ALARM_MAP_SIZE        (WEEKDAYS_ALARM_ADDR + 1)
+#define RTCC_TD_MAP_SIZE           (WEEKDAY_ADDR + 1)
+#define RTCC_ALARM_MAP_SIZE        (WEEKDAY_ALARM_ADDR + 1)
 #define RTCC_CONFIG_MAP_SIZE       (BREF_CTRL_ADDR + 1)
 /** @} */
 /* -------------------------------------------------------------------------- */
@@ -311,46 +311,6 @@ typedef struct ab0805_struct_simple_td_reg {
  * @{
  */
 
-/**
- * \brief Set the time and date
- * \param *data Time and date value (decimal format)
- * \return
- * \           AB08_SUCCESS date/time set
- * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
- */
-//int8_t rtcc_set_time_date(simple_td_map *data);
-
-/**
- * \brief Get the current time and date
- * \param *data buffer to store the results
- * \return
- * \           AB08_SUCCESS date/time set
- * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
- */
-//int8_t rtcc_get_time_date(simple_td_map *data);
-
-/**
- * \brief Print data from the RTCC module, either from the memory
- *        map (values in BCD) or actual readable data (decimal).
- * \param value value to print, see RTCC_PRINT_* options available
- * \return
- * \           AB08_SUCCESS date/time set
- * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
- */
-//int8_t rtcc_print(uint8_t value);
-
-/**
- * \brief Configure the RTCC to match an alarm counter
- * \param data date and time values (in decimal) to match against
- * \param state set on/off the alarm interruption
- * \param repeat set the frequency of the alarm (minute, hourly, daily, etc.)
- * \param trigger interrupt trigger (INT1, INT2 or both)
- * \return
- * \           AB08_SUCCESS date/time set
- * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
- */
-int8_t rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state,
-                                uint8_t repeat, uint8_t trigger);
 
 /**
  * \brief Increments the current date by a number of seconds
@@ -381,13 +341,6 @@ int8_t rtcc_set_calibration(uint8_t mode, int32_t adjust);
  */
 int8_t rtcc_set_autocalibration(uint8_t period);
 
-/**
- * \brief Initialize the RTCC, configures the I2C bus, interrupts and registers
- * \return
- * \           AB08_SUCCESS date/time set
- * \           AB08_ERROR failed to set time/date (enable DEBUG for more info)
- */
-//int8_t rtcc_init(void);
 /** @} */
 /* -------------------------------------------------------------------------- */
 #endif /* ifndef AB80XX_H_ */

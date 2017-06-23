@@ -240,7 +240,7 @@ ifneq (,$(filter lsm6dsl,$(USEMODULE)))
   USEMODULE += xtimer
 endif
 
-ifneq (,$(filter ab80xx,$(USEMODULE)))
+ifneq (,$(filter ab8005,$(USEMODULE)))
   FEATURES_REQUIRED += periph_rtc
   #USEMODULE += thread
   USEMODULE += xtimer
