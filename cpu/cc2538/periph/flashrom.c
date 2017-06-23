@@ -28,14 +28,14 @@ void* _flashrom_write_addr;
 #endif
 
 
-static uint
+static uint16_t
 flashrom_addr_to_page(uint8_t* addr){
-	uint page_num = 0;
-	uint flash_page_size = FLASH_SIZE / FLASH_PAGE_NUM;
+	uint16_t page_num = 0;
+	uint16_t flash_page_size = FLASH_SIZE / FLASH_PAGE_NUM;
 
 	uint8_t* rel_addr = addr - FLASH_BASE;
 
-	page_num = (uint)rel_addr / (uint)flash_page_size;
+	page_num = (uint32_t)rel_addr / (uint16_t)flash_page_size;
 
 	return page_num;
 }
@@ -92,7 +92,7 @@ uint8_t flashrom_write(uint8_t *dst, const uint8_t *src, size_t size)
 	}
 #endif
 
-	uint page_num = flashrom_addr_to_page(dst);
+	uint16_t page_num = flashrom_addr_to_page(dst);
 
 	if(page_num == 0xff){
 		return 0;
