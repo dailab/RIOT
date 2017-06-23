@@ -47,8 +47,8 @@
  * Toni Lozano <tlozano@zolertia.com>
  */
 /* -------------------------------------------------------------------------- */
-#ifndef AB80XX_CONFIG_H_
-#define AB80XX_CONFIG_H_
+#ifndef AB8005_CONFIG_H_
+#define AB8005_CONFIG_H_
 /* -------------------------------------------------------------------------- */
 #include "ab8005.h"
 /* -------------------------------------------------------------------------- */
@@ -94,9 +94,9 @@ static const ab080x_register_config_t ab080x_default_setting[] =
 };
 /** @} */
 
-#define AB80XX_PRIO (THREAD_PRIORITY_MAIN - 6)
+#define AB8005_PRIO (THREAD_PRIORITY_MAIN - 6)
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef AB80XX_CONFIG_H_ */
+#endif /* ifndef AB8005_CONFIG_H_ */
 /* -------------------------------------------------------------------------- */
 /**
  * @}

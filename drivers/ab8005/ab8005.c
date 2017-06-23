@@ -138,7 +138,7 @@ ab08xx_read_reg(uint8_t reg, uint8_t *buf, uint8_t regnum)
 {
   i2c_acquire(RTC_I2C_DEV);
 
-  if(i2c_read_regs(RTC_I2C_DEV, AB08XX_ADDR, reg, buf, regnum) == regnum){
+  if(i2c_read_regs(RTC_I2C_DEV, AB0805_ADDR, reg, buf, regnum) == regnum){
       i2c_release(RTC_I2C_DEV);
       return AB08_SUCCESS;
   }
@@ -152,7 +152,7 @@ ab08xx_write_reg(uint8_t reg, uint8_t *buf, uint8_t regnum)
 {
   i2c_acquire(RTC_I2C_DEV);
 
-  if(i2c_write_regs(RTC_I2C_DEV, AB08XX_ADDR, reg, buf, regnum) == regnum){
+  if(i2c_write_regs(RTC_I2C_DEV, AB0805_ADDR, reg, buf, regnum) == regnum){
     i2c_release(RTC_I2C_DEV);
     return AB08_SUCCESS;
   }
@@ -322,7 +322,7 @@ rtcc_set_alarm_time_date(simple_td_map *data, uint8_t state, uint8_t repeat,
 
   aux[0] &= ~COUNTDOWN_TIMER_RPT_SECOND;
 
-  /* AB08XX application manual, table 76 */
+  /* AB0805 application manual, table 76 */
   if(repeat == RTCC_REPEAT_10THS) {
     buf[HUNDREDTHS_ALARM_ADDR] |= RTCC_FIX_10THS_HUNDRETHS;
     repeat = RTCC_REPEAT_SECOND;
@@ -757,7 +757,7 @@ rtc_init(void)
   ab8005_pid = thread_create(
       ab8005_stack,
       sizeof(ab8005_stack),
-      AB80XX_PRIO,
+      AB8005_PRIO,
       THREAD_CREATE_STACKTEST,
       ab8005_thread,
       NULL,
@@ -945,61 +945,10 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
 {
   uint8_t aux[4], buf[RTCC_ALARM_MAP_SIZE];
 
-  /*
-  if((trigger != RTCC_TRIGGER_INT2) && (trigger != RTCC_TRIGGER_INT1) &&
-     (trigger != RTCC_TRIGGER_BOTH)) {
-    PRINTF("RTC: invalid trigger pin\n");
-    return AB08_ERROR;
-  }
-  */
-
-  /*
-  if(state == RTCC_ALARM_OFF) {
-    if(abxx08_read_reg((INT_MASK_ADDR + CONFIG_MAP_OFFSET),
-                     &aux[0], 1) == AB08_ERROR) {
-      PRINTF("RTC: failed to retrieve INTMASK register\n");
-      return AB08_ERROR;
-    }
-
-    aux[0] &= ~INTMASK_AIE;
-
-    if(ab08xx_write_reg((INT_MASK_ADDR + CONFIG_MAP_OFFSET),
-                      &aux[0], 1) == AB08_ERROR) {
-      PRINTF("RTC: failed to clear the alarm config\n");
-      return AB08_ERROR;
-    }
-    return AB08_SUCCESS;
-  }
-  */
-
-  /*
-  if((data == NULL) || (ab08_check_td_format(data, 1) == AB08_ERROR)) {
-    PRINTF("RTC: invalid alarm values\n");
-    return AB08_ERROR;
-  }
-  */
-
-  /*
-  if((state >= RTCC_ALARM_MAX) || (repeat >= RTCC_REPEAT_100THS)) {
-    PRINTF("RTC: invalid alarm config type or state\n");
-    return AB08_ERROR;
-  }
-  */
-
   /* Stop the RTCC */
   ab08_ctrl1_config(RTCC_CMD_STOP);
 
-  /*
-  buf[WEEKDAYS_ALARM_ADDR] = dec_to_bcd(data->weekdays);
-  buf[MONTHS_ALARM_ADDR] = dec_to_bcd(data->months);
-  buf[DAY_ALARMS_ADDR] = dec_to_bcd(data->day);
-  buf[HOURS_ALARM_ADDR] = dec_to_bcd(data->hours);
-  buf[MINUTES_ALARM_ADDR] = dec_to_bcd(data->minutes);
-  buf[SECONDS_ALARM_ADDR] = dec_to_bcd(data->seconds);
-  buf[HUNDREDTHS_ALARM_ADDR] = dec_to_bcd(data->miliseconds);
-  */
   buf[WEEKDAY_ALARM_ADDR] = dec_to_bcd(time->tm_wday);
-  //buf[YEAR_ADDR] = dec_to_bcd(time->tm_year % 100);
   buf[MONTH_ALARM_ADDR] = dec_to_bcd(time->tm_mon);
   buf[DAY_ALARM_ADDR] = dec_to_bcd(time->tm_mday);
   buf[HOUR_ALARM_ADDR] = dec_to_bcd(time->tm_hour);
@@ -1014,29 +963,6 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
     return -1;
   }
 
-#if 0 // can be ignored
-  if(((aux[0] & CTRL1_1224) && (data->mode == RTCC_24H_MODE)) ||
-     (!(aux[0] & CTRL1_1224) && ((data->mode == RTCC_12H_MODE_AM) ||
-                                 (data->mode == RTCC_12H_MODE_PM)))) {
-    PRINTF("RTC: 12/24h mode and present date config mismatch\n");
-    return AB08_ERROR;
-  }
-#endif
-
-#if 0 // can be ignored
-  if(data->mode != RTCC_24H_MODE) {
-    if((data->hours == 0) || (data->hours > 12)) {
-      PRINTF("RTC: Invalid hour configuration (12h mode selected)\n");
-      return AB08_ERROR;
-    }
-
-    /* Toggle the PM bit */
-    if(data->mode == RTCC_12H_MODE_PM) {
-      buf[HOUR_ALARM_ADDR] |= RTCC_TOGGLE_PM_BIT;
-    }
-  }
-#endif
-
   /* Clear the RPT field */
   if(ab08xx_read_reg((TIMER_CONTROL_ADDR + CONFIG_MAP_OFFSET),
                    &aux[0], 1) == AB08_ERROR) {
@@ -1046,21 +972,6 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
 
   aux[0] &= ~COUNTDOWN_TIMER_RPT_SECOND;
 
-
-#if 0 // can be ignored
-  /* AB08XX application manual, table 76 */
-  if(repeat == RTCC_REPEAT_10THS) {
-    buf[HUNDREDTHS_ALARM_ADDR] |= RTCC_FIX_10THS_HUNDRETHS;
-    repeat = RTCC_REPEAT_SECOND;
-  } else if(repeat == RTCC_REPEAT_100THS) {
-    buf[HUNDREDTHS_ALARM_ADDR] |= RTCC_FIX_100THS_HUNDRETHS;
-    repeat = RTCC_REPEAT_SECOND;
-  }
-
-  if(repeat != RTCC_REPEAT_NONE) {
-    aux[0] |= (repeat << COUNTDOWN_TIMER_RPT_SHIFT);
-  }
-#endif
 
   /* We are using as default the level interrupt instead of pulses */
   /* FIXME: make this selectable */
@@ -1094,28 +1005,6 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
 
   /* Clear the AIE alarm bit */
   aux[INT_MASK_ADDR] &= ~INTMASK_AIE;
-#if 0
-  /* Configure Interrupt parameters for Alarm Interrupt Mode in nIRQ
-   * or nAIRQ pins and fixed level until interrupt flag is cleared
-   * RTC_INT1 is connected to the CC2538
-   * RTC_INT2 is connected to the power management PIC in revision B
-   */
-  if (trigger == RTCC_TRIGGER_INT2) {
-    aux[CTRL_2_ADDR] |= CTRL2_OUT2S_NAIRQ_OUTB;
-  /* Only options left enable the INT1 interrupt pin */
-  } else {
-    //GPIO_ENABLE_INTERRUPT(RTC_INT1_PORT_BASE, RTC_INT1_PIN_MASK);
-    gpio_irq_enable(RTC_IRQ_PIN);
-    //ioc_set_over(RTC_INT1_PORT, RTC_INT1_PIN, IOC_OVERRIDE_PUE);
-    //NVIC_EnableIRQ(RTC_INT1_VECTOR);
-  }
-
-  if (trigger == RTCC_TRIGGER_INT1) {
-    aux[CTRL_2_ADDR] |= CTRL2_OUT1S_NIRQ_NAIRQ_OUT;
-  } else if (trigger == RTCC_TRIGGER_BOTH) {
-    aux[CTRL_2_ADDR] |= (CTRL2_OUT1S_NIRQ_NAIRQ_OUT + CTRL2_OUT2S_NAIRQ_OUTB);
-  }
-#else
 
   // set callback
   rtcc_int1_callback = cb;
@@ -1123,18 +1012,9 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
   // initializing INT1
   aux[CTRL_2_ADDR] |= CTRL2_OUT1S_NIRQ_NAIRQ_OUT;
   gpio_irq_enable(RTC_IRQ_PIN);
-#endif
 
-#if 0
-  if(repeat != RTCC_REPEAT_NONE) {
-    aux[INT_MASK_ADDR] &= ~INTMASK_IM_LOW;
-  } else {
-    aux[INT_MASK_ADDR] |= INTMASK_IM_LOW;
-  }
-#else
   // disable repeat
   aux[INT_MASK_ADDR] |= INTMASK_IM_LOW;
-#endif
 
   if(ab08xx_write_reg((STATUS_ADDR + CONFIG_MAP_OFFSET), aux, 4) == AB08_ERROR) {
     printf("RTC: failed to clear alarm config\n");

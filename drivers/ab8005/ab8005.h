@@ -44,8 +44,8 @@
  * Header file for the RE-Mote RF antenna switch
  */
 /* -------------------------------------------------------------------------- */
-#ifndef AB80XX_H_
-#define AB80XX_H_
+#ifndef AB8005_H_
+#define AB8005_H_
 /* -------------------------------------------------------------------------- */
 #include <stdio.h>
 #include "periph/i2c.h"
@@ -58,7 +58,7 @@
 //extern void (*rtcc_int1_callback)(uint8_t value);
 /** @} */
 /* -------------------------------------------------------------------------- */
-/** \name AB08XX Address registers
+/** \name AB0805 Address registers
  * @{
  */
 /* -------------------------------------------------------------------------- */
@@ -188,7 +188,7 @@
  * @{
  */
 /* I2C address (7-bits) */
-#define AB08XX_ADDR                0x69
+#define AB0805_ADDR                0x69
 #define INT_BUFF_SIZE              20L
 #define TCS_DIODE_3K               (TCS_ENABLE + 0x05)
 #define TCS_DIODE_6K               (TCS_ENABLE + 0x06)
@@ -343,7 +343,7 @@ int8_t rtcc_set_autocalibration(uint8_t period);
 
 /** @} */
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef AB80XX_H_ */
+#endif /* ifndef AB8005_H_ */
 /* -------------------------------------------------------------------------- */
 /**
  * @}
