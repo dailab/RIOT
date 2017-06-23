@@ -69,7 +69,6 @@
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 /* Callback pointers when interrupt occurs */
-//void (*rtcc_int1_callback)(uint8_t value);
 rtc_alarm_cb_t rtcc_int1_callback;
 
 /*---------------------------------------------------------------------------*/
@@ -423,14 +422,10 @@ ab8005_thread(void* arg)
   static uint8_t buf;
   //PROCESS_EXITHANDLER();
   //PROCESS_BEGIN();
-  printf("%s: #1\n", __func__);
   while(1) {
-
-    printf("%s: #2\n", __func__);
 
     //PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
     thread_sleep();
-    printf("%s: #3\n", __func__);
 
     if(ab08_read_status(&buf) == AB08_ERROR) {
       PRINTF("RTC: failed to retrieve ARST value\n");
@@ -532,7 +527,6 @@ ab8005_print(uint8_t value)
 static void
 ab8005_isr(void* arg)
 {
-  printf("%s: TODO...\n", __func__);
   thread_wakeup(ab8005_pid);
 }
 #if 0
@@ -1075,8 +1069,8 @@ int rtc_set_alarm(struct tm *time, rtc_alarm_cb_t cb, void *arg)
   aux[0] &= ~COUNTDOWN_TIMER_TRPT;
 
   // enable timer
-  //aux[0] |= COUNTDOWN_TIMER_RPT_YEAR;
-  aux[0] |= COUNTDOWN_TIMER_RPT_SECOND;
+  aux[0] |= COUNTDOWN_TIMER_RPT_YEAR;
+  //aux[0] |= COUNTDOWN_TIMER_RPT_SECOND;
   aux[0] |= COUNTDOWN_TIMER_TE;
 
   if(ab08xx_write_reg((TIMER_CONTROL_ADDR + CONFIG_MAP_OFFSET),
@@ -1271,6 +1265,8 @@ void rtc_poweron(void)
 
 void rtc_poweroff(void)
 {
+  ab8005_print(RTCC_PRINT_ALARM_DEC);
+  ab8005_print(RTCC_PRINT_CONFIG);
   printf("%s: TODO\n", __func__);
 }
 
