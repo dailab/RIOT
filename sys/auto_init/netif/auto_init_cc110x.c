@@ -25,6 +25,7 @@
 #include "board.h"
 #include "net/gnrc/netdev.h"
 #include "gnrc_netdev_cc110x.h"
+#include "net/gnrc/netdev/ieee802154.h"
 #include "net/gnrc.h"
 
 #include "cc110x.h"
@@ -49,7 +50,6 @@ static gnrc_netdev_t _gnrc_netdev_devs[CC110X_NUM];
 
 void auto_init_cc110x(void)
 {
-    DEBUG("auto_init_cc110x debug stack size: %u\n", DEBUG_EXTRA_STACKSIZE);
     for (unsigned i = 0; i < CC110X_NUM; i++) {
         const cc110x_params_t *p = &cc110x_params[i];
 
@@ -57,12 +57,18 @@ void auto_init_cc110x(void)
         DEBUG("[auto_init_netif] initializing cc110x #%u\n", i);
 
         int res = netdev_cc110x_setup(&cc110x_devs[i], p);
+#ifdef MODULE_CC1200
+        res = gnrc_netdev_ieee802154_init(&_gnrc_netdev_devs[i],
+                                      (netdev_ieee802154_t *)&(cc110x_devs[i]));
+#endif /* MODULE_CC1200 */
         DEBUG("[auto_init_netif] finished: res=%i\n", res);
         if (res < 0) {
             LOG_ERROR("[auto_init_netif] error initializing cc110x #%u\n", i);
         }
         else {
+#ifndef MODULE_CC1200
             gnrc_netdev_cc110x_init(&_gnrc_netdev_devs[i], &cc110x_devs[i]);
+#endif /* MODULE_CC1200 */
             res = gnrc_netdev_init(_stacks[i], CC110X_MAC_STACKSIZE,
                     CC110X_MAC_PRIO, "cc110x", &_gnrc_netdev_devs[i]);
             if (res < 0) {

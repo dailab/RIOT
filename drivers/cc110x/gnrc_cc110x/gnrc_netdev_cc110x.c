@@ -17,7 +17,7 @@
 #include "net/gnrc/netdev.h"
 #include "od.h"
 
-#define ENABLE_DEBUG    (0)
+#define ENABLE_DEBUG    (1)
 #include "debug.h"
 
 static int _send(gnrc_netdev_t *gnrc_netdev, gnrc_pktsnip_t *pkt)
@@ -71,10 +71,19 @@ static int _send(gnrc_netdev_t *gnrc_netdev, gnrc_pktsnip_t *pkt)
         default:
             cc110x_pkt.flags = 0;
     }
-
+    gnrc_pktsnip_t* tmp = pkt;
+    while(tmp){
+        DEBUG("%s:%u gnrc_netdev payload:\n", __func__, __LINE__);
+        for(int i = 0; i < tmp->size; i++){
+            DEBUG("0x%x ", *((char*)(tmp->data)+i));
+        }
+        tmp = tmp->next;
+    }
+    DEBUG("%s:%u payload type: 0x%x\n", __func__, __LINE__, payload->type);
     struct iovec vector;
     vector.iov_base = (char*)&cc110x_pkt;
     vector.iov_len = sizeof(cc110x_pkt_t);
+    DEBUG("%s:%u vector.iov_len: 0x%x\n", __func__, __LINE__, vector.iov_len);
 
     unsigned payload_len = 0;
     uint8_t *pos = cc110x_pkt.data;
@@ -93,6 +102,7 @@ static int _send(gnrc_netdev_t *gnrc_netdev, gnrc_pktsnip_t *pkt)
         pos += payload->size;
         payload = payload->next;
     }
+    DEBUG("%s:%u payload_len: 0x%x\n", __func__, __LINE__, payload_len);
 
     /* pkt has been copied into iovec, we're done with it. */
     gnrc_pktbuf_release(pkt);

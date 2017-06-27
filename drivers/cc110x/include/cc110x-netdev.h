@@ -24,6 +24,7 @@
 #include "periph/gpio.h"
 #include "periph/spi.h"
 #include "net/netdev.h"
+#include "net/netdev/ieee802154.h"
 #include "cc110x.h"
 
 #ifdef __cplusplus
@@ -39,7 +40,11 @@ extern const netdev_driver_t netdev_cc110x_driver;
  * @brief cc110x netdev struct
  */
 typedef struct netdev_cc110x {
+#ifdef MODULE_CC1200
+    netdev_ieee802154_t netdev;   /**< netdev parent struct */
+#else
     netdev_t netdev;        /**< writing obious */
+#endif
     cc110x_t cc110x;        /**< documentation here */
 } netdev_cc110x_t;
 

@@ -52,9 +52,6 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_hooks_init();
 #endif
 
-#if CC1200_802154G
-    DEBUG("%s:%s:%u 802.15.4G activated\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-#endif
 
     dev->params = *params;
 
@@ -64,10 +61,6 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     if(spi_return != SPI_OK){
         DEBUG("%s:%s:%u spi not ok\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     }
-    /*
-    gpio_init(dev->params.cs, GPIO_OUT);
-    gpio_set(dev->params.cs);
-    */
 
 
 #ifndef MODULE_CC1200
@@ -116,7 +109,14 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
     cc110x_write_reg(dev, CC110X_AGC_GAIN_ADJUST, (int8_t)CC110X_RF_CFG_RSSI_OFFSET);
     cc110x_set_channel(dev, 26);
     DEBUG("READING CC110X_PKT_CFG2: 0x%x\n", cc110x_read_reg(dev, CC110X_PKT_CFG2));
-    DEBUG("READING CC110X_PKT_CFG2: 0x%x\n", cc110x_read_reg(dev, CC110X_MDMCFG1));
+    DEBUG("READING CC110X_MDMCFG1: 0x%x\n", cc110x_read_reg(dev, CC110X_MDMCFG1));
+
+    /* set default node id */
+    uint64_t addr;
+    luid_get(&addr, 8);
+    cc110x_set_address_long(dev, addr);
+    cc110x_set_address_short(dev, (uint16_t)addr & 0xFFFF);
+    cc110x_set_address(dev, (uint8_t) addr & 0xFF);
 #else
     /* Write PATABLE (power settings) */
     cc110x_writeburst_reg(dev, CC110X_PATABLE, CC110X_DEFAULT_PATABLE, 8);
@@ -126,17 +126,19 @@ int cc110x_setup(cc110x_t *dev, const cc110x_params_t *params)
 
     /* Set default channel number */
     cc110x_set_channel(dev, CC110X_DEFAULT_CHANNEL);
-#endif
 
     /* set default node id */
     uint8_t addr;
     luid_get(&addr, 1);
     cc110x_set_address(dev, addr);
+#endif
 
+
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     LOG_INFO("cc110x: initialized with address=%u and channel=%i\n",
             (unsigned)dev->radio_address,
             dev->radio_channel);
-
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     return 0;
 }
 
@@ -158,6 +160,53 @@ uint8_t cc110x_set_address(cc110x_t *dev, uint8_t address)
 
     return 0;
 }
+
+#ifdef MODULE_CC1200
+uint64_t cc110x_set_address_long(cc110x_t *dev, uint64_t address)
+{
+    DEBUG("%s:%s:%u setting address long 0x%x\n", RIOT_FILE_RELATIVE, __func__,
+            __LINE__, (unsigned)address);
+    if (!(address < MIN_UID) || (address > 0xFFFFFFFFFFFFFFFF)) {
+        if (dev->radio_state != RADIO_UNKNOWN) {
+      
+            dev->radio_address_long = address;
+            return address;
+        }
+    }
+
+    return 0;
+}
+
+uint16_t cc110x_set_address_short(cc110x_t *dev, uint16_t address)
+{
+    DEBUG("%s:%s:%u setting address short 0x%x\n", RIOT_FILE_RELATIVE, __func__,
+            __LINE__, (unsigned)address);
+    if (!(address < MIN_UID) || (address > 0xFFFF)) {
+        if (dev->radio_state != RADIO_UNKNOWN) {
+      
+            dev->radio_address_short = address;
+            return address;
+        }
+    }
+
+    return 0;
+}
+
+uint16_t cc110x_set_pan_id(cc110x_t *dev, uint16_t pan_id)
+{
+    DEBUG("%s:%s:%u setting pan id 0x%x\n", RIOT_FILE_RELATIVE, __func__,
+            __LINE__, (unsigned)pan_id);
+    if (!(pan_id < MIN_UID) || (pan_id > 0xFF)) {
+        if (dev->radio_state != RADIO_UNKNOWN) {
+      
+            dev->pan_id = pan_id;
+            return pan_id;
+        }
+    }
+
+    return 0;
+}
+#endif /* MODULE_CC1200 */
 
 void cc110x_set_base_freq_raw(cc110x_t *dev, const char* freq_array)
 {

@@ -39,6 +39,9 @@ extern const char cc110x_default_base_freq[3];
 #endif
 
 
+#define CC110X_PANID_DEFAULT     (IEEE802154_DEFAULT_PANID)
+
+
 
 #ifdef __cplusplus
 }

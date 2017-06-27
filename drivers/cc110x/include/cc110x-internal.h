@@ -43,7 +43,11 @@ extern "C" {
 #define MIN_CHANNR                  (0)     /**< Minimum channel number */
 #define MAX_CHANNR                  (24)    /**< Maximum channel number */
 
+#ifdef MODULE_CC1200
+#define CC110X_PACKET_LENGTH        (0x7F)  /**< max packet length = 127b */
+#else
 #define CC110X_PACKET_LENGTH        (0xFF)  /**< max packet length = 255b */
+#endif /* MODULE_CC1200 */
 #define CC110X_SYNC_WORD_TX_TIME    (90000) /**< loop count (max. timeout ~15ms)
                                                  to wait for sync word to be
                                                  transmitted (GDO2 from low to

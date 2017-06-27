@@ -240,9 +240,6 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
     lock(dev);
     cpsr = irq_disable();
     cc110x_cs(dev);
-    if((addr >> 8) == 0x2F){
-        spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
-    }
 #ifndef MODULE_CC1200
     do {
         res1 = spi_transfer_reg(dev->params.spi, SPI_CS_UNDEF,
@@ -252,9 +249,18 @@ uint8_t cc110x_get_reg_robust(cc110x_t *dev, uint8_t addr)
     } while (res1 != res2);
     gpio_set(dev->params.cs);
 #else
-    do {
+    do
+    {
+        if ((addr >> 8) == 0x2F)
+        {
+            spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
+        }
         res1 = spi_transfer_reg(dev->params.spi, dev->params.cs,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
+        if ((addr >> 8) == 0x2F)
+        {
+            spi_transfer_byte(dev->params.spi, dev->params.cs, true, 0x2F | CC110X_READ_BURST);
+        }
         res2 = spi_transfer_reg(dev->params.spi, dev->params.cs,
                                 (addr | CC110X_READ_BURST), CC110X_NOBYTE);
     } while (res1 != res2);

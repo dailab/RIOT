@@ -28,6 +28,7 @@ extern "C" {
 #include "periph/gpio.h"
 #include "cc110x-internal.h"
 #include "net/gnrc/nettype.h"
+#include "net/ieee802154.h"
 
 /**
  * @brief Struct for holding cc110x IO parameters
@@ -57,6 +58,11 @@ struct cc110x {
     uint8_t radio_state;                        /**< Radio state */
     uint8_t radio_channel;                      /**< current Radio channel */
     uint8_t radio_address;                      /**< current Radio address */
+#ifdef MODULE_CC1200
+    uint16_t radio_address_short;               /**< current Radio address */
+    uint64_t radio_address_long;               /**< current Radio address */
+    uint16_t pan_id;                             /**< current pan id */
+#endif
 
     cc110x_pkt_buf_t pkt_buf;                   /**< RX/TX buffer */
     //void (*isr_cb)(cc110x_t *dev, void* arg);   /**< isr callback */
@@ -119,6 +125,42 @@ uint8_t cc110x_get_address(cc110x_t *dev);
  * @return 0 on error
  */
 uint8_t cc110x_set_address(cc110x_t *dev, uint8_t address);
+
+#ifdef MODULE_CC1200
+/**
+ * @brief Set cc110x radio address long
+ *
+ * @param[in] dev       device to work on
+ * @param[in] address   new address
+ *
+ * @return address set on success
+ * @return 0 on error
+ */
+uint64_t cc110x_set_address_long(cc110x_t *dev, uint64_t address);
+
+/**
+ * @brief Set cc110x radio address short
+ *
+ * @param[in] dev       device to work on
+ * @param[in] address   new address
+ *
+ * @return address set on success
+ * @return 0 on error
+ */
+uint16_t cc110x_set_address_short(cc110x_t *dev, uint16_t address);
+
+/**
+ * @brief Set cc110x pan id
+ *
+ * @param[in] dev       device to work on
+ * @param[in] pan_id    new pan id
+ *
+ * @return address set on success
+ * @return 0 on error
+ */
+uint16_t cc110x_set_pan_id(cc110x_t *dev, uint16_t pan_id);
+
+#endif /* MODULE_CC1200 */
 
 
 /**
