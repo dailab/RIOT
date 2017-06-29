@@ -11,13 +11,13 @@
  * @{
  *
  * @file
- * @brief     cc110x board specific configuration
+ * @brief     cc1200 board specific configuration
  *
  * @author    Kaspar Schleiser <kaspar@schleiser.de>
  */
 
-#ifndef CC110X_PARAMS_H
-#define CC110X_PARAMS_H
+#ifndef CC1200_PARAMS_H
+#define CC1200_PARAMS_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,9 +26,9 @@ extern "C" {
 #include "board.h"
 
 /**
- * @name CC110X configuration
+ * @name CC1200 configuration
  */
-const cc110x_params_t cc110x_params[] = {
+const cc1200_params_t cc1200_params[] = {
     {
         .spi  = 0,
         .cs   = CC1200_CSN_GPIO,
@@ -42,5 +42,5 @@ const cc110x_params_t cc110x_params[] = {
 #ifdef __cplusplus
 }
 #endif
-#endif /* CC110X_PARAMS_H */
+#endif /* CC1200_PARAMS_H */
 /** @} */
