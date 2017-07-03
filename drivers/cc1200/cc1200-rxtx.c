@@ -42,7 +42,7 @@
 #include "log.h"
 #include "led.h"
 
-#define ENABLE_DEBUG (1)
+#define ENABLE_DEBUG (0)
 #include "debug.h"
 
 static void _rx_abort(cc1200_t *dev)
@@ -59,7 +59,8 @@ static void _rx_abort(cc1200_t *dev)
 
 static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
 {
-    //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
     //int fifo = cc1200_get_reg_robust(dev, 0xfb);
     uint8_t fifo = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
     //DEBUG("%s:%s:%u FIFO: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, fifo);
@@ -85,6 +86,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
 
     if (!fifo) {
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
         gpio_irq_enable(dev->params.gdo2);
         return;
     }
@@ -159,13 +161,11 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
         int crc_ok = (status[I_LQI] & CRC_OK) >> 7;
 #endif
         if (crc_ok) {
-            /*
                     DEBUG("cc1200: received packet from=%u to=%u payload "
                             "len=%u\n",
                     (unsigned)pkt_buf->packet.phy_src,
                     (unsigned)pkt_buf->packet.address,
                     pkt_buf->packet.length-3);
-                    */
             /*Printing package */
             /*
             DEBUG("Printing received package after crc:\n");
@@ -176,6 +176,8 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
             /* let someone know that we've got a packet */
             callback(arg);
 
+            DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
             cc1200_switch_to_rx(dev);
         }
         else {
@@ -184,17 +186,18 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
             _rx_abort(dev);
         }
     }
-    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
 
 static void _rx_continue(cc1200_t *dev, void(*callback)(void*), void*arg)
 {
-        DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
 
 
     if (dev->radio_state != RADIO_RX_BUSY) {
-        //DEBUG("%s:%s:%u _rx_continue in invalid state\n", RIOT_FILE_RELATIVE,
-                //__func__, __LINE__);
+        DEBUG("%s:%s:%u _rx_continue in invalid state\n", RIOT_FILE_RELATIVE,
+                __func__, __LINE__);
         _rx_abort(dev);
         return;
     }
@@ -216,9 +219,12 @@ static void _rx_start(cc1200_t *dev)
 
     gpio_irq_disable(dev->params.gdo2);
     cc1200_write_reg(dev, CC1200_IOCFG2, 0x01);
+    /*
     if(gpio_read(dev->params.gdo2)){
+        DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         _rx_continue(dev, dev->isr_cb, dev->isr_cb_arg);
-    }
+    }*/
+    DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     gpio_irq_enable(dev->params.gdo2);
 }
 
@@ -230,6 +236,7 @@ static void _tx_abort(cc1200_t *dev)
 static void _tx_continue(cc1200_t *dev)
 {
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
     gpio_irq_disable(dev->params.gdo2);
 
     cc1200_pkt_t *pkt = &dev->pkt_buf.packet;
@@ -307,7 +314,7 @@ static void _tx_continue(cc1200_t *dev)
     {
         /* Switch to TX mode */
         cc1200_strobe(dev, CC1200_STX);
-        xtimer_usleep(100);
+        xtimer_usleep(200);
     }
 
     if (to_send < left)
@@ -332,7 +339,11 @@ void cc1200_isr_handler(cc1200_t *dev, void(*callback)(void*), void*arg)
 {
 //DEBUG("%s:%u\n", __func__, __LINE__);
 uint8_t rxbytes = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
+//xtimer_spin((xtimer_ticks33_t)100);
+//xtimer_spin(xtimer_ticks_from_usec(700));
 //DEBUG("%s:%u RX_BYTES: %u\n", __func__, __LINE__, rxbytes);
+//printf("RX_BYTES %s\n", __func__);
+//printf("test %u\n", rxbytes);
 
 /*
 #if ENABLE_DEBUG
@@ -345,24 +356,31 @@ DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, txbytes);
 
     switch (dev->radio_state) {
         case RADIO_RX:
-            if (gpio_read(dev->params.gdo0) | gpio_read(dev->params.gdo2) | (rxbytes > 0)) {
+            DEBUG("radio rx\n");
+            if (gpio_read(dev->params.gdo2) | (rxbytes > 0)) {
+            //if (gpio_read(dev->params.gdo0) | gpio_read(dev->params.gdo2) | (rxbytes > 0)) {
+            //if (gpio_read(dev->params.gdo2)) {
                 DEBUG("cc1200_isr_handler((): starting RX\n");
                 dev->isr_cb = callback;
                 dev->isr_cb_arg = arg; 
                 _rx_start(dev);
             }
-            #ifndef MODULE_CC1200
+            //#ifndef MODULE_CC1200
             else {
-                DEBUG("cc1200_isr_handler((): isr handled too slow?\n");
+                DEBUG("cc1200_isr_handler((): isr handled too slow or falling edge trigger\n");
                 _rx_abort(dev);
             }
-            #endif
+            //#endif
             break;
         case RADIO_RX_BUSY:
+    printf("%s:%u\n", __func__, __LINE__);
+            DEBUG("radio rx busy\n");
             _rx_continue(dev, callback, arg);
             break;
         case RADIO_TX_BUSY:
+            DEBUG("radio tx busy\n");
             if (!gpio_read(dev->params.gdo2)) {
+                //DEBUG("cc1200_isr_handler() RADIO_TX_BUSY + GDO2 NOT!\n");
                 _tx_continue(dev);
             }
             else {
@@ -378,6 +396,9 @@ DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, txbytes);
 
 int cc1200_send(cc1200_t *dev, cc1200_pkt_t *packet)
 {
+    //DEBUG("%s:%u\n", __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
+    //DEBUG("TEST\n");
     /*
     DEBUG("cc1200: snd pkt to %u payload_length=%u\n",
             (unsigned)packet->address, (unsigned)packet->length);
@@ -388,13 +409,15 @@ int cc1200_send(cc1200_t *dev, cc1200_pkt_t *packet)
     uint8_t size;
     switch (dev->radio_state) {
         case RADIO_RX_BUSY:
-            //DEBUG("%s:%u\n", __func__, __LINE__);
+            DEBUG("%s:%u\n", __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
         case RADIO_TX_BUSY:
             /*
             DEBUG("cc1200: invalid state for sending: %s\n",
                     cc1200_state_to_text(dev->radio_state));
                     */
-            //DEBUG("%s:%u\n", __func__, __LINE__);
+            DEBUG("%s:%u\n", __func__, __LINE__);
+    printf("%s:%u\n", __func__, __LINE__);
             return -EAGAIN;
     }
 

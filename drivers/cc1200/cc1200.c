@@ -272,11 +272,7 @@ void cc1200_switch_to_rx(cc1200_t *dev)
 
     dev->radio_state = RADIO_RX;
 
-#ifdef MODULE_CC1200
     cc1200_write_reg(dev, CC1200_IOCFG2, 0x6);
-#else
-    cc1200_write_reg(dev, CC1200_IOCFG2, 0x6);
-#endif
     cc1200_strobe(dev, CC1200_SRX);
 
     gpio_irq_enable(dev->params.gdo2);
@@ -314,9 +310,6 @@ int16_t cc1200_set_channel(cc1200_t *dev, uint8_t channr)
     if (channr > MAX_CHANNR) {
         return -1;
     }
-#ifndef MODULE_CC1200
-    cc1200_write_register(dev, CC1200_CHANNR, channr * 10);
-#else
     uint32_t freq;
     freq = CC1200_RF_CFG_CHAN_CENTER_F0 + (channr * CC1200_RF_CFG_CHAN_SPACING) / 1000 /* /1000 because chan_spacing is in Hz */;
     freq *= 4096; //Frequency Multiplier
@@ -324,7 +317,6 @@ int16_t cc1200_set_channel(cc1200_t *dev, uint8_t channr)
     cc1200_write_reg(dev, CC1200_FREQ2, ((uint8_t *)&freq)[2]);
     cc1200_write_reg(dev, CC1200_FREQ1, ((uint8_t *)&freq)[1]);
     cc1200_write_reg(dev, CC1200_FREQ0, ((uint8_t *)&freq)[0]);
-#endif
     dev->radio_channel = channr;
     cc1200_switch_to_rx(dev);
 
@@ -358,11 +350,7 @@ static void _power_up_reset(cc1200_t *dev)
 }
 #endif
 
-#ifdef MODULE_CC1200
 void cc1200_write_register(cc1200_t *dev, uint16_t r, uint8_t value)
-#else
-void cc1200_write_register(cc1200_t *dev, uint8_t r, uint8_t value)
-#endif
 {
     /* Save old radio state */
     uint8_t old_state = dev->radio_state;

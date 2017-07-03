@@ -85,62 +85,6 @@ extern "C" {
 #define CC1200_NOBYTE       (0xFF) /**< No command (for reading). */
 /** @} */
 
-#ifndef MODULE_CC1200
-
-/**
- * @name    Configuration Registers (47x)
- * @{
- */
-#define CC1200_IOCFG2       (0x00)      /**< GDO2 output pin configuration */
-#define CC1200_IOCFG1       (0x01)      /**< GDO1 output pin configuration */
-#define CC1200_IOCFG0       (0x02)      /**< GDO0 output pin configuration */
-#define CC1200_FIFOTHR      (0x03)      /**< RX FIFO and TX FIFO thresholds */
-#define CC1200_SYNC1        (0x04)      /**< Sync word, high byte */
-#define CC1200_SYNC0        (0x05)      /**< Sync word, low byte */
-#define CC1200_PKTLEN       (0x06)      /**< Packet length */
-#define CC1200_PKTCTRL1     (0x07)      /**< Packet automation control */
-#define CC1200_PKTCTRL0     (0x08)      /**< Packet automation control */
-#define CC1200_ADDR         (0x09)      /**< Device address */
-#define CC1200_CHANNR       (0x0A)      /**< Channel number */
-#define CC1200_FSCTRL1      (0x0B)      /**< Frequency synthesizer control */
-#define CC1200_FSCTRL0      (0x0C)      /**< Frequency synthesizer control */
-#define CC1200_FREQ2        (0x0D)      /**< Frequency control word, high byte */
-#define CC1200_FREQ1        (0x0E)      /**< Frequency control word, middle byte */
-#define CC1200_FREQ0        (0x0F)      /**< Frequency control word, low byte */
-#define CC1200_MDMCFG4      (0x10)      /**< Modem configuration */
-#define CC1200_MDMCFG3      (0x11)      /**< Modem configuration */
-#define CC1200_MDMCFG2      (0x12)      /**< Modem configuration */
-#define CC1200_MDMCFG1      (0x13)      /**< Modem configuration */
-#define CC1200_MDMCFG0      (0x14)      /**< Modem configuration */
-#define CC1200_DEVIATN      (0x15)      /**< Modem deviation setting */
-#define CC1200_MCSM2        (0x16)      /**< Main Radio Control State Machine configuration */
-#define CC1200_MCSM1        (0x17)      /**< Main Radio Control State Machine configuration */
-#define CC1200_MCSM0        (0x18)      /**< Main Radio Control State Machine configuration */
-#define CC1200_FOCCFG       (0x19)      /**< Frequency Offset Compensation configuration */
-#define CC1200_BSCFG        (0x1A)      /**< Bit Synchronization configuration */
-#define CC1200_AGCCTRL2     (0x1B)      /**< AGC control */
-#define CC1200_AGCCTRL1     (0x1C)      /**< AGC control */
-#define CC1200_AGCCTRL0     (0x1D)      /**< AGC control */
-#define CC1200_WOREVT1      (0x1E)      /**< High byte Event 0 timeout */
-#define CC1200_WOREVT0      (0x1F)      /**< Low byte Event 0 timeout */
-#define CC1200_WORCTRL      (0x20)      /**< Wake On Radio control */
-#define CC1200_FREND1       (0x21)      /**< Front end RX configuration */
-#define CC1200_FREND0       (0x22)      /**< Front end TX configuration */
-#define CC1200_FSCAL3       (0x23)      /**< Frequency synthesizer calibration */
-#define CC1200_FSCAL2       (0x24)      /**< Frequency synthesizer calibration */
-#define CC1200_FSCAL1       (0x25)      /**< Frequency synthesizer calibration */
-#define CC1200_FSCAL0       (0x26)      /**< Frequency synthesizer calibration */
-#define CC1200_RCCTRL1      (0x27)      /**< RC oscillator configuration */
-#define CC1200_RCCTRL0      (0x28)      /**< RC oscillator configuration */
-#define CC1200_FSTEST       (0x29)      /**< Frequency synthesizer calibration control */
-#define CC1200_PTEST        (0x2A)      /**< Production test */
-#define CC1200_AGCTEST      (0x2B)      /**< AGC test */
-#define CC1200_TEST2        (0x2C)      /**< Various test settings */
-#define CC1200_TEST1        (0x2D)      /**< Various test settings */
-#define CC1200_TEST0        (0x2E)      /**< Various test settings */
-/** @} */
-
-#else
 
 /**
  * @name CC1200 Defines
@@ -374,8 +318,6 @@ extern "C" {
 #define CC1200_AES_BUFFER0             (0x2FFF) /**< Advanced Encryption Standard Buffer [7:0] */
 /** @} */
 
-#endif //MODULE_CC1200
-
 /**
  * @name    Strobe commands (14x)
  * @{
@@ -414,27 +356,16 @@ extern "C" {
 #define CC1200_FREQEST      (0x32)      /**< Frequency Offset Estimate. */
 #define CC1200_LQI          (0x33)      /**< Demodulator estimate for Link Quality. */
 #define CC1200_RSSI         (0x34)      /**< Received signal strength indication. */
-#ifndef MODULE_CC1200
-#define CC1200_MARCSTATE    (0x35)      /**< Control state machine state. */
-#else
 #define CC1200_MARCSTATE    (0x2F73) /**< MARC State */
-#endif
 #define CC1200_WORTIME1     (0x36)      /**< High byte of WOR timer. */
 #define CC1200_WORTIME0     (0x37)      /**< Low byte of WOR timer. */
 #define CC1200_PKTSTATUS    (0x38)      /**< Current GDOx status and packet status. */
 #define CC1200_VCO_VC_DAC   (0x39)      /**< Current setting from PLL calibration module. */
 
-#ifndef MODULE_CC1200
-
-#define CC1200_TXBYTES      (0x3A)      /**< Underflow and number of bytes in the TX FIFO. */
-#define CC1200_RXBYTES      (0x3B)      /**< Overflow and number of bytes in the RX FIFO. */
-
-#else
 
 #define CC1200_TXBYTES      CC1200_NUM_TXBYTES      /**< Underflow and number of bytes in the TX FIFO. */
 #define CC1200_RXBYTES      CC1200_NUM_RXBYTES      /**< Overflow and number of bytes in the RX FIFO. */
 
-#endif
 /** @} */
 
 /**
