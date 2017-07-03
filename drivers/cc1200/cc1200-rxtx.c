@@ -96,6 +96,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
     if (!pkt_buf->pos) {
         pkt_buf->pos = 1;
 
+    //printf("%s:%u\n", __func__, __LINE__);
         pkt_buf->packet.length = cc1200_read_reg(dev, CC1200_RXFIFO);
 
         /* Possible packet received, RX -> IDLE (0.1 us) */
@@ -104,6 +105,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
     //DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->packet.length);
     //DEBUG("%s:%s:%u fifo: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, fifo);
 
+    printf("%s:%u\n", __func__, __LINE__);
     int left = pkt_buf->packet.length+1 - pkt_buf->pos;
 
     /* if the fifo doesn't contain the rest of the packet,
@@ -115,6 +117,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
     //to_read = fifo;
 
     //DEBUG("%s:%s:%u to_read: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, to_read);
+    //printf("%s:%u\n", __func__, __LINE__);
     if (to_read) {
         //DEBUG("%s:%u to read:%u\n", __func__, __LINE__, to_read);
         uint8_t buffer[to_read];
@@ -134,6 +137,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
         pkt_buf->pos += to_read;
     }
 
+    //printf("%s:%u\n", __func__, __LINE__);
     //DEBUG("%s:%s:%u to_read: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, to_read);
     if (to_read == left) {
         uint8_t status[2];
@@ -177,7 +181,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
             callback(arg);
 
             DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
             cc1200_switch_to_rx(dev);
         }
         else {
