@@ -65,12 +65,11 @@ struct cc1200 {
 #endif
 
     cc1200_pkt_buf_t pkt_buf;                   /**< RX/TX buffer */
-    //void (*isr_cb)(cc1200_t *dev, void* arg);   /**< isr callback */
-    void (*isr_cb)(void* arg);   /**< isr callback */
-    void *isr_cb_arg;                           /**< isr callback argument */
 #ifdef MODULE_GNRC_NETIF
     gnrc_nettype_t proto;                       /**< protocol the radio expects */
 #endif
+    void (*isr_cb)(void* arg);                  /**< isr callback */
+    void *isr_cb_arg;                           /**< isr callback argument */
 };
 
 /**

@@ -60,7 +60,7 @@ static void _rx_abort(cc1200_t *dev)
 static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
 {
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
     //int fifo = cc1200_get_reg_robust(dev, 0xfb);
     uint8_t fifo = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
     //DEBUG("%s:%s:%u FIFO: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, fifo);
@@ -91,11 +91,13 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
         return;
     }
 
+    //printf("%s:%u\n", __func__, __LINE__);
     cc1200_pkt_buf_t *pkt_buf = &dev->pkt_buf;
     //DEBUG("%s:%s:%u pkt_buf->pos: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->pos);
     if (!pkt_buf->pos) {
         pkt_buf->pos = 1;
 
+    //printf("%s:%u\n", __func__, __LINE__);
     //printf("%s:%u\n", __func__, __LINE__);
         pkt_buf->packet.length = cc1200_read_reg(dev, CC1200_RXFIFO);
 
@@ -105,7 +107,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
     //DEBUG("%s:%s:%u Packet Size: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, pkt_buf->packet.length);
     //DEBUG("%s:%s:%u fifo: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, fifo);
 
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
     int left = pkt_buf->packet.length+1 - pkt_buf->pos;
 
     /* if the fifo doesn't contain the rest of the packet,
@@ -119,6 +121,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
     //DEBUG("%s:%s:%u to_read: %u\n", RIOT_FILE_RELATIVE, __func__, __LINE__, to_read);
     //printf("%s:%u\n", __func__, __LINE__);
     if (to_read) {
+        /*
         //DEBUG("%s:%u to read:%u\n", __func__, __LINE__, to_read);
         uint8_t buffer[to_read];
         memset(buffer, 0x00, to_read);
@@ -126,14 +129,15 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
         cc1200_readburst_reg(dev, CC1200_RXFIFO,
                 (char*)buffer, to_read);
 
-        /*
         DEBUG("%s:%u Received:\n", __func__, __LINE__);
         for(int i = 0; i < to_read; i++){
             DEBUG("0x%x ", buffer[i]);
         }
         DEBUG("\n");
-        */
         memcpy(((char*)&(pkt_buf->packet))+(pkt_buf->pos), buffer, to_read);
+        */
+        cc1200_readburst_reg(dev, CC1200_RXFIFO,
+                ((char*)&(pkt_buf->packet))+(pkt_buf->pos), to_read);
         pkt_buf->pos += to_read;
     }
 
@@ -189,6 +193,9 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
             dev->cc1200_statistic.packets_in_crc_fail++;
             _rx_abort(dev);
         }
+    }else{
+        printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
+        printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
     }
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
@@ -223,11 +230,11 @@ static void _rx_start(cc1200_t *dev)
 
     gpio_irq_disable(dev->params.gdo2);
     cc1200_write_reg(dev, CC1200_IOCFG2, 0x01);
-    /*
+    //cc1200_write_reg(dev, CC1200_IOCFG2, 0x07);
     if(gpio_read(dev->params.gdo2)){
         DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
         _rx_continue(dev, dev->isr_cb, dev->isr_cb_arg);
-    }*/
+    }
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
     gpio_irq_enable(dev->params.gdo2);
 }
@@ -414,7 +421,8 @@ int cc1200_send(cc1200_t *dev, cc1200_pkt_t *packet)
     switch (dev->radio_state) {
         case RADIO_RX_BUSY:
             DEBUG("%s:%u\n", __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+            uint8_t rxbytes = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
+            printf("%s:%u rx fifo: %u\n", __func__, __LINE__, rxbytes);
         case RADIO_TX_BUSY:
             /*
             DEBUG("cc1200: invalid state for sending: %s\n",
