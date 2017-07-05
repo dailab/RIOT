@@ -86,7 +86,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
 
     if (!fifo) {
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
         gpio_irq_enable(dev->params.gdo2);
         return;
     }
@@ -194,8 +194,8 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
             _rx_abort(dev);
         }
     }else{
-        printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
-        printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
+        //printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
+        //printf("%s:%u FIFO: %u\n", __func__, __LINE__, fifo);
     }
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
 }
@@ -203,7 +203,7 @@ static void _rx_read_data(cc1200_t *dev, void(*callback)(void*), void*arg)
 static void _rx_continue(cc1200_t *dev, void(*callback)(void*), void*arg)
 {
     DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
 
 
     if (dev->radio_state != RADIO_RX_BUSY) {
@@ -247,7 +247,7 @@ static void _tx_abort(cc1200_t *dev)
 static void _tx_continue(cc1200_t *dev)
 {
     //DEBUG("%s:%s:%u\n", RIOT_FILE_RELATIVE, __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
     gpio_irq_disable(dev->params.gdo2);
 
     cc1200_pkt_t *pkt = &dev->pkt_buf.packet;
@@ -384,7 +384,7 @@ DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, txbytes);
             //#endif
             break;
         case RADIO_RX_BUSY:
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
             DEBUG("radio rx busy\n");
             _rx_continue(dev, callback, arg);
             break;
@@ -408,7 +408,7 @@ DEBUG("%s:%u TX_BYTES: %u\n", __func__, __LINE__, txbytes);
 int cc1200_send(cc1200_t *dev, cc1200_pkt_t *packet)
 {
     //DEBUG("%s:%u\n", __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
     //DEBUG("TEST\n");
     /*
     DEBUG("cc1200: snd pkt to %u payload_length=%u\n",
@@ -421,15 +421,16 @@ int cc1200_send(cc1200_t *dev, cc1200_pkt_t *packet)
     switch (dev->radio_state) {
         case RADIO_RX_BUSY:
             DEBUG("%s:%u\n", __func__, __LINE__);
-            uint8_t rxbytes = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
-            printf("%s:%u rx fifo: %u\n", __func__, __LINE__, rxbytes);
+            //uint8_t rxbytes = cc1200_read_reg(dev, CC1200_NUM_RXBYTES);
+            //uint8_t iocfg = cc1200_read_reg(dev, CC1200_IOCFG2);
+            //printf("%s:%u rx fifo: %u iocfg2: %u\n", __func__, __LINE__, rxbytes, iocfg);
         case RADIO_TX_BUSY:
             /*
             DEBUG("cc1200: invalid state for sending: %s\n",
                     cc1200_state_to_text(dev->radio_state));
                     */
             DEBUG("%s:%u\n", __func__, __LINE__);
-    printf("%s:%u\n", __func__, __LINE__);
+    //printf("%s:%u\n", __func__, __LINE__);
             return -EAGAIN;
     }
 

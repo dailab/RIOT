@@ -215,13 +215,10 @@ static int _set(netdev_t *dev, netopt_t opt, void *value, size_t value_len)
             if (!cc1200_set_address(cc1200, *(uint8_t*)value)) {
                 return -EINVAL;
             }
-#ifdef MODULE_CC1200
             if (!cc1200_set_address_short(cc1200, *(uint16_t*)value)) {
                 return -EINVAL;
             }
-#endif /* MODULE_CC1200 */
             break;
-#ifdef MODULE_CC1200
         case NETOPT_NID:
             if (value_len > sizeof(uint16_t)) {
                 res = -EOVERFLOW;
@@ -239,7 +236,6 @@ static int _set(netdev_t *dev, netopt_t opt, void *value, size_t value_len)
                 res = cc1200_set_address_long(cc1200, *((uint64_t*)value));
             }
             break;
-#endif /* MODULE_CC1200 */
 #ifdef MODULE_GNRC_NETIF
         case NETOPT_PROTO:
             if (value_len != sizeof(gnrc_nettype_t)) {
