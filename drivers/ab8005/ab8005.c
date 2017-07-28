@@ -135,7 +135,7 @@ ab08xx_read_reg(uint8_t reg, uint8_t *buf, uint8_t regnum)
       return AB08_SUCCESS;
   }
 
-  i2c_release(I2C_0_DEV);
+  i2c_release(RTC_0_DEV);
   return AB08_ERROR;
 }
 /*---------------------------------------------------------------------------*/
