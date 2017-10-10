@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 DAI Labor TU Berlin
+ * Copyright (C) 2017 DAI Labor Technische Universität Berlin
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,8 +7,7 @@
  */
 
 /**
- * @defgroup    boards_firefly
- * @ingroup     boards
+ * @ingroup     boards_firefly
  * @{
  *
  * @file
@@ -27,10 +26,10 @@ static inline void leds_init(void);
 
 void board_init(void)
 {
-    /* initialize the boards LEDs */
-    leds_init();
     /* initialize the CPU */
     cpu_init();
+    /* initialize the boards LEDs */
+    leds_init();
 }
 
 /**

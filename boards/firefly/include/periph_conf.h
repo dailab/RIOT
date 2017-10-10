@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 DAI Labor TU Berlin
+ * Copyright (C) 2017 DAI Labor Technische Universität Berlin
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,7 +7,7 @@
  */
 
 /**
- * @ingroup     board_firefly
+ * @ingroup     boards_firefly
  * @{
  *
  * @file
@@ -105,6 +105,16 @@ static const spi_conf_t spi_config[] = {
 
 #define SPI_NUMOF           (sizeof(spi_config) / sizeof(spi_config[0]))
 /** @} */
+
+/**
+ * @name ADC configuration
+ * @{
+ */
+#define SOC_ADC_ADCCON_REF  SOC_ADC_ADCCON_REF_AVDD5
+static const adc_conf_t adc_config[] = {};
+#define ADC_NUMOF 0
+/** @} */
+
  
 #ifdef __cplusplus
 } /* end extern "C" */
