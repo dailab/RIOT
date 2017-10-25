@@ -5,3 +5,6 @@ PORT_LINUX  ?= /dev/ttyUSB0
 PORT_DARWIN ?= $(firstword $(sort $(wildcard /dev/tty.SLAB_USBtoUART*)))
 
 include $(RIOTBOARD)/remote-common/Makefile.include
+
+#CC2538 and CC1200
+GNRC_NETIF_NUMOF = 2
