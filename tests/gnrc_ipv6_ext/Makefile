@@ -30,8 +30,6 @@ CFLAGS += -DDEVELHELP
 
 include $(RIOTBASE)/Makefile.include
 
-# This requires ENABLE_DEBUG in gnrc_ipv6.c to be 1
+# The test can check more things with ENABLE_DEBUG set to 1 in gnrc_ipv6.c
 test:
-# `testrunner` calls `make term` recursively, results in duplicated `TERMFLAGS`.
-# So clears `TERMFLAGS` before run.
-	TERMFLAGS= tests/01-run.py
+	tests/01-run.py

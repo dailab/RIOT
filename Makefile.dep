@@ -8,6 +8,12 @@ OLD_USEPKG := $(sort $(USEPKG))
 # pull dependencies from drivers
 include $(RIOTBASE)/drivers/Makefile.dep
 
+ifneq (,$(filter cbor_ctime,$(USEMODULE)))
+  ifneq (,$(filter newlib,$(USEMODULE)))
+    USEMODULE += newlib_gnu_source
+  endif
+endif
+
 ifneq (,$(filter csma_sender,$(USEMODULE)))
   USEMODULE += random
   USEMODULE += xtimer
@@ -319,8 +325,27 @@ ifneq (,$(filter gnrc_ipv6_nc,$(USEMODULE)))
   USEMODULE += ipv6_addr
 endif
 
+ifneq (,$(filter gnrc_ipv6_nib_6lbr,$(USEMODULE)))
+  USEMODULE += gnrc_ipv6_nib_6lr
+endif
+
+ifneq (,$(filter gnrc_ipv6_nib_6lr,$(USEMODULE)))
+  USEMODULE += gnrc_ipv6_nib_6ln
+  USEMODULE += gnrc_ipv6_nib_router
+endif
+
+ifneq (,$(filter gnrc_ipv6_nib_6ln,$(USEMODULE)))
+  USEMODULE += gnrc_ipv6_nib
+  USEMODULE += gnrc_sixlowpan_nd
+endif
+
+ifneq (,$(filter gnrc_ipv6_nib_router,$(USEMODULE)))
+  USEMODULE += gnrc_ipv6_nib
+endif
+
 ifneq (,$(filter gnrc_ipv6_nib,$(USEMODULE)))
   USEMODULE += evtimer
+  USEMODULE += gnrc_ndp2
   USEMODULE += ipv6_addr
   USEMODULE += random
 endif
@@ -358,12 +383,12 @@ ifneq (,$(filter gnrc_pktdump,$(USEMODULE)))
   USEMODULE += od
 endif
 
-ifneq (,$(filter gnrc_slip,$(USEMODULE)))
-  FEATURES_REQUIRED += periph_uart
-endif
-
 ifneq (,$(filter od,$(USEMODULE)))
   USEMODULE += fmt
+endif
+
+ifneq (,$(filter newlib_gnu_source,$(USEMODULE)))
+  USEMODULE += newlib
 endif
 
 ifneq (,$(filter newlib_nano,$(USEMODULE)))
@@ -582,7 +607,7 @@ ifneq (,$(filter evtimer,$(USEMODULE)))
 endif
 
 ifneq (,$(filter can_linux,$(USEMODULE)))
-  export LINKFLAGS += -lsocketcan
+  LINKFLAGS += -lsocketcan
 endif
 
 ifneq (,$(filter can,$(USEMODULE)))
