@@ -72,16 +72,14 @@ void spi_init_pins(spi_t bus)
     switch ((uintptr_t)spi_config[bus].dev) {
         case (uintptr_t)SSI0:
             IOC_PXX_SEL[spi_config[bus].mosi_pin] = SSI0_TXD;
-            IOC_PXX_SEL[spi_config[bus].sck_pin ] = SSI0_CLK_OUT;
-            IOC_PXX_SEL[spi_config[bus].cs_pin  ] = SSI0_FSS_OUT;
+            IOC_PXX_SEL[spi_config[bus].sck_pin ] = SSI0_CLKOUT;
 
             IOC_SSIRXD_SSI0 = spi_config[bus].miso_pin;
             break;
 
         case (uintptr_t)SSI1:
             IOC_PXX_SEL[spi_config[bus].mosi_pin] = SSI1_TXD;
-            IOC_PXX_SEL[spi_config[bus].sck_pin ] = SSI1_CLK_OUT;
-            IOC_PXX_SEL[spi_config[bus].cs_pin  ] = SSI1_FSS_OUT;
+            IOC_PXX_SEL[spi_config[bus].sck_pin ] = SSI1_CLKOUT;
 
             IOC_SSIRXD_SSI1 = spi_config[bus].miso_pin;
             break;
@@ -90,12 +88,10 @@ void spi_init_pins(spi_t bus)
     IOC_PXX_OVER[spi_config[bus].mosi_pin] = IOC_OVERRIDE_OE;
     IOC_PXX_OVER[spi_config[bus].miso_pin] = IOC_OVERRIDE_DIS;
     IOC_PXX_OVER[spi_config[bus].sck_pin ] = IOC_OVERRIDE_OE;
-    IOC_PXX_OVER[spi_config[bus].cs_pin  ] = IOC_OVERRIDE_OE;
 
     gpio_hardware_control(spi_config[bus].mosi_pin);
     gpio_hardware_control(spi_config[bus].miso_pin);
     gpio_hardware_control(spi_config[bus].sck_pin);
-    gpio_hardware_control(spi_config[bus].cs_pin);
 }
 
 int spi_acquire(spi_t bus, spi_cs_t cs, spi_mode_t mode, spi_clk_t clk)
