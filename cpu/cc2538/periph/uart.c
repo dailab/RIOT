@@ -316,3 +316,105 @@ void uart_poweroff(uart_t uart)
 {
     (void) uart;
 }
+
+int uart_mode(uart_t uart, uint8_t databits,
+    uint8_t stopbits, uart_parity_t parity)
+{
+    cc2538_uart_t *u;
+
+    switch (uart) {
+#if UART_0_EN
+        case UART_0:
+            u = UART_0_DEV;
+            break;
+#endif
+#if UART_1_EN
+        case UART_1:
+            u = UART_1_DEV;
+            break;
+#endif
+        default:
+            return -1;
+    }
+
+    /* flush TX buffer before mode switch */
+    uart_txflush(uart);
+
+    /* disable RX during mode switch */
+
+    u->cc2538_uart_ctl.CTLbits.RXE = 0;
+
+    switch(databits){
+        case 5:
+            u->cc2538_uart_lcrh.LCRHbits.WLEN = WLEN_5_BITS;
+            break;
+        case 6:
+            u->cc2538_uart_lcrh.LCRHbits.WLEN = WLEN_6_BITS;
+            break;
+        case 7:
+            u->cc2538_uart_lcrh.LCRHbits.WLEN = WLEN_7_BITS;
+            break;
+        case 8:
+            u->cc2538_uart_lcrh.LCRHbits.WLEN = WLEN_8_BITS;
+            break;
+        default:
+            u->cc2538_uart_ctl.CTLbits.RXE = 1;
+            return -2;
+    }
+
+    switch(stopbits){
+        case 1:
+            u->cc2538_uart_lcrh.LCRHbits.STP2 = 0;
+            break;
+        case 2:
+            u->cc2538_uart_lcrh.LCRHbits.STP2 = 1;
+            break;
+        default:
+            u->cc2538_uart_ctl.CTLbits.RXE = 1;
+            return -2;
+    }
+
+    switch(parity){
+        case UART_NONE:
+            u->cc2538_uart_lcrh.LCRHbits.EPS = 0;
+            u->cc2538_uart_lcrh.LCRHbits.PEN = 0;
+            break;
+        case UART_EVEN:
+            u->cc2538_uart_lcrh.LCRHbits.EPS = 1;
+            u->cc2538_uart_lcrh.LCRHbits.PEN = 1;
+            break;
+        case UART_ODD:
+            u->cc2538_uart_lcrh.LCRHbits.EPS = 0;
+            u->cc2538_uart_lcrh.LCRHbits.PEN = 1;
+            break;
+        default:
+            u->cc2538_uart_ctl.CTLbits.RXE = 1;
+            return -2;
+    }
+
+    u->cc2538_uart_ctl.CTLbits.RXE = 1;
+    return 0;
+}
+
+void uart_txflush(uart_t uart)
+{
+    cc2538_uart_t *u;
+
+    switch (uart) {
+#if UART_0_EN
+        case UART_0:
+            u = UART_0_DEV;
+            break;
+#endif
+#if UART_1_EN
+        case UART_1:
+            u = UART_1_DEV;
+            break;
+#endif
+        default:
+            return;
+    }
+
+    /* stupid busy waiting, could be improved... */
+    while(u->cc2538_uart_fr.FRbits.TXFE == 0);
+}
