@@ -78,8 +78,18 @@ static const timer_conf_t timer_config[] = {
  * @name    UART configuration
  * @{
  */
+#if ENABLE_UART_1
+
+#define UART_NUMOF          (2U)
+#define UART_0_EN           1
+#define UART_1_EN           1
+
+#else
+
 #define UART_NUMOF          (1U)
 #define UART_0_EN           1
+#endif
+
 #define UART_IRQ_PRIO       1
 
 /* UART 0 device configuration */
@@ -89,6 +99,18 @@ static const timer_conf_t timer_config[] = {
 /* UART 0 pin configuration */
 #define UART_0_TX_PIN       GPIO_PIN(0, 1)  /**< GPIO_PA1 */
 #define UART_0_RX_PIN       GPIO_PIN(0, 0)  /**< GPIO_PA0 */
+
+#if ENABLE_UART_1
+/* UART 1 device configuration */
+#define UART_1_DEV          UART1
+#define UART_1_IRQ          UART1_IRQn
+#define UART_1_ISR          isr_uart1
+/* UART 1 pin configuration */
+#define UART_1_TX_PIN       GPIO_PIN(PORT_C, 4)
+//#define UART_1_TX_PIN       GPIO_PIN(PORT_A, 2)
+#define UART_1_RX_PIN       GPIO_PIN(PORT_C, 5)
+#endif
+
 /** @} */
 
 #ifdef __cplusplus

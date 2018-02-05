@@ -80,6 +80,7 @@ static const spi_conf_t spi_config[] = {
         .miso_pin = GPIO_PB3,
         .sck_pin  = GPIO_PB2,
         .cs_pin   = GPIO_PB5
+#if !DISABLE_SPI_1
     },
     {
         .dev      = SSI1,
@@ -87,6 +88,7 @@ static const spi_conf_t spi_config[] = {
         .miso_pin = GPIO_PC6,
         .sck_pin  = GPIO_PC4,
         .cs_pin   = GPIO_PA7
+#endif
     }
 };
 #define SPI_NUMOF           (sizeof(spi_config) / sizeof(spi_config[0]))
