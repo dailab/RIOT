@@ -87,7 +87,47 @@ static mutex_t i2c_wait_mutex = MUTEX_INIT;
 static uint32_t speed_hz;
 static uint32_t scl_delay;
 
-#define bus_quiet()            ( cc2538_gpio_read(I2C_0_SCL_PIN) && cc2538_gpio_read(I2C_0_SDA_PIN) )
+/**
+ * @brief   Helper function to get port number for gpio pin
+ *
+ * @param[in] pin   gpio pin
+ *
+ * @return          port number of gpio pin, [0=A - 3=D]
+ */
+static inline uint8_t _port_num(gpio_t pin)
+{
+    return (uint8_t)((pin & GPIO_PORTNUM_MASK) >> GPIO_PORTNUM_SHIFT) - 1;
+}
+
+/**
+ * @brief   Helper function to get pin number for gpio pin
+ *
+ * @param[in] pin   gpio pin
+ *
+ * @return          pin number of gpio pin, [0 - 7]
+ */
+static inline uint8_t _pin_num(gpio_t pin)
+{
+    return (uint8_t)(pin & GPIO_PIN_MASK);
+}
+
+/**
+ * @brief   Helper function to get CC2538 gpio number from port and pin
+ *
+ * @param[in] pin   gpio pin
+ *
+ * @return          number of gpio pin, [0 - 31]
+ */
+static inline uint8_t _pp_num(gpio_t pin)
+{
+    return (uint8_t)((_port_num(pin) * GPIO_BITS_PER_PORT) + _pin_num(pin));
+}
+
+uint8_t truePin(uint32_t pin){
+    return pin<(uint32_t)GPIO_A?pin:_pp_num(pin);
+}
+
+#define bus_quiet()            ( cc2538_gpio_read(truePin(I2C_0_SCL_PIN)) && cc2538_gpio_read(truePin(I2C_0_SDA_PIN)) )
 #define WARN_IF(cond) \
         if (cond) { \
             DEBUG("%s at %s:%u\n", #cond, RIOT_FILE_NOPATH, __LINE__); \
@@ -95,28 +135,29 @@ static uint32_t scl_delay;
 
 void cc2538_i2c_init_master(uint32_t speed_hz);
 
+
 static void i2cm_ctrl_write(uint_fast8_t value) {
     WARN_IF(I2CM_STAT & BUSY);
     I2CM_CTRL = value;
 }
 
 static void assert_scl(void) {
-    cc2538_gpio_clear(I2C_0_SCL_PIN);
-    IOC_PXX_OVER[I2C_0_SCL_PIN] |= IOC_OVERRIDE_OE;
-    gpio_dir_output(I2C_0_SCL_PIN);
-    gpio_software_control(I2C_0_SCL_PIN);
+        cc2538_gpio_clear(truePin(I2C_0_SCL_PIN));
+        IOC_PXX_OVER[truePin(I2C_0_SCL_PIN)] |= IOC_OVERRIDE_OE;
+        gpio_dir_output(truePin(I2C_0_SCL_PIN));
+        gpio_software_control(truePin(I2C_0_SCL_PIN));
 }
 
 static void release_scl(void) {
-    IOC_PXX_OVER[I2C_0_SCL_PIN] &= ~(IOC_OVERRIDE_OE | IOC_OVERRIDE_PDE);
-    gpio_dir_input(I2C_0_SCL_PIN);
-    gpio_software_control(I2C_0_SCL_PIN);
+        IOC_PXX_OVER[truePin(I2C_0_SCL_PIN)] &= ~(IOC_OVERRIDE_OE | IOC_OVERRIDE_PDE);
+        gpio_dir_input(truePin(I2C_0_SCL_PIN));
+        gpio_software_control(truePin(I2C_0_SCL_PIN));
 }
 
 static void release_sda(void) {
-    IOC_PXX_OVER[I2C_0_SDA_PIN] &= ~(IOC_OVERRIDE_OE | IOC_OVERRIDE_PDE);
-    gpio_dir_input(I2C_0_SDA_PIN);
-    gpio_software_control(I2C_0_SDA_PIN);
+        IOC_PXX_OVER[truePin(I2C_0_SDA_PIN)] &= ~(IOC_OVERRIDE_OE | IOC_OVERRIDE_PDE);
+        gpio_dir_input(truePin(I2C_0_SDA_PIN));
+        gpio_software_control(truePin(I2C_0_SDA_PIN));
 }
 
 static void recover_i2c_bus(void) {
@@ -156,8 +197,8 @@ static void recover_i2c_bus(void) {
     }
 
     /* Return to hardware mode for the I2C pins */
-    gpio_hardware_control(I2C_0_SCL_PIN);
-    gpio_hardware_control(I2C_0_SDA_PIN);
+    gpio_hardware_control(truePin(I2C_0_SCL_PIN));
+    gpio_hardware_control(truePin(I2C_0_SDA_PIN));
 }
 
 #ifdef MODULE_XTIMER
@@ -233,17 +274,17 @@ void cc2538_i2c_init_master(uint32_t speed_hz)
     SYS_CTRL_SRI2C &= ~1;
 
     /* Clear all pin override flags except PUE (Pull-Up Enable) */
-    IOC_PXX_OVER[I2C_0_SCL_PIN] &= IOC_OVERRIDE_PUE;
-    IOC_PXX_OVER[I2C_0_SDA_PIN] &= IOC_OVERRIDE_PUE;
+    IOC_PXX_OVER[truePin(I2C_0_SCL_PIN)] &= IOC_OVERRIDE_PUE;
+    IOC_PXX_OVER[truePin(I2C_0_SDA_PIN)] &= IOC_OVERRIDE_PUE;
 
-    IOC_PXX_SEL[I2C_0_SCL_PIN] = I2C_SCL_OUT;
-    IOC_PXX_SEL[I2C_0_SDA_PIN] = I2C_SDA_OUT;
+    IOC_PXX_SEL[truePin(I2C_0_SCL_PIN)] = I2C_SCL_OUT;
+    IOC_PXX_SEL[truePin(I2C_0_SDA_PIN)] = I2C_SDA_OUT;
 
-    IOC_I2CMSSCL = I2C_0_SCL_PIN;
-    IOC_I2CMSSDA = I2C_0_SDA_PIN;
+    IOC_I2CMSSCL = truePin(I2C_0_SCL_PIN);
+    IOC_I2CMSSDA = truePin(I2C_0_SDA_PIN);
 
-    gpio_hardware_control(I2C_0_SCL_PIN);
-    gpio_hardware_control(I2C_0_SDA_PIN);
+    gpio_hardware_control(truePin(I2C_0_SCL_PIN));
+    gpio_hardware_control(truePin(I2C_0_SDA_PIN));
 
     /* Initialize the I2C master by setting the Master Function Enable bit */
     I2CM_CR |= MFE;
