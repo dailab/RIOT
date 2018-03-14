@@ -108,6 +108,7 @@ void cc2538_init(void)
     CCTEST_OBSSEL7 = OBSSEL_EN | rfc_obs_sig2; /* PC7 = GREEN_LED      */
 #else
     /* Assume BOARD_CC2538DK (or similar). */
+    #ifdef BOARD_CC2538DK
     CCTEST_OBSSEL0 = OBSSEL_EN | rfc_obs_sig0; /* PC0 = LED_1 (red)    */
     CCTEST_OBSSEL1 = OBSSEL_EN | rfc_obs_sig1; /* PC1 = LED_2 (yellow) */
     CCTEST_OBSSEL2 = OBSSEL_EN | rfc_obs_sig2; /* PC2 = LED_3 (green)  */
@@ -116,6 +117,16 @@ void cc2538_init(void)
     CCTEST_OBSSEL5 = 0;                        /* PC5 = BTN_R          */
     CCTEST_OBSSEL6 = 0;                        /* PC6 = BTN_UP         */
     CCTEST_OBSSEL7 = 0;                        /* PC7 = BTN_DN         */
+    #else
+    CCTEST_OBSSEL0 = 0; 
+    CCTEST_OBSSEL1 = OBSSEL_EN | rfc_obs_sig1; 
+    CCTEST_OBSSEL2 = 0; 
+    CCTEST_OBSSEL3 = 0;                        
+    CCTEST_OBSSEL4 = OBSSEL_EN | rfc_obs_sig2; 
+    CCTEST_OBSSEL5 = OBSSEL_EN | rfc_obs_sig0; 
+    CCTEST_OBSSEL6 = 0;                        
+    CCTEST_OBSSEL7 = 0;     
+    #endif
 #endif /* BOARD_OPENMOTE_CC2538 */
 
     if (SYS_CTRL->I_MAP) {
